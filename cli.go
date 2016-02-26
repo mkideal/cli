@@ -46,33 +46,33 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *FlagSet) {
 		tm       = typ.Elem()
 		vm       = val.Elem()
 		fieldNum = vm.NumField()
-		flags    = []*Flag{}
+		flags    = []*flag{}
 	)
 	for i := 0; i < fieldNum; i++ {
 		tfield := tm.Field(i)
 		vfield := vm.Field(i)
-		flag, err := newFlag(tfield, vfield)
+		fl, err := newFlag(tfield, vfield)
 		if flagSet.Error = err; err != nil {
 			return
 		}
 		// Ignored flag
-		if flag == nil {
+		if fl == nil {
 			continue
 		}
-		flags = append(flags, flag)
+		flags = append(flags, fl)
 		value := ""
-		if flag.assigned {
+		if fl.assigned {
 			value = fmt.Sprintf("%v", vfield.Interface())
 		}
 
-		names := append(flag.tag.shortNames, flag.tag.longNames...)
+		names := append(fl.tag.shortNames, fl.tag.longNames...)
 		for _, name := range names {
 			if _, ok := flagSet.flags[name]; ok {
-				flagSet.Error = fmt.Errorf("flag name `%s` repeat", name)
+				flagSet.Error = fmt.Errorf("flag `%s` repeat", name)
 				return
 			}
-			flagSet.flags[name] = flag
-			if flag.assigned {
+			flagSet.flags[name] = fl
+			if fl.assigned {
 				flagSet.Values[name] = []string{value}
 			}
 		}
@@ -107,7 +107,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 		}
 
 		arg = strs[0]
-		flag, ok := flagSet.flags[arg]
+		fl, ok := flagSet.flags[arg]
 		if !ok {
 			// If has prefix `--`
 			if strings.HasPrefix(arg, dashTwo) {
@@ -118,39 +118,39 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 			chars := []byte(strings.TrimPrefix(arg, dashOne))
 			for _, c := range chars {
 				tmp := string([]byte{c})
-				if flag, ok := flagSet.flags[tmp]; !ok {
+				if fl, ok := flagSet.flags[tmp]; !ok {
 					flagSet.Error = fmt.Errorf("unknown flag `%s`", tmp)
 					return
 				} else {
-					if flagSet.Error = flag.set(""); flagSet.Error != nil {
+					if flagSet.Error = fl.set(""); flagSet.Error != nil {
 						return
 					}
-					flagSet.Values[tmp] = []string{fmt.Sprintf("%v", flag.v.Interface())}
+					flagSet.Values[tmp] = []string{fmt.Sprintf("%v", fl.v.Interface())}
 				}
 			}
 		}
 
 		values = append(strs[1:], values...)
 		if len(values) == 0 {
-			flagSet.Error = flag.set("")
+			flagSet.Error = fl.set("")
 		} else if len(values) == 1 {
-			flagSet.Error = flag.set(values[0])
+			flagSet.Error = fl.set(values[0])
 		} else {
 			flagSet.Error = fmt.Errorf("too many(%d) value for flag `%s`", len(values), arg)
 		}
 		if flagSet.Error != nil {
 			return
 		}
-		flagSet.Values[arg] = []string{fmt.Sprintf("%v", flag.v.Interface())}
+		flagSet.Values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
 	}
 
-	for _, flag := range flagSet.flags {
-		if !flag.assigned && flag.tag.required {
-			flagSet.Error = fmt.Errorf("required argument `%s` missing", flag.name())
+	for _, fl := range flagSet.flags {
+		if !fl.assigned && fl.tag.required {
+			flagSet.Error = fmt.Errorf("required argument `%s` missing", fl.name())
 			return
 		}
-		if flag.assigned && flag.invalid {
-			flagSet.Error = fmt.Errorf("assign argument `%s` invalid", flag.name())
+		if fl.assigned && fl.invalid {
+			flagSet.Error = fmt.Errorf("assign argument `%s` invalid", fl.name())
 			return
 		}
 	}

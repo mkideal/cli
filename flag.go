@@ -14,17 +14,17 @@ type FlagSet struct {
 	Usage  string
 	Values url.Values
 
-	flags map[string]*Flag
+	flags map[string]*flag
 }
 
 func newFlagSet() *FlagSet {
 	return &FlagSet{
-		flags:  make(map[string]*Flag),
+		flags:  make(map[string]*flag),
 		Values: url.Values(make(map[string][]string)),
 	}
 }
 
-type Flag struct {
+type flag struct {
 	t reflect.StructField
 	v reflect.Value
 
@@ -34,68 +34,68 @@ type Flag struct {
 	typ      string
 }
 
-func newFlag(t reflect.StructField, v reflect.Value) (flag *Flag, err error) {
-	flag = &Flag{t: t, v: v}
+func newFlag(t reflect.StructField, v reflect.Value) (fl *flag, err error) {
+	fl = &flag{t: t, v: v}
 	tag, err := parseTag(t.Name, t.Tag)
 	if tag == nil {
 		return nil, nil
 	}
-	flag.tag = *tag
-	err = flag.init()
-	flag.typ = t.Type.Kind().String()
+	fl.tag = *tag
+	err = fl.init()
+	fl.typ = t.Type.Kind().String()
 	return
 }
 
-func (flag *Flag) init() error {
-	if flag.tag.defaultValue != "" {
-		return flag.set(flag.tag.defaultValue)
+func (fl *flag) init() error {
+	if fl.tag.defaultValue != "" {
+		return fl.set(fl.tag.defaultValue)
 	}
 	return nil
 }
 
-func (flag *Flag) name() string {
-	if len(flag.tag.longNames) > 0 {
-		return flag.tag.longNames[0]
+func (fl *flag) name() string {
+	if len(fl.tag.longNames) > 0 {
+		return fl.tag.longNames[0]
 	}
-	if len(flag.tag.shortNames) > 0 {
-		return flag.tag.shortNames[0]
+	if len(fl.tag.shortNames) > 0 {
+		return fl.tag.shortNames[0]
 	}
 	return ""
 }
 
-func (flag *Flag) set(s string) error {
-	kind := flag.t.Type.Kind()
-	flag.assigned = true
+func (fl *flag) set(s string) error {
+	kind := fl.t.Type.Kind()
+	fl.assigned = true
 	switch kind {
 	case reflect.Bool:
 		if v, ok := getBool(s); ok {
-			flag.v.SetBool(v)
+			fl.v.SetBool(v)
 		} else {
-			flag.invalid = true
+			fl.invalid = true
 		}
 
 	case reflect.String:
-		flag.v.SetString(s)
+		fl.v.SetString(s)
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if v, ok := getInt(s); ok {
-			flag.v.SetInt(v)
+			fl.v.SetInt(v)
 		} else {
-			flag.invalid = true
+			fl.invalid = true
 		}
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		if v, ok := getInt(s); ok {
-			flag.v.SetUint(uint64(v))
+			fl.v.SetUint(uint64(v))
 		} else {
-			flag.invalid = true
+			fl.invalid = true
 		}
 
 	case reflect.Float32, reflect.Float64:
 		if v, ok := getFloat(s); ok {
-			flag.v.SetFloat(float64(v))
+			fl.v.SetFloat(float64(v))
 		} else {
-			flag.invalid = true
+			fl.invalid = true
 		}
 	default:
 		return fmt.Errorf("invalid field type: %s", kind.String())
@@ -133,7 +133,7 @@ func getFloat(s string) (float64, bool) {
 	return f, true
 }
 
-type flagSlice []*Flag
+type flagSlice []*flag
 
 func (fs flagSlice) String() string {
 	var (
@@ -142,8 +142,8 @@ func (fs flagSlice) String() string {
 		lenType  = 0
 		sepSpace = len(sepName)
 	)
-	for _, flag := range fs {
-		tag := flag.tag
+	for _, fl := range fs {
+		tag := fl.tag
 		l := 0
 		for _, shortName := range tag.shortNames {
 			l += len(shortName) + sepSpace
@@ -158,22 +158,22 @@ func (fs flagSlice) String() string {
 		if l > lenLong {
 			lenLong = l
 		}
-		l = len(flag.typ) + sepColSpace
+		l = len(fl.typ) + sepColSpace
 		if l > lenType {
 			lenType = l
 		}
 	}
 
 	buff := bytes.NewBufferString("")
-	for _, flag := range fs {
-		tag := flag.tag
+	for _, fl := range fs {
+		tag := fl.tag
 		shortStr := strings.Join(tag.shortNames, sepName)
 		longStr := strings.Join(tag.longNames, sepName)
 		typeStr := ""
 		if tag.required {
-			typeStr = fmt.Sprintf("(%s*)", flag.typ)
+			typeStr = fmt.Sprintf("(%s*)", fl.typ)
 		} else {
-			typeStr = fmt.Sprintf("(%s)", flag.typ)
+			typeStr = fmt.Sprintf("(%s)", fl.typ)
 		}
 		format := ""
 		l1, l2, l3 := lenShort+sepSpace, lenLong+sepSpace, lenType+sepColSpace
