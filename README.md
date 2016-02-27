@@ -2,7 +2,7 @@ Command line interface
 ======================
 
 ### License
-[The MIT License (MIT)](https://zh.wikipedia.org/wiki/MIT許可證])
+[The MIT License (MIT)](https://zh.wikipedia.org/wiki/MIT許可證)
 
 
 ### Features
