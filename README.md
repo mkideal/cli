@@ -1,5 +1,4 @@
-Command line interface
-======================
+# Command line interface [![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE)
 
 ## License
 [The MIT License (MIT)](https://zh.wikipedia.org/wiki/MIT許可證)
@@ -79,7 +78,7 @@ Required string `cli:"*required"`
 `usage` tag describe the argument. If the argument is required, describe string has prefix `*` while show usage(`*` is red on unix-like os).
 
 ### dft
-`dft` tag specify argument default value.
+`dft` tag specify argument's default value.
 
 ## Cli/Command
 
