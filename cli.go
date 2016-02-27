@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"strings"
@@ -149,14 +150,23 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 		}
 	}
 
+	buff := bytes.NewBufferString("")
 	for _, fl := range flagSet.flags {
 		if !fl.assigned && fl.tag.required {
-			flagSet.Error = fmt.Errorf("required argument `%s` missing", fl.name())
-			return
+			if buff.Len() > 0 {
+				buff.WriteByte('\n')
+			}
+			buff.WriteString(fmt.Sprintf("%s required argument `%s` missing", red("ERR!"), fl.name()))
+			fmt.Fprintf()
 		}
 		if fl.assigned && fl.invalid {
-			flagSet.Error = fmt.Errorf("assigned argument `%s` invalid: %s", fl.name(), fl.invalidDesc)
-			return
+			if buff.Len() > 0 {
+				buff.WriteByte('\n')
+			}
+			buff.WriteString(fmt.Sprintf("%s assigned argument `%s` invalid: %s", red("ERR!"), fl.name(), fl.invalidDesc))
 		}
+	}
+	if buff.Len() > 0 {
+		flagSet.Error = fmt.Errorf(buff.String())
 	}
 }
