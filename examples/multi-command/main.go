@@ -15,7 +15,7 @@ var app = cli.NewWithCommand(&cli.Command{
 	Desc:   "Golang package manager",
 	ArgvFn: func() interface{} { return new(gogo_t) },
 	Fn:     gogo,
-})
+}, os.Stdout)
 
 type gogo_t struct {
 	Help    bool `cli:"h,help" usage:"display help information"`

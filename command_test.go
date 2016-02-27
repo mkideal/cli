@@ -5,7 +5,7 @@ import (
 )
 
 func TestCommand(t *testing.T) {
-	app := New("test")
+	app := New("test", nil)
 
 	type arg_t struct {
 		Help    bool   `cli:"h,help" usage:"show help"`

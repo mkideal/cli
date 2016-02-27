@@ -2,12 +2,17 @@ package cli
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"math"
 	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
+)
+
+var (
+	errValueOverflow = errors.New(red("value overflow"))
 )
 
 type FlagSet struct {
@@ -31,11 +36,12 @@ type flag struct {
 	t reflect.StructField
 	v reflect.Value
 
-	assigned    bool
-	invalid     bool
-	invalidDesc string
-	tag         cliTag
-	typ         string
+	assigned bool
+	err      error
+	/*invalid     bool
+	invalidDesc string*/
+	tag cliTag
+	typ string
 }
 
 func newFlag(t reflect.StructField, v reflect.Value) (fl *flag, err error) {
@@ -75,8 +81,7 @@ func (fl *flag) set(s string) error {
 		if v, err := getBool(s); err == nil {
 			fl.v.SetBool(v)
 		} else {
-			fl.invalid = true
-			fl.invalidDesc = err.Error()
+			fl.err = err
 		}
 
 	case reflect.String:
@@ -87,12 +92,10 @@ func (fl *flag) set(s string) error {
 			if minmaxIntCheck(kind, v) {
 				fl.v.SetInt(v)
 			} else {
-				fl.invalid = true
-				fl.invalidDesc = red("value overflow")
+				fl.err = errValueOverflow
 			}
 		} else {
-			fl.invalid = true
-			fl.invalidDesc = err.Error()
+			fl.err = err
 		}
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -100,12 +103,10 @@ func (fl *flag) set(s string) error {
 			if minmaxUintCheck(kind, v) {
 				fl.v.SetUint(uint64(v))
 			} else {
-				fl.invalid = true
-				fl.invalidDesc = red("value overflow")
+				fl.err = errValueOverflow
 			}
 		} else {
-			fl.invalid = true
-			fl.invalidDesc = err.Error()
+			fl.err = err
 		}
 
 	case reflect.Float32, reflect.Float64:
@@ -113,12 +114,10 @@ func (fl *flag) set(s string) error {
 			if minmaxFloatCheck(kind, v) {
 				fl.v.SetFloat(float64(v))
 			} else {
-				fl.invalid = true
-				fl.invalidDesc = "value overflow"
+				fl.err = errValueOverflow
 			}
 		} else {
-			fl.invalid = true
-			fl.invalidDesc = err.Error()
+			fl.err = err
 		}
 	default:
 		return fmt.Errorf("invalid field type: %s", kind.String())
@@ -168,12 +167,12 @@ func getBool(s string) (bool, error) {
 	if s == "true" || s == "" {
 		return true, nil
 	}
-	if s == "false" || s == "none" {
+	if s == "false" || s == "none" || s == "no" || s == "not" {
 		return false, nil
 	}
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		return false, fmt.Errorf("`%s` can not convert to a %s value", s, red("bool"))
+		return false, fmt.Errorf("`%s` couldn't convert to a %s value", s, red("bool"))
 	}
 	return i != 0, nil
 }
@@ -181,7 +180,7 @@ func getBool(s string) (bool, error) {
 func getInt(s string) (int64, error) {
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` can not convert to a %s value", s, red("int"))
+		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, red("int"))
 	}
 	return i, nil
 }
@@ -189,7 +188,7 @@ func getInt(s string) (int64, error) {
 func getUint(s string) (uint64, error) {
 	i, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` can not convert to a %s value", s, red("uint"))
+		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, red("uint"))
 	}
 	return i, nil
 }
@@ -197,7 +196,7 @@ func getUint(s string) (uint64, error) {
 func getFloat(s string) (float64, error) {
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` can not convert to a %s value", s, red("float"))
+		return 0, fmt.Errorf("`%s` couldn't convert to a %s value", s, red("float"))
 	}
 	return f, nil
 }

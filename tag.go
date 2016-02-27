@@ -1,9 +1,7 @@
 package cli
 
 import (
-	"fmt"
 	"reflect"
-	"regexp"
 	"strings"
 )
 
@@ -15,12 +13,8 @@ const (
 	dashOne = "-"
 	dashTwo = "--"
 
-	sepName          = ", "
-	sepColSpace      = 3
-	nameTagRegexpStr = "^[a-zA-Z0-9_\\-]{1,30}$"
+	sepName = ", "
 )
-
-var nameTagRegexp = regexp.MustCompile(nameTagRegexpStr)
 
 type cliTag struct {
 	required     bool
@@ -48,16 +42,12 @@ func parseTag(fieldName string, tag reflect.StructTag) (*cliTag, error) {
 	names := strings.Split(cli, ",")
 	isEmpty := true
 	for _, name := range names {
-		if name = strings.TrimSpace(name); name == "-" {
+		if name = strings.TrimSpace(name); name == dashOne {
 			return nil, nil
 		}
 		if len(name) == 0 {
 			continue
-		}
-		if !nameTagRegexp.MatchString(name) {
-			return nil, fmt.Errorf("flag `%s` does not match regexp `%s`", name, nameTagRegexpStr)
-		}
-		if len(name) == 1 {
+		} else if len(name) == 1 {
 			clitag.shortNames = append(clitag.shortNames, dashOne+name)
 		} else {
 			clitag.longNames = append(clitag.longNames, dashTwo+name)
@@ -67,6 +57,5 @@ func parseTag(fieldName string, tag reflect.StructTag) (*cliTag, error) {
 	if isEmpty {
 		clitag.longNames = append(clitag.longNames, dashTwo+fieldName)
 	}
-	//TODO: validate tags
 	return clitag, nil
 }

@@ -16,10 +16,10 @@ type Cli struct {
 }
 
 func New(root string, writer io.Writer) *Cli {
-	return NewWithCommand(&Command{Name: root, writer: writer})
+	return NewWithCommand(&Command{Name: root, writer: writer}, writer)
 }
 
-func NewWithCommand(cmd *Command) *Cli {
+func NewWithCommand(cmd *Command, writer io.Writer) *Cli {
 	app := new(Cli)
 	app.root = cmd
 	return app
@@ -165,7 +165,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 					if flagSet.Error = fl.set(""); flagSet.Error != nil {
 						return
 					}
-					if !fl.invalid {
+					if fl.err == nil {
 						flagSet.Values[tmp] = []string{fmt.Sprintf("%v", fl.v.Interface())}
 					}
 				}
@@ -184,7 +184,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 		if flagSet.Error != nil {
 			return
 		}
-		if !fl.invalid {
+		if fl.err == nil {
 			flagSet.Values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
 		}
 	}
@@ -197,11 +197,11 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 			}
 			fmt.Fprintf(buff, "%s required argument `%s` missing", red("ERR!"), fl.name())
 		}
-		if fl.assigned && fl.invalid {
+		if fl.assigned && fl.err != nil {
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')
 			}
-			fmt.Fprintf(buff, "%s assigned argument `%s` invalid: %s", red("ERR!"), fl.name(), fl.invalidDesc)
+			fmt.Fprintf(buff, "%s assigned argument `%s` invalid: %v", red("ERR!"), fl.name(), fl.err)
 		}
 	}
 	if buff.Len() > 0 {
