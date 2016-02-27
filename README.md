@@ -1,18 +1,18 @@
 Command line interface
 ======================
 
-### License
+## License
 [The MIT License (MIT)](https://zh.wikipedia.org/wiki/MIT許可證)
 
 
-### Features
+## Features
 
 1. Based on golang tag. Support three tags: cli,usage,dft
 2. Support specify default value: use dft tag
 3. Support required declaration: cli tag with prefix `*`
 4. Support multi flag name for same one field: like `cli:"h,help"`
 
-### Usage
+## Usage
 	
 First, you should define a struct, like this:
 ```go
@@ -51,11 +51,11 @@ usage := cli.Usage(new(Args))
 fmt.Printf("Usage of `%s'`: \n%s", os.Args[0], usage)
 ```
 
-### Tags
+## Tags
 
 #### cli
 
-*cli* tag support singlechar format and multichar format, e.g.
+**cli** tag support singlechar format and multichar format, e.g.
 
 ```go
 Help    bool    `cli:"h,help"`
@@ -64,7 +64,7 @@ Port    int     `cli:"p"`
 XYZ     bool    `cli:"x,y,z,xyz,XYZ"` 
 ```
 
-The argument is required if *cli* tag has prefix `*`, e.g.
+The argument is required if **cli** tag has prefix `*`, e.g.
 
 ```go
 Required string `cli:"*required"`
@@ -72,7 +72,7 @@ Required string `cli:"*required"`
 
 #### usage
 
-*usage* tag describe the argument. If the argument is required, describe string has `*` prefix while show usage(`*` is red on unix-like os).
+**usage** tag describe the argument. If the argument is required, describe string has `*` prefix while show usage(`*` is red on unix-like os).
 
 #### dft
-*dft* tag specify argument default value.
+**dft** tag specify argument default value.
