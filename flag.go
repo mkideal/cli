@@ -139,7 +139,6 @@ func (fs flagSlice) String() string {
 	var (
 		lenShort = 0
 		lenLong  = 0
-		lenType  = 0
 		sepSpace = len(sepName)
 	)
 	for _, fl := range fs {
@@ -158,10 +157,6 @@ func (fs flagSlice) String() string {
 		if l > lenLong {
 			lenLong = l
 		}
-		l = len(fl.typ) + sepColSpace
-		if l > lenType {
-			lenType = l
-		}
 	}
 
 	buff := bytes.NewBufferString("")
@@ -169,27 +164,24 @@ func (fs flagSlice) String() string {
 		tag := fl.tag
 		shortStr := strings.Join(tag.shortNames, sepName)
 		longStr := strings.Join(tag.longNames, sepName)
-		typeStr := ""
-		if tag.required {
-			typeStr = fmt.Sprintf("(%s*)", fl.typ)
-		} else {
-			typeStr = fmt.Sprintf("(%s)", fl.typ)
-		}
 		format := ""
-		l1, l2, l3 := lenShort+sepSpace, lenLong+sepSpace, lenType+sepColSpace
+		l1, l2 := lenShort+sepSpace, lenLong+sepSpace
 		if shortStr == "" {
-			format = fmt.Sprintf("%%%ds%%-%ds%%-%ds%%s", l1, l2, l3)
+			format = fmt.Sprintf("%%%ds%%-%ds%%s", l1, l2)
 		} else if longStr == "" {
-			format = fmt.Sprintf("%%%ds%s%%-%ds%%-%ds%%s", lenShort, strings.Repeat(" ", sepSpace), l2, l3)
+			format = fmt.Sprintf("%%%ds%s%%-%ds%%s", lenShort, strings.Repeat(" ", sepSpace), l2)
 		} else {
-			format = fmt.Sprintf("%%%ds%s%%-%ds%%-%ds%%s", lenShort, sepName, l2, l3)
+			format = fmt.Sprintf("%%%ds%s%%-%ds%%s", lenShort, sepName, l2)
 		}
-		//fmt.Printf("format: %v\n", format) // FIXME: remove me
-		usage := tag.usage
+		usagePrefix := " "
+		if tag.required {
+			usagePrefix = red("*")
+		}
+		usage := usagePrefix + tag.usage
 		if tag.defaultValue != "" {
-			usage = fmt.Sprintf("%s[default=%s]", usage, tag.defaultValue)
+			usage += gray("[default=%s]", tag.defaultValue)
 		}
-		buff.WriteString(fmt.Sprintf(format+"\n", shortStr, longStr, typeStr, usage))
+		buff.WriteString(fmt.Sprintf(format+"\n", shortStr, longStr, usage))
 	}
 	return buff.String()
 }

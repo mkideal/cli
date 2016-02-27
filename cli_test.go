@@ -1,7 +1,7 @@
 package cli
 
 import (
-	//"fmt"
+	"fmt"
 	"testing"
 )
 
@@ -31,20 +31,20 @@ func TestUsage(t *testing.T) {
 	if flagSet.Error != nil {
 		t.Errorf("error: %v", flagSet.Error)
 	}
-	wantUsage := `      -v                        (bool)       only single char
-  -X, -Y                        (string)     many single char
-      -s, --single-and-multi    (int)        single and multi
-          --only-multi          (uint)       only multi
-          --required            (int8*)      required value
-          --id                  (uint8)      default value[default=1024]
-          --UnName              (uint16)     unname field
-          --i32                 (int32)      type int32
-          --u32                 (uint32)     type uint32
-          --i64                 (int64)      type int64
-          --u64                 (int64)      type uint64
-          --f32                 (float32)    type float32
-          --f364                (float64)    type float64
-`
+	wantUsage := fmt.Sprintf(`      -v                         only single char
+  -X, -Y                         many single char
+      -s, --single-and-multi     single and multi
+          --only-multi           only multi
+          --required            %srequired value
+          --id                   default value%s
+          --UnName               unname field
+          --i32                  type int32
+          --u32                  type uint32
+          --i64                  type int64
+          --u64                  type uint64
+          --f32                  type float32
+          --f364                 type float64
+`, red("*"), gray("[default=1024]"))
 	if flagSet.Usage != wantUsage {
 		t.Errorf("usage from `Parse` func want: `%s`, got `%s`", wantUsage, flagSet.Usage)
 	}
