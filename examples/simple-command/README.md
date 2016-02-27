@@ -1,7 +1,7 @@
 Simple command app
 ==================
 
-Try type these command in terminal
+Try type these commands in terminal
 
 ```sh
 go build

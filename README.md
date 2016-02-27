@@ -4,6 +4,10 @@ Command line interface
 ## License
 [The MIT License (MIT)](https://zh.wikipedia.org/wiki/MIT許可證)
 
+## Install
+```sh
+go get github.com/mkideal/cli
+```
 
 ## Features
 
@@ -81,7 +85,7 @@ Required string `cli:"*required"`
 
 `Cli` and `Command` define:
 
-```
+```go
 type Cli struct {
 	root *Command
 }
@@ -99,7 +103,7 @@ type Command struct {
 
 Example:
 
-```
+```go
 package main
 
 import (
