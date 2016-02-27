@@ -94,7 +94,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 		}
 		values := []string{}
 		for j := i + 1; j < size; j++ {
-			if strings.HasPrefix(arg, dashOne) {
+			if strings.HasPrefix(args[j], dashOne) {
 				break
 			}
 			values = append(values, args[j])
@@ -117,7 +117,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 			// Else find arg char by char
 			chars := []byte(strings.TrimPrefix(arg, dashOne))
 			for _, c := range chars {
-				tmp := string([]byte{c})
+				tmp := dashOne + string([]byte{c})
 				if fl, ok := flagSet.flags[tmp]; !ok {
 					flagSet.Error = fmt.Errorf("unknown flag `%s`", tmp)
 					return
@@ -125,9 +125,12 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 					if flagSet.Error = fl.set(""); flagSet.Error != nil {
 						return
 					}
-					flagSet.Values[tmp] = []string{fmt.Sprintf("%v", fl.v.Interface())}
+					if !fl.invalid {
+						flagSet.Values[tmp] = []string{fmt.Sprintf("%v", fl.v.Interface())}
+					}
 				}
 			}
+			continue
 		}
 
 		values = append(strs[1:], values...)
@@ -141,7 +144,9 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 		if flagSet.Error != nil {
 			return
 		}
-		flagSet.Values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
+		if !fl.invalid {
+			flagSet.Values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
+		}
 	}
 
 	for _, fl := range flagSet.flags {
@@ -150,7 +155,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 			return
 		}
 		if fl.assigned && fl.invalid {
-			flagSet.Error = fmt.Errorf("assign argument `%s` invalid", fl.name())
+			flagSet.Error = fmt.Errorf("assigned argument `%s` invalid", fl.name())
 			return
 		}
 	}
