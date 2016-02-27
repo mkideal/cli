@@ -137,22 +137,23 @@ type flagSlice []*flag
 
 func (fs flagSlice) String() string {
 	var (
-		lenShort = 0
-		lenLong  = 0
-		sepSpace = len(sepName)
+		lenShort  = 0
+		lenLong   = 0
+		lenSep    = len(sepName)
+		sepSpaces = strings.Repeat(" ", lenSep)
 	)
 	for _, fl := range fs {
 		tag := fl.tag
 		l := 0
 		for _, shortName := range tag.shortNames {
-			l += len(shortName) + sepSpace
+			l += len(shortName) + lenSep
 		}
 		if l > lenShort {
 			lenShort = l
 		}
 		l = 0
 		for _, longName := range tag.longNames {
-			l += len(longName) + sepSpace
+			l += len(longName) + lenSep
 		}
 		if l > lenLong {
 			lenLong = l
@@ -165,11 +166,11 @@ func (fs flagSlice) String() string {
 		shortStr := strings.Join(tag.shortNames, sepName)
 		longStr := strings.Join(tag.longNames, sepName)
 		format := ""
-		l1, l2 := lenShort+sepSpace, lenLong+sepSpace
+		l1, l2 := lenShort+lenSep, lenLong+lenSep
 		if shortStr == "" {
 			format = fmt.Sprintf("%%%ds%%-%ds%%s", l1, l2)
 		} else if longStr == "" {
-			format = fmt.Sprintf("%%%ds%s%%-%ds%%s", lenShort, strings.Repeat(" ", sepSpace), l2)
+			format = fmt.Sprintf("%%%ds%s%%-%ds%%s", lenShort, sepSpaces, l2)
 		} else {
 			format = fmt.Sprintf("%%%ds%s%%-%ds%%s", lenShort, sepName, l2)
 		}
