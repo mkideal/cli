@@ -24,6 +24,7 @@ func TestCommand(t *testing.T) {
 			}
 			return nil
 		},
+		Desc:   "sub1 command describe",
 		ArgvFn: func() interface{} { return new(arg_t) },
 	})
 
@@ -39,6 +40,7 @@ func TestCommand(t *testing.T) {
 			}
 			return nil
 		},
+		Desc:   "sub1 sub11 command describe",
 		ArgvFn: func() interface{} { return new(arg_t) },
 	})
 

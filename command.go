@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 )
 
@@ -18,6 +21,7 @@ type (
 		argv       interface{}
 		nativeArgs []string
 		flagSet    *FlagSet
+		command    *Command
 	}
 
 	CommandFunc func(*Context) error
@@ -25,11 +29,15 @@ type (
 	ArgvFunc func() interface{}
 
 	Command struct {
-		Name     string
-		Desc     string
-		Fn       CommandFunc
-		ArgvFn   ArgvFunc
-		Children []*Command
+		Name   string
+		Desc   string
+		Fn     CommandFunc
+		ArgvFn ArgvFunc
+
+		parent   *Command
+		children []*Command
+
+		writer io.Writer
 	}
 )
 
@@ -43,9 +51,6 @@ func newContext(router, args []string, argv interface{}) (*Context, error) {
 	}
 	ctx.nativeArgs = args
 
-	if len(ctx.router) == 0 {
-		return nil, errEmptyCommand
-	}
 	ctx.path = strings.Join(ctx.router, " ")
 	ctx.flagSet = Parse(args, argv)
 	if ctx.flagSet.Error != nil {
@@ -75,6 +80,17 @@ func (ctx *Context) Argv() interface{} {
 	return ctx.argv
 }
 
+func (ctx *Context) Command() *Command {
+	return ctx.command
+}
+
+func (ctx *Context) Writer() io.Writer {
+	if ctx.command.writer == nil {
+		return os.Stdout
+	}
+	return ctx.command.writer
+}
+
 //---------
 // Command
 //---------
@@ -85,13 +101,17 @@ func (cmd *Command) Register(child *Command) *Command {
 	if child.ArgvFn == nil {
 		panic(`child.ArgvFn == nil`)
 	}
-	if cmd.Children == nil {
-		cmd.Children = []*Command{}
+	if cmd.children == nil {
+		cmd.children = []*Command{}
 	}
 	if cmd.findChild(child.Name) != nil {
 		panic(fmt.Sprintf("repeat child `%s` of `%s`", child.Name, cmd.Name))
 	}
-	cmd.Children = append(cmd.Children, child)
+	cmd.children = append(cmd.children, child)
+	child.parent = cmd
+	if child.writer == nil {
+		child.writer = child.parent.writer
+	}
 	return child
 }
 
@@ -108,7 +128,9 @@ func (cmd *Command) Run(args []string) error {
 		router = append(router, arg)
 	}
 	if len(router) == 0 {
-		return errEmptyCommand
+		if cmd.Fn == nil || cmd.ArgvFn == nil {
+			return errEmptyCommand
+		}
 	}
 	child := cmd.route(router)
 	if child == nil {
@@ -118,7 +140,36 @@ func (cmd *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
+	ctx.command = child
 	return child.Fn(ctx)
+}
+
+func (cmd *Command) Usage() string {
+	buff := bytes.NewBufferString("")
+	fmt.Fprintf(buff, "Usage of `%s':\n", cmd.Path())
+	if cmd.Desc != "" {
+		fmt.Fprintf(buff, "\n%s\n\n", cmd.Desc)
+	}
+	fmt.Fprintf(buff, Usage(cmd.ArgvFn()))
+	return buff.String()
+}
+
+func (cmd *Command) Path() string {
+	path := cmd.Name
+	cur := cmd
+	for cur.parent != nil {
+		cur = cur.parent
+		path = cur.Name + " " + path
+	}
+	return path
+}
+
+func (cmd *Command) Parent() *Command {
+	return cmd.parent
+}
+
+func (cmd *Command) Children() []*Command {
+	return cmd.children
 }
 
 func (cmd *Command) route(router []string) *Command {
@@ -134,9 +185,9 @@ func (cmd *Command) route(router []string) *Command {
 }
 
 func (cmd *Command) findChild(name string) *Command {
-	for _, sub := range cmd.Children {
-		if sub.Name == name {
-			return sub
+	for _, child := range cmd.children {
+		if child.Name == name {
+			return child
 		}
 	}
 	return nil

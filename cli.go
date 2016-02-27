@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"reflect"
 	"strings"
 )
@@ -14,10 +15,18 @@ type Cli struct {
 	root *Command
 }
 
-func New(root string) *Cli {
+func New(root string, writer io.Writer) *Cli {
+	return NewWithCommand(&Command{Name: root, writer: writer})
+}
+
+func NewWithCommand(cmd *Command) *Cli {
 	app := new(Cli)
-	app.root = &Command{Name: root}
+	app.root = cmd
 	return app
+}
+
+func (app *Cli) Root() *Command {
+	return app.root
 }
 
 func (app *Cli) Register(cmd *Command) *Command {
@@ -78,7 +87,6 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *FlagSet) {
 		tm       = typ.Elem()
 		vm       = val.Elem()
 		fieldNum = vm.NumField()
-		flags    = []*flag{}
 	)
 	for i := 0; i < fieldNum; i++ {
 		tfield := tm.Field(i)
@@ -91,7 +99,7 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *FlagSet) {
 		if fl == nil {
 			continue
 		}
-		flags = append(flags, fl)
+		flagSet.slice = append(flagSet.slice, fl)
 		value := ""
 		if fl.assigned {
 			value = fmt.Sprintf("%v", vfield.Interface())
@@ -109,7 +117,7 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *FlagSet) {
 			}
 		}
 	}
-	flagSet.Usage = flagSlice(flags).String()
+	flagSet.Usage = flagSlice(flagSet.slice).String()
 }
 
 func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet) {
@@ -182,7 +190,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 	}
 
 	buff := bytes.NewBufferString("")
-	for _, fl := range flagSet.flags {
+	for _, fl := range flagSet.slice {
 		if !fl.assigned && fl.tag.required {
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')

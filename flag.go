@@ -16,11 +16,13 @@ type FlagSet struct {
 	Values url.Values
 
 	flags map[string]*flag
+	slice []*flag
 }
 
 func newFlagSet() *FlagSet {
 	return &FlagSet{
 		flags:  make(map[string]*flag),
+		slice:  []*flag{},
 		Values: url.Values(make(map[string][]string)),
 	}
 }
