@@ -155,7 +155,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 			return
 		}
 		if fl.assigned && fl.invalid {
-			flagSet.Error = fmt.Errorf("assigned argument `%s` invalid", fl.name())
+			flagSet.Error = fmt.Errorf("assigned argument `%s` invalid: %s", fl.name(), fl.invalidDesc)
 			return
 		}
 	}
