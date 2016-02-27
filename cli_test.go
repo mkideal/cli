@@ -11,7 +11,7 @@ type arg_t struct {
 	SingleAndMulti int     `cli:"s,single-and-multi" usage:"single and multi"`
 	OnlyMulti      uint    `cli:"only-multi, " usage:"only multi"`
 	Required       int8    `cli:"*required" usage:"required value"`
-	Default        uint8   `cli:"id" usage:"default value" dft:"1024"`
+	Default        uint8   `cli:"id" usage:"default value" dft:"102"`
 	Ignored        int16   `cli:"-" usage:"ignored field"`
 	UnName         uint16  `usage:"unname field"`
 	Int32          int32   `cli:"i32" usage:"type int32"`
@@ -44,7 +44,7 @@ func TestUsage(t *testing.T) {
           --u64                  type uint64
           --f32                  type float32
           --f364                 type float64
-`, red("*"), gray("[default=1024]"))
+`, red("*"), gray("[default=102]"))
 	if flagSet.Usage != wantUsage {
 		t.Errorf("usage from `Parse` func want: `%s`, got `%s`", wantUsage, flagSet.Usage)
 	}

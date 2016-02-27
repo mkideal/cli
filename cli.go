@@ -7,6 +7,34 @@ import (
 	"strings"
 )
 
+//-----
+// Cli
+//-----
+type Cli struct {
+	root *Command
+}
+
+func New(root string) *Cli {
+	app := new(Cli)
+	app.root = &Command{Name: root}
+	return app
+}
+
+func (app *Cli) Register(cmd *Command) *Command {
+	return app.root.Register(cmd)
+}
+
+func (app *Cli) RegisterFunc(name string, fn CommandFunc, argvFn ArgvFunc) *Command {
+	return app.root.RegisterFunc(name, fn, argvFn)
+}
+
+func (app *Cli) Run(args []string) error {
+	return app.root.Run(args)
+}
+
+//---------------------
+// `Parse` parses args
+//---------------------
 func Parse(args []string, v interface{}) *FlagSet {
 	var (
 		typ     = reflect.TypeOf(v)
@@ -27,6 +55,9 @@ func Parse(args []string, v interface{}) *FlagSet {
 	}
 }
 
+//------------------------------
+// `Usage` get the usage string
+//------------------------------
 func Usage(v interface{}) string {
 	var (
 		typ     = reflect.TypeOf(v)
@@ -156,14 +187,13 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')
 			}
-			buff.WriteString(fmt.Sprintf("%s required argument `%s` missing", red("ERR!"), fl.name()))
-			fmt.Fprintf()
+			fmt.Fprintf(buff, "%s required argument `%s` missing", red("ERR!"), fl.name())
 		}
 		if fl.assigned && fl.invalid {
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')
 			}
-			buff.WriteString(fmt.Sprintf("%s assigned argument `%s` invalid: %s", red("ERR!"), fl.name(), fl.invalidDesc))
+			fmt.Fprintf(buff, "%s assigned argument `%s` invalid: %s", red("ERR!"), fl.name(), fl.invalidDesc)
 		}
 	}
 	if buff.Len() > 0 {
