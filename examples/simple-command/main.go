@@ -25,16 +25,11 @@ func main() {
 	app.RegisterFunc("help", func(ctx *cli.Context) error {
 		fmt.Println(`show help: sub commands: help/version`)
 		return nil
-	}, func() interface{} {
-		return new(help_t)
-	})
+	}, nil)
 
 	app.Register(&cli.Command{
 		// NOTE: Name is required, panic if ""
 		Name: "version",
-
-		// NOTE: ArgvFn is required, panic if nil
-		Argv: func() interface{} { return new(version_t) },
 
 		// NOTE: Fn is required, panic if nil
 		Fn: func(ctx *cli.Context) error {
@@ -42,7 +37,10 @@ func main() {
 			return nil
 		},
 
-		Desc: "Desc is optional",
+		// Argv is optional
+
+		Desc: "Desc represent command's abstract, optional",
+		Text: "Text represent command's detailed description, optional too",
 	})
 
 	if err := app.Run(os.Args[1:]); err != nil {
@@ -54,10 +52,4 @@ type arg_t struct {
 	Help bool   `cli:"h,help" usage:"show help"`
 	Host string `cli:"H,host" usage:"specify host address" dft:"127.0.0.1"`
 	Port uint16 `cli:"p,port" usage:"specify http port" dft:"8080"`
-}
-
-type help_t struct {
-}
-
-type version_t struct {
 }

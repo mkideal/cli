@@ -3,29 +3,44 @@ package cli
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 )
 
+//-------------------------------
+// Run runs a single command app
+//-------------------------------
+func Run(argv interface{}, fn CommandFunc) {
+	err := Command{
+		Name: os.Args[0],
+		Argv: func() interface{} { return argv },
+		Fn:   fn,
+	}.Run(os.Args[1:])
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 //---------------------
 // `Parse` parses args
 //---------------------
-func Parse(args []string, v interface{}) *FlagSet {
+func Parse(args []string, argv interface{}) *FlagSet {
 	var (
-		typ     = reflect.TypeOf(v)
-		val     = reflect.ValueOf(v)
+		typ     = reflect.TypeOf(argv)
+		val     = reflect.ValueOf(argv)
 		flagSet = newFlagSet()
 	)
 	switch typ.Kind() {
 	case reflect.Ptr:
 		if reflect.Indirect(val).Type().Kind() != reflect.Struct {
-			flagSet.Error = fmt.Errorf("object pointer does not indirect a struct")
+			flagSet.Error = fmt.Errorf("argv does not indirect a struct")
 			return flagSet
 		}
 		parse(args, typ, val, flagSet)
 		return flagSet
 	default:
-		flagSet.Error = fmt.Errorf("type of object is not a pointer")
+		flagSet.Error = fmt.Errorf("argv is not a pointer")
 		return flagSet
 	}
 }
@@ -117,7 +132,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 		if !ok {
 			// If has prefix `--`
 			if strings.HasPrefix(arg, dashTwo) {
-				flagSet.Error = fmt.Errorf("unknown flag `%s`", arg)
+				flagSet.Error = fmt.Errorf("undefined flag `%s`", arg)
 				return
 			}
 			// Else find arg char by char
@@ -125,7 +140,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 			for _, c := range chars {
 				tmp := dashOne + string([]byte{c})
 				if fl, ok := flagSet.flags[tmp]; !ok {
-					flagSet.Error = fmt.Errorf("unknown flag `%s`", tmp)
+					flagSet.Error = fmt.Errorf("undefined flag `%s`", tmp)
 					return
 				} else {
 					if flagSet.Error = fl.set(""); flagSet.Error != nil {

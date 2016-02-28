@@ -26,20 +26,20 @@ type gogo_t struct {
 func gogo(ctx *cli.Context) error {
 	argv := ctx.Argv().(*gogo_t)
 	if argv.Help {
-		fmt.Fprintf(ctx.Writer(), ctx.Command().Usage())
+		ctx.String(ctx.Command().Usage())
 		return nil
 	}
 	if argv.Version {
-		fmt.Fprintf(ctx.Writer(), VERSION+"\n")
+		ctx.String(VERSION + "\n")
 		return nil
 	}
 
 	if argv.List {
-		ctx.String(ctx.Command().ListChildren("", "    "))
+		ctx.String(ctx.Command().ListChildren(" ", "  =>  "))
 		return nil
 	}
 
-	fmt.Fprintf(ctx.Writer(), "try `%s --help for more information'\n", ctx.Path())
+	ctx.String("try `%s --help for more information'\n", ctx.Path())
 	return nil
 }
 

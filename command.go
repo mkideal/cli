@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	errEmptyCommand    = errors.New("empty command")
-	errCommandNotFound = errors.New("command not found")
+	errEmptyCommand = errors.New("empty command")
 )
 
 type (
@@ -25,15 +24,20 @@ type (
 		command    *Command
 	}
 
+	Validator interface {
+		Validate() error
+	}
+
 	CommandFunc func(*Context) error
 
 	ArgvFunc func() interface{}
 
 	Command struct {
-		Name string
-		Desc string
-		Fn   CommandFunc
-		Argv ArgvFunc
+		Name string      // Command name
+		Desc string      // Command abstract
+		Text string      // Command detailed description
+		Fn   CommandFunc // Command handler
+		Argv ArgvFunc    // Command argument factory function
 
 		parent   *Command
 		children []*Command
@@ -45,19 +49,19 @@ type (
 //---------
 // Context
 //---------
-func newContext(router, args []string, argv interface{}) (*Context, error) {
+func newContext(path string, router, args []string, argv interface{}) (*Context, error) {
 	ctx := &Context{
-		router: router,
-		argv:   argv,
+		path:       path,
+		router:     router,
+		argv:       argv,
+		nativeArgs: args,
 	}
-	ctx.nativeArgs = args
-
-	ctx.path = strings.Join(ctx.router, " ")
-	ctx.flagSet = Parse(args, argv)
-	if ctx.flagSet.Error != nil {
-		return nil, ctx.flagSet.Error
+	if argv != nil {
+		ctx.flagSet = Parse(args, argv)
+		if ctx.flagSet.Error != nil {
+			return nil, ctx.flagSet.Error
+		}
 	}
-
 	return ctx, nil
 }
 
@@ -129,17 +133,16 @@ func (cmd *Command) Register(child *Command) *Command {
 	if child.Name == "" {
 		panic(`child.Name == ""`)
 	}
-	if child.Argv == nil {
-		panic(`child.Argv == nil`)
-	}
 	if cmd.children == nil {
 		cmd.children = []*Command{}
 	}
 	if cmd.findChild(child.Name) != nil {
-		panic(fmt.Sprintf("repeat child `%s` of `%s`", child.Name, cmd.Name))
+		panic(fmt.Sprintf("repeat register child `%s` for command `%s`", child.Name, cmd.Name))
 	}
 	cmd.children = append(cmd.children, child)
 	child.parent = cmd
+
+	// inherit parent's writer if nil
 	if child.writer == nil {
 		child.writer = child.parent.writer
 	}
@@ -150,7 +153,7 @@ func (cmd *Command) RegisterFunc(name string, fn CommandFunc, argvFn ArgvFunc) *
 	return cmd.Register(&Command{Name: name, Fn: fn, Argv: argvFn})
 }
 
-func (cmd *Command) Run(args []string) error {
+func (cmd Command) Run(args []string) error {
 	router := []string{}
 	for _, arg := range args {
 		if strings.HasPrefix(arg, dashOne) {
@@ -159,17 +162,31 @@ func (cmd *Command) Run(args []string) error {
 		router = append(router, arg)
 	}
 	if len(router) == 0 {
-		if cmd.Fn == nil || cmd.Argv == nil {
+		if cmd.Fn == nil {
 			return errEmptyCommand
 		}
 	}
+	path := strings.Join(router, " ")
 	child := cmd.route(router)
 	if child == nil {
-		return errCommandNotFound
+		return fmt.Errorf("command `%s` not found", path)
 	}
-	ctx, err := newContext(router, args[len(router):], child.Argv())
+
+	var argv interface{}
+	if child.Argv != nil {
+		argv = child.Argv()
+	}
+	ctx, err := newContext(path, router, args[len(router):], argv)
 	if err != nil {
 		return err
+	}
+	if argv != nil {
+		// validate argv if argv implements Validator interface
+		if validator, ok := argv.(Validator); ok {
+			if err := validator.Validate(); err != nil {
+				return err
+			}
+		}
 	}
 	ctx.command = child
 	return child.Fn(ctx)
@@ -180,6 +197,9 @@ func (cmd *Command) Usage() string {
 	fmt.Fprintf(buff, "Usage of `%s':\n", cmd.Path())
 	if cmd.Desc != "" {
 		fmt.Fprintf(buff, "\n%s\n\n", cmd.Desc)
+	}
+	if cmd.Text != "" {
+		fmt.Fprintf(buff, "\n%s\n\n", cmd.Text)
 	}
 	fmt.Fprintf(buff, Usage(cmd.Argv()))
 	return buff.String()

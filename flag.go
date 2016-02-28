@@ -38,10 +38,7 @@ type flag struct {
 
 	assigned bool
 	err      error
-	/*invalid     bool
-	invalidDesc string*/
-	tag cliTag
-	typ string
+	tag      cliTag
 }
 
 func newFlag(t reflect.StructField, v reflect.Value) (fl *flag, err error) {
@@ -52,7 +49,6 @@ func newFlag(t reflect.StructField, v reflect.Value) (fl *flag, err error) {
 	}
 	fl.tag = *tag
 	err = fl.init()
-	fl.typ = t.Type.Kind().String()
 	return
 }
 
