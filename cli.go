@@ -2,10 +2,16 @@ package cli
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
 	"strings"
+)
+
+var (
+	errNotPointToStruct = errors.New("argv does not indirect a struct")
+	errNotAPointer      = errors.New("argv is not a pointer")
 )
 
 // Run runs a single command app
@@ -29,13 +35,13 @@ func parseArgv(args []string, argv interface{}) *flagSet {
 	switch typ.Kind() {
 	case reflect.Ptr:
 		if reflect.Indirect(val).Type().Kind() != reflect.Struct {
-			flagSet.err = fmt.Errorf("argv does not indirect a struct")
+			flagSet.err = errNotPointToStruct
 			return flagSet
 		}
 		parse(args, typ, val, flagSet)
 		return flagSet
 	default:
-		flagSet.err = fmt.Errorf("argv is not a pointer")
+		flagSet.err = errNotAPointer
 		return flagSet
 	}
 }
@@ -49,6 +55,9 @@ func usage(v interface{}) string {
 	if typ.Kind() == reflect.Ptr {
 		if reflect.Indirect(val).Type().Kind() == reflect.Struct {
 			initFlagSet(typ, val, flagSet)
+			if flagSet.err != nil {
+				return ""
+			}
 			return flagSlice(flagSet.flags).String()
 		}
 	}

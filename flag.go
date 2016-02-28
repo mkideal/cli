@@ -250,9 +250,12 @@ func (fs flagSlice) String() string {
 		usage := usagePrefix + tag.usage
 
 		spaceSize := lenSep + lenDefaultAndLong - len(defaultStr) - len(longStr)
+		if defaultStr != "" {
+			defaultStr = gray(defaultStr)
+		}
 		if longStr == "" {
 			format = fmt.Sprintf("%%%ds%%s%s%%s", lenShort, sepSpaces)
-			fillStr := fillSpaces(gray(defaultStr), spaceSize)
+			fillStr := fillSpaces(defaultStr, spaceSize)
 			buff.WriteString(fmt.Sprintf(format+"\n", shortStr, fillStr, usage))
 		} else {
 			if shortStr == "" {
@@ -260,7 +263,7 @@ func (fs flagSlice) String() string {
 			} else {
 				format = fmt.Sprintf("%%%ds%s%%s%%s", lenShort, sepName)
 			}
-			fillStr := fillSpaces(longStr+gray(defaultStr), spaceSize)
+			fillStr := fillSpaces(longStr+defaultStr, spaceSize)
 			buff.WriteString(fmt.Sprintf(format+"\n", shortStr, fillStr, usage))
 		}
 	}

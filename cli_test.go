@@ -8,6 +8,7 @@ import (
 
 type argT struct {
 	Short         bool   `cli:"s" usage:"short flag"`
+	Short2        bool   `cli:"2" usage:"another short flag"`
 	ShortAndLong  string `cli:"S,long" usage:"short and long flags"`
 	ShortsAndLong int    `cli:"x,y,abcd,omitof" usage:"many short and long flags"`
 	Long          uint   `cli:"long-flag" usage:"long flag"`
@@ -51,6 +52,11 @@ func TestParse(t *testing.T) {
 		{
 			args:  []string{"--required=0", "--KdjiiejdfwkHJH"},
 			isErr: true,
+		},
+		//Case: short flag group
+		{
+			args: []string{"--required=0", "-s2"},
+			want: argT{Default: 102, Short: true, Short2: true},
 		},
 		//Case: check default
 		{
@@ -217,6 +223,46 @@ func TestParse(t *testing.T) {
 			args:  []string{"--required=0", "--u8", "-1"},
 			isErr: true,
 		},
+		//Case: many invalid value
+		{
+			args:  []string{"--required=0", "--u8", "-1", "--u8", "256"},
+			isErr: true,
+		},
+		//Case: too many value
+		{
+			args:  []string{"--required=0=1"},
+			isErr: true,
+		},
+		//Case: float32
+		{
+			args: []string{"--required=0", "--f32", "12.34"},
+			want: argT{Default: 102, Float32: 12.34},
+		},
+		//Case: not a float32
+		{
+			args:  []string{"--required=0", "--f32", "not-a-float32"},
+			isErr: true,
+		},
+		//Case: float32 overflow
+		{
+			args:  []string{"--required=0", "--f32", "123456789123456789123456789123456789123456789"},
+			isErr: true,
+		},
+		//Case: float32 overflow
+		{
+			args:  []string{"--required=0", "--f32", "-123456789123456789123456789123456789123456789"},
+			isErr: true,
+		},
+		//Case: float64
+		{
+			args: []string{"--required=0", "--f64=-1234.5678"},
+			want: argT{Default: 102, Float64: -1234.5678},
+		},
+		//Case: not a float64
+		{
+			args:  []string{"--required=0", "--f64=not-a-float64"},
+			isErr: true,
+		},
 	} {
 		v := new(argT)
 		flagSet := parseArgv(tab.args, v)
@@ -233,5 +279,61 @@ func TestParse(t *testing.T) {
 		if *v != tab.want {
 			t.Errorf("[%2d] want %v, got %v", i, tab.want, *v)
 		}
+	}
+
+	//Case parse non-pointer object
+	if flagSet := parseArgv([]string{}, argT{}); flagSet.err != errNotAPointer {
+		t.Errorf("want %v, got %v", errNotAPointer, flagSet.err)
+	}
+	if usage(argT{}) != "" {
+		t.Errorf("want usage empty, but not")
+	}
+
+	//Case parse pointer, but not indirect a struct
+	tmp := 0
+	ptrInt := &tmp
+	if flagSet := parseArgv([]string{}, ptrInt); flagSet.err != errNotPointToStruct {
+		t.Errorf("want %v, got %v", errNotPointToStruct, flagSet.err)
+	}
+	if usage(ptrInt) != "" {
+		t.Errorf("want usage empty, but not")
+	}
+
+	//Case repeat tag
+	type tmpT struct {
+		A bool `cli:"a"`
+		B bool `cli:"a"`
+	}
+	if flagSet := parseArgv([]string{}, new(tmpT)); flagSet.err == nil {
+		t.Errorf("want error, got nil")
+	}
+	if usage(new(tmpT)) != "" {
+		t.Errorf("want usage empty, but not")
+	}
+}
+
+func TestUsage(t *testing.T) {
+	usage := usage(new(argT))
+	want := fmt.Sprintf(`      -s                             short flag
+      -2                             another short flag
+      -S, --long                     short and long flags
+  -x, -y, --abcd, --omitof           many short and long flags
+          --long-flag                long flag
+          --required                %srequired flag, note the *
+          --dft, --default%s     default value
+          --UnName                   unname field
+          --i8                       type int8
+          --u8                       type uint8
+          --i16                      type int16
+          --u16                      type uint16
+          --i32                      type int32
+          --u32                      type uint32
+          --i64                      type int64
+          --u64                      type uint64
+          --f32                      type float32
+          --f64                      type float64
+`, red("*"), gray("[=102]"))
+	if usage != want {
+		t.Errorf("usage want `%s`, got `%s`", want, usage)
 	}
 }

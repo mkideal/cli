@@ -4,8 +4,7 @@ import (
 	"testing"
 )
 
-func TestCommand(t *testing.T) {
-	return //FIXME: remove this line
+func TestCommandTree(t *testing.T) {
 	app := &Command{}
 
 	type argT struct {
@@ -22,6 +21,9 @@ func TestCommand(t *testing.T) {
 			argv := ctx.Argv().(*argT)
 			if argv.Help != true || argv.Version != "v0.0.0" {
 				t.Errorf("argv=%v", *argv)
+			}
+			if ctx.Command().Name != "sub1" {
+				t.Errorf("command name want %s, got %s", "sub1", ctx.Command().Name)
 			}
 			return nil
 		},
@@ -41,7 +43,8 @@ func TestCommand(t *testing.T) {
 			}
 			return nil
 		},
-		Desc: "sub1 sub11 command describe",
+		Desc: "sub11 desc",
+		Text: "sub11 text",
 		Argv: func() interface{} { return new(argT) },
 	})
 
@@ -58,5 +61,10 @@ func TestCommand(t *testing.T) {
 		"--version=v1.0.0",
 	}); err != nil {
 		t.Errorf("Run `sub1 sub11` error: %v", err)
+	}
+
+	listWant := "sub11 sub11 desc\n"
+	if listGot := sub1.ListChildren("", " "); listGot != listWant {
+		t.Errorf("ListChildren want `%s`, got `%s`", listWant, listGot)
 	}
 }
