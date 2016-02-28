@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/mkideal/cli"
 )
 
@@ -25,6 +26,15 @@ type arg_t struct {
 	Uint64  int64   `cli:"u64" usage:"type uint64"`
 	Float32 float32 `cli:"f32" usage:"type float32"`
 	Float64 float64 `cli:"f64" usage:"type float64"`
+}
+
+// Implements `cli.Validator` interface{}
+// NOTE: This is optional
+func (argv *arg_t) Validate() error {
+	if argv.Long >= 1000 {
+		return fmt.Errorf("`--long-flag` must be less than 1000")
+	}
+	return nil
 }
 
 func main() {

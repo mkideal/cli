@@ -7,8 +7,10 @@ Try type these commands in terminal
 go build
 ./basic
 ./basic --required=1
-./basic --required=1 -v=not-a-bool
-./basic --required=2 --only-multi=4
-./basic --required=2 --only-multi=-4
-./basic --required=2 --only-multi -4
+./basic --required=1 -s=not-a-bool
+./basic --required=2 --long-flag=4
+./basic --required=2 --long-flag=-4
+./basic --required=2 --long-flag -4
+./basic --required=2 --long-flag=1001
+...
 ```
