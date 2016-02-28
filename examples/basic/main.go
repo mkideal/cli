@@ -1,23 +1,21 @@
 package main
 
 import (
-	"fmt"
 	"github.com/mkideal/cli"
-	"os"
 )
 
 type arg_t struct {
-	OnlySingle     bool   `cli:"v" usage:"only single char"`
-	ManySingle     string `cli:"X,Y,abcd" usage:"many single char"`
-	SingleAndMulti int    `cli:"s,single-and-multi" usage:"single and multi"`
-	OnlyMulti      uint   `cli:"only-multi, " usage:"only multi"`
-	Required       int8   `cli:"*required" usage:"required value"`
-	Default        uint8  `cli:"id" usage:"default value" dft:"102"`
+	Short         bool   `cli:"s" usage:"short flag"`
+	ShortAndLong  string `cli:"S,long" usage:"short and long flags"`
+	ShortsAndLong int    `cli:"x,y,abcd,omitof" usage:"many short and long flags"`
+	Long          uint   `cli:"long-flag" usage:"long flag"`
+	Required      int8   `cli:"*required" usage:"required flag, note the *"`
+	Default       uint8  `cli:"dft" usage:"default value" dft:"102"`
 
 	// Ignored field: spacify `cli` tag=-
 	Ignored int16 `cli:"-" usage:"ignored field"`
 
-	// Don't spacify `cli` tag value
+	// No spacify `cli` tag value
 	// so it's flag=`--UnName`
 	UnName uint16 `usage:"unname field"`
 
@@ -30,21 +28,23 @@ type arg_t struct {
 }
 
 func main() {
-	// Show usage method 1:
-	fmt.Printf("Usage of `%s': \n%s", os.Args[0], cli.Usage(new(arg_t)))
+	cli.Run(new(arg_t), func(ctx *cli.Context) error {
+		// Show usage information
+		ctx.String(ctx.Usage())
 
-	// Parse args
-	argv := new(arg_t)
-	flagSet := cli.Parse(os.Args, argv)
-	if flagSet.Error != nil {
-		fmt.Printf("%v\n", flagSet.Error)
-		return
-	}
-	fmt.Printf("argv: %v\n", *argv)
+		// Get argv
+		argv := ctx.Argv().(*arg_t)
 
-	// Show usage method 2:
-	fmt.Printf("Usage of `%s': \n%s", os.Args[0], flagSet.Usage)
+		// Show json object
+		ctx.JSON(argv).String("\n")
+		ctx.JSONIndent(argv, "", "    ").String("\n")
 
-	// url.Values
-	fmt.Printf("url.Values: %v\n", flagSet.Values)
+		// Get show native args
+		ctx.JSONln(ctx.Args())
+
+		// Show the args as url.Values
+		ctx.JSONIndentln(ctx.FormValues(), "", "    ")
+
+		return nil
+	})
 }

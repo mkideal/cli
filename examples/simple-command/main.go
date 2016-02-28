@@ -14,16 +14,16 @@ func main() {
 		Fn: func(ctx *cli.Context) error {
 			argv := ctx.Argv().(*arg_t)
 			if argv.Help {
-				fmt.Printf(ctx.Command().Usage())
+				ctx.String(ctx.Usage())
 			} else {
-				fmt.Printf("argv=%v\n", *argv)
+				ctx.String("argv=%v\n", *argv)
 			}
 			return nil
 		},
 	}
 
 	app.RegisterFunc("help", func(ctx *cli.Context) error {
-		fmt.Println(`show help: sub commands: help/version`)
+		ctx.String("show help: sub commands: help/version\n")
 		return nil
 	}, nil)
 
@@ -33,7 +33,7 @@ func main() {
 
 		// NOTE: Fn is required, panic if nil
 		Fn: func(ctx *cli.Context) error {
-			fmt.Println(`version: v0.0.1`)
+			ctx.String("version: v0.0.1\n")
 			return nil
 		},
 

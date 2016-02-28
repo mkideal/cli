@@ -15,20 +15,20 @@ var (
 	errValueOverflow = errors.New(red("value overflow"))
 )
 
-type FlagSet struct {
-	Error  error
-	Usage  string
-	Values url.Values
+type flagSet struct {
+	err    error
+	usage  string
+	values url.Values
 
 	flags map[string]*flag
 	slice []*flag
 }
 
-func newFlagSet() *FlagSet {
-	return &FlagSet{
+func newFlagSet() *flagSet {
+	return &flagSet{
 		flags:  make(map[string]*flag),
 		slice:  []*flag{},
-		Values: url.Values(make(map[string][]string)),
+		values: url.Values(make(map[string][]string)),
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"strings"
 )
@@ -20,7 +21,7 @@ type (
 		path       string
 		argv       interface{}
 		nativeArgs []string
-		flagSet    *FlagSet
+		flagSet    *flagSet
 		command    *Command
 	}
 
@@ -43,6 +44,7 @@ type (
 		children []*Command
 
 		writer io.Writer
+		usage  string
 	}
 )
 
@@ -57,16 +59,12 @@ func newContext(path string, router, args []string, argv interface{}) (*Context,
 		nativeArgs: args,
 	}
 	if argv != nil {
-		ctx.flagSet = Parse(args, argv)
-		if ctx.flagSet.Error != nil {
-			return nil, ctx.flagSet.Error
+		ctx.flagSet = parseArgv(args, argv)
+		if ctx.flagSet.err != nil {
+			return nil, ctx.flagSet.err
 		}
 	}
 	return ctx, nil
-}
-
-func (ctx *Context) FlagSet() *FlagSet {
-	return ctx.flagSet
 }
 
 func (ctx *Context) Path() string {
@@ -85,6 +83,10 @@ func (ctx *Context) Argv() interface{} {
 	return ctx.argv
 }
 
+func (ctx *Context) FormValues() url.Values {
+	return ctx.flagSet.values
+}
+
 func (ctx *Context) Command() *Command {
 	return ctx.command
 }
@@ -97,22 +99,33 @@ func (ctx *Context) Writer() io.Writer {
 	return ctx.command.Writer()
 }
 
-func (ctx *Context) String(format string, args ...interface{}) {
+func (ctx *Context) String(format string, args ...interface{}) *Context {
 	fmt.Fprintf(ctx.Writer(), format, args...)
+	return ctx
 }
 
-func (ctx *Context) JSON(obj interface{}) {
+func (ctx *Context) JSON(obj interface{}) *Context {
 	data, err := json.Marshal(obj)
 	if err == nil {
 		fmt.Fprintf(ctx.Writer(), string(data))
 	}
+	return ctx
 }
 
-func (ctx *Context) JSONIndent(obj interface{}, prefix, indent string) {
+func (ctx *Context) JSONln(obj interface{}) *Context {
+	return ctx.JSON(obj).String("\n")
+}
+
+func (ctx *Context) JSONIndent(obj interface{}, prefix, indent string) *Context {
 	data, err := json.MarshalIndent(obj, prefix, indent)
 	if err == nil {
 		fmt.Fprintf(ctx.Writer(), string(data))
 	}
+	return ctx
+}
+
+func (ctx *Context) JSONIndentln(obj interface{}, prefix, indent string) *Context {
+	return ctx.JSONIndent(obj, prefix, indent).String("\n")
 }
 
 //---------
@@ -193,6 +206,10 @@ func (cmd Command) Run(args []string) error {
 }
 
 func (cmd *Command) Usage() string {
+	// get usage form cache
+	if cmd.usage != "" {
+		return cmd.usage
+	}
 	buff := bytes.NewBufferString("")
 	fmt.Fprintf(buff, "Usage of `%s':\n", cmd.Path())
 	if cmd.Desc != "" {
@@ -201,8 +218,9 @@ func (cmd *Command) Usage() string {
 	if cmd.Text != "" {
 		fmt.Fprintf(buff, "\n%s\n\n", cmd.Text)
 	}
-	fmt.Fprintf(buff, Usage(cmd.Argv()))
-	return buff.String()
+	fmt.Fprintf(buff, usage(cmd.Argv()))
+	cmd.usage = buff.String()
+	return cmd.usage
 }
 
 func (cmd *Command) Path() string {
@@ -213,14 +231,6 @@ func (cmd *Command) Path() string {
 		path = cur.Name + " " + path
 	}
 	return path
-}
-
-func (cmd *Command) Parent() *Command {
-	return cmd.parent
-}
-
-func (cmd *Command) Children() []*Command {
-	return cmd.children
 }
 
 func (cmd *Command) route(router []string) *Command {

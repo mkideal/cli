@@ -22,10 +22,7 @@ func Run(argv interface{}, fn CommandFunc) {
 	}
 }
 
-//---------------------
-// `Parse` parses args
-//---------------------
-func Parse(args []string, argv interface{}) *FlagSet {
+func parseArgv(args []string, argv interface{}) *flagSet {
 	var (
 		typ     = reflect.TypeOf(argv)
 		val     = reflect.ValueOf(argv)
@@ -34,21 +31,18 @@ func Parse(args []string, argv interface{}) *FlagSet {
 	switch typ.Kind() {
 	case reflect.Ptr:
 		if reflect.Indirect(val).Type().Kind() != reflect.Struct {
-			flagSet.Error = fmt.Errorf("argv does not indirect a struct")
+			flagSet.err = fmt.Errorf("argv does not indirect a struct")
 			return flagSet
 		}
 		parse(args, typ, val, flagSet)
 		return flagSet
 	default:
-		flagSet.Error = fmt.Errorf("argv is not a pointer")
+		flagSet.err = fmt.Errorf("argv is not a pointer")
 		return flagSet
 	}
 }
 
-//------------------------------
-// `Usage` get the usage string
-//------------------------------
-func Usage(v interface{}) string {
+func usage(v interface{}) string {
 	var (
 		typ     = reflect.TypeOf(v)
 		val     = reflect.ValueOf(v)
@@ -57,13 +51,13 @@ func Usage(v interface{}) string {
 	if typ.Kind() == reflect.Ptr {
 		if reflect.Indirect(val).Type().Kind() == reflect.Struct {
 			initFlagSet(typ, val, flagSet)
-			return flagSet.Usage
+			return flagSet.usage
 		}
 	}
 	return ""
 }
 
-func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *FlagSet) {
+func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet) {
 	var (
 		tm       = typ.Elem()
 		vm       = val.Elem()
@@ -73,7 +67,7 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *FlagSet) {
 		tfield := tm.Field(i)
 		vfield := vm.Field(i)
 		fl, err := newFlag(tfield, vfield)
-		if flagSet.Error = err; err != nil {
+		if flagSet.err = err; err != nil {
 			return
 		}
 		// Ignored flag
@@ -89,21 +83,21 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *FlagSet) {
 		names := append(fl.tag.shortNames, fl.tag.longNames...)
 		for _, name := range names {
 			if _, ok := flagSet.flags[name]; ok {
-				flagSet.Error = fmt.Errorf("flag `%s` repeat", name)
+				flagSet.err = fmt.Errorf("flag `%s` repeat", name)
 				return
 			}
 			flagSet.flags[name] = fl
 			if fl.assigned {
-				flagSet.Values[name] = []string{value}
+				flagSet.values[name] = []string{value}
 			}
 		}
 	}
-	flagSet.Usage = flagSlice(flagSet.slice).String()
+	flagSet.usage = flagSlice(flagSet.slice).String()
 }
 
-func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet) {
+func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet) {
 	initFlagSet(typ, val, flagSet)
-	if flagSet.Error != nil {
+	if flagSet.err != nil {
 		return
 	}
 
@@ -132,7 +126,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 		if !ok {
 			// If has prefix `--`
 			if strings.HasPrefix(arg, dashTwo) {
-				flagSet.Error = fmt.Errorf("undefined flag `%s`", arg)
+				flagSet.err = fmt.Errorf("undefined flag `%s`", arg)
 				return
 			}
 			// Else find arg char by char
@@ -140,14 +134,14 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 			for _, c := range chars {
 				tmp := dashOne + string([]byte{c})
 				if fl, ok := flagSet.flags[tmp]; !ok {
-					flagSet.Error = fmt.Errorf("undefined flag `%s`", tmp)
+					flagSet.err = fmt.Errorf("undefined flag `%s`", tmp)
 					return
 				} else {
-					if flagSet.Error = fl.set(""); flagSet.Error != nil {
+					if flagSet.err = fl.set(""); flagSet.err != nil {
 						return
 					}
 					if fl.err == nil {
-						flagSet.Values[tmp] = []string{fmt.Sprintf("%v", fl.v.Interface())}
+						flagSet.values[tmp] = []string{fmt.Sprintf("%v", fl.v.Interface())}
 					}
 				}
 			}
@@ -156,17 +150,17 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 
 		values = append(strs[1:], values...)
 		if len(values) == 0 {
-			flagSet.Error = fl.set("")
+			flagSet.err = fl.set("")
 		} else if len(values) == 1 {
-			flagSet.Error = fl.set(values[0])
+			flagSet.err = fl.set(values[0])
 		} else {
-			flagSet.Error = fmt.Errorf("too many(%d) value for flag `%s`", len(values), arg)
+			flagSet.err = fmt.Errorf("too many(%d) value for flag `%s`", len(values), arg)
 		}
-		if flagSet.Error != nil {
+		if flagSet.err != nil {
 			return
 		}
 		if fl.err == nil {
-			flagSet.Values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
+			flagSet.values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
 		}
 	}
 
@@ -186,6 +180,6 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *FlagSet)
 		}
 	}
 	if buff.Len() > 0 {
-		flagSet.Error = fmt.Errorf(buff.String())
+		flagSet.err = fmt.Errorf(buff.String())
 	}
 }
