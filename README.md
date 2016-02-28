@@ -22,6 +22,8 @@ go get github.com/mkideal/cli
 * Add HTTP router
 * Support `[]string` as argument struct's field
 * Support argument struct inherit
+* Support command suggestion
+* Support command completion
 
 ## Getting started
 
