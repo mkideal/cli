@@ -16,6 +16,7 @@ var (
 )
 
 type (
+	// Context provider running context
 	Context struct {
 		router     []string
 		path       string
@@ -25,14 +26,18 @@ type (
 		command    *Command
 	}
 
+	// Validator validate flag before run command
 	Validator interface {
 		Validate() error
 	}
 
+	// CommandFunc aliases command handle function
 	CommandFunc func(*Context) error
 
+	// ArgvFunc aliases command argv factory function
 	ArgvFunc func() interface{}
 
+	// Command is the main object in command-line app
 	Command struct {
 		Name string      // Command name
 		Desc string      // Command abstract
@@ -51,6 +56,7 @@ type (
 //---------
 // Context
 //---------
+
 func newContext(path string, router, args []string, argv interface{}) (*Context, error) {
 	ctx := &Context{
 		path:       path,
@@ -67,43 +73,56 @@ func newContext(path string, router, args []string, argv interface{}) (*Context,
 	return ctx, nil
 }
 
+// Path returns full command name
+// `./app hello world -a --xyz=1` will returns "hello world"
 func (ctx *Context) Path() string {
 	return ctx.path
 }
 
+// Router returns full command name with string array
+// `./app hello world -a --xyz=1` will returns ["hello" "world"]
 func (ctx *Context) Router() []string {
 	return ctx.router
 }
 
+// Args returns native args
+// `./app hello world -a --xyz=1` will returns ["-a" "--xyz=1"]
 func (ctx *Context) Args() []string {
 	return ctx.nativeArgs
 }
 
+// Argv returns parsed args object
 func (ctx *Context) Argv() interface{} {
 	return ctx.argv
 }
 
+// FormValues returns parsed args as url.Values
 func (ctx *Context) FormValues() url.Values {
 	return ctx.flagSet.values
 }
 
+// Command returns current command object
 func (ctx *Context) Command() *Command {
 	return ctx.command
 }
 
+// Usage returns current command's usage
 func (ctx *Context) Usage() string {
 	return ctx.command.Usage()
 }
 
+// Writer returns current command's writer
 func (ctx *Context) Writer() io.Writer {
 	return ctx.command.Writer()
 }
 
+// String writes format string to writer
 func (ctx *Context) String(format string, args ...interface{}) *Context {
 	fmt.Fprintf(ctx.Writer(), format, args...)
 	return ctx
 }
 
+// JSON writes json string of obj to writer
 func (ctx *Context) JSON(obj interface{}) *Context {
 	data, err := json.Marshal(obj)
 	if err == nil {
@@ -112,10 +131,12 @@ func (ctx *Context) JSON(obj interface{}) *Context {
 	return ctx
 }
 
+// JSONln writes json string of obj end with "\n" to writer
 func (ctx *Context) JSONln(obj interface{}) *Context {
 	return ctx.JSON(obj).String("\n")
 }
 
+// JSONIndent writes pretty json string of obj to writer
 func (ctx *Context) JSONIndent(obj interface{}, prefix, indent string) *Context {
 	data, err := json.MarshalIndent(obj, prefix, indent)
 	if err == nil {
@@ -124,6 +145,7 @@ func (ctx *Context) JSONIndent(obj interface{}, prefix, indent string) *Context 
 	return ctx
 }
 
+// JSONIndentln writes pretty json string of obj end with "\n" to writer
 func (ctx *Context) JSONIndentln(obj interface{}, prefix, indent string) *Context {
 	return ctx.JSONIndent(obj, prefix, indent).String("\n")
 }
@@ -131,6 +153,8 @@ func (ctx *Context) JSONIndentln(obj interface{}, prefix, indent string) *Contex
 //---------
 // Command
 //---------
+
+// Writer sets default writer(os.Stdout) if nil and returns writer
 func (cmd *Command) Writer() io.Writer {
 	if cmd.writer == nil {
 		cmd.writer = os.Stdout
@@ -138,10 +162,12 @@ func (cmd *Command) Writer() io.Writer {
 	return cmd.writer
 }
 
+// SetWriter sets sepcify writer
 func (cmd *Command) SetWriter(writer io.Writer) {
 	cmd.writer = writer
 }
 
+// Register registers a child command
 func (cmd *Command) Register(child *Command) *Command {
 	if child.Name == "" {
 		panic(`child.Name == ""`)
@@ -162,10 +188,12 @@ func (cmd *Command) Register(child *Command) *Command {
 	return child
 }
 
+// RegisterFunc registers handler as child command
 func (cmd *Command) RegisterFunc(name string, fn CommandFunc, argvFn ArgvFunc) *Command {
 	return cmd.Register(&Command{Name: name, Fn: fn, Argv: argvFn})
 }
 
+// Run runs the command with args
 func (cmd Command) Run(args []string) error {
 	router := []string{}
 	for _, arg := range args {
@@ -205,6 +233,7 @@ func (cmd Command) Run(args []string) error {
 	return child.Fn(ctx)
 }
 
+// Usage sets usage and returns it
 func (cmd *Command) Usage() string {
 	// get usage form cache
 	if cmd.usage != "" {
@@ -225,6 +254,7 @@ func (cmd *Command) Usage() string {
 	return cmd.usage
 }
 
+// Path returns command full name
 func (cmd *Command) Path() string {
 	path := cmd.Name
 	cur := cmd
@@ -238,11 +268,11 @@ func (cmd *Command) Path() string {
 func (cmd *Command) route(router []string) *Command {
 	cur := cmd
 	for _, name := range router {
-		if child := cur.findChild(name); child == nil {
+		child := cur.findChild(name)
+		if child == nil {
 			return nil
-		} else {
-			cur = child
 		}
+		cur = child
 	}
 	return cur
 }
@@ -256,6 +286,7 @@ func (cmd *Command) findChild(name string) *Command {
 	return nil
 }
 
+// ListChildren returns all children's brief infos
 func (cmd *Command) ListChildren(prefix, indent string) string {
 	if cmd.children == nil || len(cmd.children) == 0 {
 		return ""

@@ -7,11 +7,11 @@ import (
 var _ = app.Register(&cli.Command{
 	Name: "test",
 	Desc: "Test golang application",
-	Argv: func() interface{} { return new(test_t) },
+	Argv: func() interface{} { return new(testT) },
 	Fn:   test,
 })
 
-type test_t struct {
+type testT struct {
 	Help   bool   `cli:"h,help" usage:"display help information"`
 	Dir    string `cli:"dir" usage:"source code root dir" dft:"./"`
 	Suffix string `cli:"suffix" usage:"source file suffix" dft:".go,.c,.s"`
@@ -19,7 +19,7 @@ type test_t struct {
 }
 
 func test(ctx *cli.Context) error {
-	argv := ctx.Argv().(*test_t)
+	argv := ctx.Argv().(*testT)
 
 	if argv.Help {
 		ctx.String(ctx.Usage())

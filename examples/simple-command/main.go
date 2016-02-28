@@ -10,9 +10,9 @@ import (
 func main() {
 	app := &cli.Command{
 		Name: os.Args[0],
-		Argv: func() interface{} { return new(arg_t) },
+		Argv: func() interface{} { return new(argT) },
 		Fn: func(ctx *cli.Context) error {
-			argv := ctx.Argv().(*arg_t)
+			argv := ctx.Argv().(*argT)
 			if argv.Help {
 				ctx.String(ctx.Usage())
 			} else {
@@ -48,7 +48,7 @@ func main() {
 	}
 }
 
-type arg_t struct {
+type argT struct {
 	Help bool   `cli:"h,help" usage:"show help"`
 	Host string `cli:"H,host" usage:"specify host address" dft:"127.0.0.1"`
 	Port uint16 `cli:"p,port" usage:"specify http port" dft:"8080"`

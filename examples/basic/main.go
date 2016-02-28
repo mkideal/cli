@@ -5,7 +5,7 @@ import (
 	"github.com/mkideal/cli"
 )
 
-type arg_t struct {
+type argT struct {
 	Short         bool   `cli:"s" usage:"short flag"`
 	ShortAndLong  string `cli:"S,long" usage:"short and long flags"`
 	ShortsAndLong int    `cli:"x,y,abcd,omitof" usage:"many short and long flags"`
@@ -32,7 +32,7 @@ type arg_t struct {
 
 // Implements `cli.Validator` interface{}
 // NOTE: This is optional
-func (argv *arg_t) Validate() error {
+func (argv *argT) Validate() error {
 	if argv.Long >= 1000 {
 		return fmt.Errorf("`--long-flag` must be less than 1000")
 	}
@@ -40,12 +40,12 @@ func (argv *arg_t) Validate() error {
 }
 
 func main() {
-	cli.Run(new(arg_t), func(ctx *cli.Context) error {
+	cli.Run(new(argT), func(ctx *cli.Context) error {
 		// Show usage information
 		ctx.String(ctx.Usage())
 
 		// Get argv
-		argv := ctx.Argv().(*arg_t)
+		argv := ctx.Argv().(*argT)
 
 		// Show json object
 		ctx.JSON(argv).String("\n")

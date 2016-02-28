@@ -8,9 +8,7 @@ import (
 	"strings"
 )
 
-//-------------------------------
 // Run runs a single command app
-//-------------------------------
 func Run(argv interface{}, fn CommandFunc) {
 	err := Command{
 		Name: os.Args[0],
@@ -132,17 +130,19 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 			chars := []byte(strings.TrimPrefix(arg, dashOne))
 			for _, c := range chars {
 				tmp := dashOne + string([]byte{c})
-				if fl, ok := flagSet.flagMap[tmp]; !ok {
+				fl, ok := flagSet.flagMap[tmp]
+				if !ok {
 					flagSet.err = fmt.Errorf("undefined flag `%s`", tmp)
 					return
-				} else {
-					if flagSet.err = fl.set(""); flagSet.err != nil {
-						return
-					}
-					if fl.err == nil {
-						flagSet.values[tmp] = []string{fmt.Sprintf("%v", fl.v.Interface())}
-					}
 				}
+
+				if flagSet.err = fl.set(""); flagSet.err != nil {
+					return
+				}
+				if fl.err == nil {
+					flagSet.values[tmp] = []string{fmt.Sprintf("%v", fl.v.Interface())}
+				}
+
 			}
 			continue
 		}

@@ -7,11 +7,11 @@ import (
 var publishCmd = app.Register(&cli.Command{
 	Name: "publish",
 	Desc: "Publish golang application",
-	Argv: func() interface{} { return new(publish_t) },
+	Argv: func() interface{} { return new(publishT) },
 	Fn:   publish,
 })
 
-type publish_t struct {
+type publishT struct {
 	Help   bool   `cli:"h,help" usage:"display help information"`
 	Dir    string `cli:"dir" usage:"source code root dir" dft:"./"`
 	Suffix string `cli:"suffix" usage:"source file suffix" dft:".go,.c,.s"`
@@ -20,7 +20,7 @@ type publish_t struct {
 }
 
 func publish(ctx *cli.Context) error {
-	argv := ctx.Argv().(*publish_t)
+	argv := ctx.Argv().(*publishT)
 
 	if argv.Help {
 		ctx.String(ctx.Usage())

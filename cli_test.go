@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-type arg_t struct {
+type argT struct {
 	Short         bool   `cli:"s" usage:"short flag"`
 	ShortAndLong  string `cli:"S,long" usage:"short and long flags"`
 	ShortsAndLong int    `cli:"x,y,abcd,omitof" usage:"many short and long flags"`
@@ -34,7 +34,7 @@ func toStr(i interface{}) string {
 func TestParse(t *testing.T) {
 	for i, tab := range []struct {
 		args  []string
-		want  arg_t
+		want  argT
 		isErr bool
 	}{
 		//Case: missing required
@@ -55,22 +55,22 @@ func TestParse(t *testing.T) {
 		//Case: check default
 		{
 			args: []string{"--required=0"},
-			want: arg_t{Default: 102},
+			want: argT{Default: 102},
 		},
 		//Case: modify default
 		{
 			args: []string{"--required=0", "--dft", "55"},
-			want: arg_t{Default: 55},
+			want: argT{Default: 55},
 		},
 		//Case: modify default
 		{
 			args: []string{"--required=0", "--default", "55"},
-			want: arg_t{Default: 55},
+			want: argT{Default: 55},
 		},
 		//Case: UnName
 		{
 			args: []string{"--required=0", "--UnName", "64"},
-			want: arg_t{Default: 102, UnName: 64},
+			want: argT{Default: 102, UnName: 64},
 		},
 		//Case: not a bool
 		{
@@ -80,47 +80,47 @@ func TestParse(t *testing.T) {
 		//Case: "" -> bool
 		{
 			args: []string{"--required=0", "-s"},
-			want: arg_t{Default: 102, Short: true},
+			want: argT{Default: 102, Short: true},
 		},
 		//Case: "true" -> bool
 		{
 			args: []string{"--required=0", "-s", "true"},
-			want: arg_t{Default: 102, Short: true},
+			want: argT{Default: 102, Short: true},
 		},
 		//Case: non-zero integer -> bool
 		{
 			args: []string{"--required=0", "-s", "1"},
-			want: arg_t{Default: 102, Short: true},
+			want: argT{Default: 102, Short: true},
 		},
 		//Case: zero -> bool
 		{
 			args: []string{"--required=0", "-s", "0"},
-			want: arg_t{Default: 102},
+			want: argT{Default: 102},
 		},
 		//Case: no -> bool
 		{
 			args: []string{"--required=0", "-s", "no"},
-			want: arg_t{Default: 102},
+			want: argT{Default: 102},
 		},
 		//Case: not -> bool
 		{
 			args: []string{"--required=0", "-s", "not"},
-			want: arg_t{Default: 102},
+			want: argT{Default: 102},
 		},
 		//Case: none -> bool
 		{
 			args: []string{"--required=0", "-s", "none"},
-			want: arg_t{Default: 102},
+			want: argT{Default: 102},
 		},
 		//Case: false -> bool
 		{
 			args: []string{"--required=0", "-s", "false"},
-			want: arg_t{Default: 102},
+			want: argT{Default: 102},
 		},
 		//Case: int64
 		{
 			args: []string{"--required=0", "--i64", toStr(12)},
-			want: arg_t{Default: 102, Int64: 12},
+			want: argT{Default: 102, Int64: 12},
 		},
 		//Case: int64 overflow
 		{
@@ -130,12 +130,12 @@ func TestParse(t *testing.T) {
 		//Case: uint64
 		{
 			args: []string{"--required=0", "--u64", toStr(12)},
-			want: arg_t{Default: 102, Uint64: 12},
+			want: argT{Default: 102, Uint64: 12},
 		},
 		//Case: max uint64
 		{
 			args: []string{"--required=0", "--u64", toStr(uint64(math.MaxUint64))},
-			want: arg_t{Default: 102, Uint64: uint64(math.MaxUint64)},
+			want: argT{Default: 102, Uint64: uint64(math.MaxUint64)},
 		},
 		//Case: negative -> uint64
 		{
@@ -145,7 +145,7 @@ func TestParse(t *testing.T) {
 		//Case: int32
 		{
 			args: []string{"--required=0", "--i32", toStr(12)},
-			want: arg_t{Default: 102, Int32: 12},
+			want: argT{Default: 102, Int32: 12},
 		},
 		//Case: int32 overflow
 		{
@@ -155,12 +155,12 @@ func TestParse(t *testing.T) {
 		//Case: uint32
 		{
 			args: []string{"--required=0", "--u32", toStr(12)},
-			want: arg_t{Default: 102, Uint32: 12},
+			want: argT{Default: 102, Uint32: 12},
 		},
 		//Case: max uint32
 		{
 			args: []string{"--required=0", "--u32", toStr(uint32(math.MaxUint32))},
-			want: arg_t{Default: 102, Uint32: uint32(math.MaxUint32)},
+			want: argT{Default: 102, Uint32: uint32(math.MaxUint32)},
 		},
 		//Case: negative -> uint32
 		{
@@ -170,7 +170,7 @@ func TestParse(t *testing.T) {
 		//Case: int16
 		{
 			args: []string{"--required=0", "--i16", toStr(12)},
-			want: arg_t{Default: 102, Int16: 12},
+			want: argT{Default: 102, Int16: 12},
 		},
 		//Case: int16 overflow
 		{
@@ -180,12 +180,12 @@ func TestParse(t *testing.T) {
 		//Case: uint16
 		{
 			args: []string{"--required=0", "--u16", toStr(12)},
-			want: arg_t{Default: 102, Uint16: 12},
+			want: argT{Default: 102, Uint16: 12},
 		},
 		//Case: max uint16
 		{
 			args: []string{"--required=0", "--u16", toStr(uint16(math.MaxUint16))},
-			want: arg_t{Default: 102, Uint16: uint16(math.MaxUint16)},
+			want: argT{Default: 102, Uint16: uint16(math.MaxUint16)},
 		},
 		//Case: negative -> uint16
 		{
@@ -195,7 +195,7 @@ func TestParse(t *testing.T) {
 		//Case: int8
 		{
 			args: []string{"--required=0", "--i8", toStr(12)},
-			want: arg_t{Default: 102, Int8: 12},
+			want: argT{Default: 102, Int8: 12},
 		},
 		//Case: int8 overflow
 		{
@@ -205,12 +205,12 @@ func TestParse(t *testing.T) {
 		//Case: uint8
 		{
 			args: []string{"--required=0", "--u8", toStr(12)},
-			want: arg_t{Default: 102, Uint8: 12},
+			want: argT{Default: 102, Uint8: 12},
 		},
 		//Case: max uint8
 		{
 			args: []string{"--required=0", "--u8", toStr(uint8(math.MaxUint8))},
-			want: arg_t{Default: 102, Uint8: uint8(math.MaxUint8)},
+			want: argT{Default: 102, Uint8: uint8(math.MaxUint8)},
 		},
 		//Case: negative -> uint8
 		{
@@ -218,11 +218,11 @@ func TestParse(t *testing.T) {
 			isErr: true,
 		},
 	} {
-		v := new(arg_t)
+		v := new(argT)
 		flagSet := parseArgv(tab.args, v)
 		if tab.isErr {
 			if flagSet.err == nil {
-				t.Errorf("[%2d] want error, got nil")
+				t.Errorf("[%2d] want error, got nil", i)
 			}
 			continue
 		}

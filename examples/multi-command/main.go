@@ -8,31 +8,31 @@ import (
 	"github.com/mkideal/cli"
 )
 
-const VERSION = "v1.0.0"
+const version = "v1.0.0"
 
 var app = &cli.Command{
 	Name: os.Args[0],
 	Desc: "Golang package manager",
 	Text: `gogo is a new golang package manager
 very very good`,
-	Argv: func() interface{} { return new(gogo_t) },
+	Argv: func() interface{} { return new(gogoT) },
 	Fn:   gogo,
 }
 
-type gogo_t struct {
+type gogoT struct {
 	Help    bool `cli:"h,help" usage:"display help information"`
 	Version bool `cli:"v,version" usage:"display version"`
 	List    bool `cli:"l,list" usage:"list all sub commands or not" dft:"false"`
 }
 
 func gogo(ctx *cli.Context) error {
-	argv := ctx.Argv().(*gogo_t)
+	argv := ctx.Argv().(*gogoT)
 	if argv.Help {
 		ctx.String(ctx.Command().Usage())
 		return nil
 	}
 	if argv.Version {
-		ctx.String(VERSION + "\n")
+		ctx.String(version + "\n")
 		return nil
 	}
 

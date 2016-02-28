@@ -7,17 +7,17 @@ import (
 var _ = app.Register(&cli.Command{
 	Name: "clean",
 	Desc: "Clean build data",
-	Argv: func() interface{} { return new(clean_t) },
+	Argv: func() interface{} { return new(cleanT) },
 	Fn:   clean,
 })
 
-type clean_t struct {
+type cleanT struct {
 	Help      bool `cli:"h,help" usage:"display help information"`
 	Recursion bool `cli:"R,recursion" usage:"clean recursion or not" dft:"true"`
 }
 
 func clean(ctx *cli.Context) error {
-	argv := ctx.Argv().(*clean_t)
+	argv := ctx.Argv().(*cleanT)
 
 	if argv.Help {
 		ctx.String(ctx.Usage())

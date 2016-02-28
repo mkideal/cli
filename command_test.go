@@ -7,7 +7,7 @@ import (
 func TestCommand(t *testing.T) {
 	app := &Command{}
 
-	type arg_t struct {
+	type argT struct {
 		Help    bool   `cli:"h,help" usage:"show help"`
 		Version string `cli:"v,version" usage:"show version" dft:"v0.0.0"`
 	}
@@ -18,14 +18,14 @@ func TestCommand(t *testing.T) {
 			if ctx.Path() != "sub1" {
 				t.Errorf("path: `%s` vs `%s`", ctx.Path(), "sub1")
 			}
-			argv := ctx.Argv().(*arg_t)
+			argv := ctx.Argv().(*argT)
 			if argv.Help != true || argv.Version != "v0.0.0" {
 				t.Errorf("argv=%v", *argv)
 			}
 			return nil
 		},
 		Desc: "sub1 command describe",
-		Argv: func() interface{} { return new(arg_t) },
+		Argv: func() interface{} { return new(argT) },
 	})
 
 	sub1.Register(&Command{
@@ -34,14 +34,14 @@ func TestCommand(t *testing.T) {
 			if ctx.Path() != "sub1 sub11" {
 				t.Errorf("path: `%s` vs `%s`", ctx.Path(), "sub1 sub11")
 			}
-			argv := ctx.Argv().(*arg_t)
+			argv := ctx.Argv().(*argT)
 			if argv.Help != false || argv.Version != "v1.0.0" {
 				t.Errorf("argv=%v", *argv)
 			}
 			return nil
 		},
 		Desc: "sub1 sub11 command describe",
-		Argv: func() interface{} { return new(arg_t) },
+		Argv: func() interface{} { return new(argT) },
 	})
 
 	if err := app.Run([]string{
