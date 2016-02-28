@@ -11,7 +11,9 @@ type arg_t struct {
 	ShortsAndLong int    `cli:"x,y,abcd,omitof" usage:"many short and long flags"`
 	Long          uint   `cli:"long-flag" usage:"long flag"`
 	Required      int8   `cli:"*required" usage:"required flag, note the *"`
-	Default       uint8  `cli:"dft" usage:"default value" dft:"102"`
+	ShortDefault  uint8  `cli:"d" usage:"default value" dft:"102"`
+	Default       uint8  `cli:"dft,default" usage:"default value" dft:"102"`
+	MixDefault    uint8  `cli:"f,mixdefault" usage:"default value" dft:"102"`
 
 	// Ignored field: spacify `cli` tag=-
 	Ignored int16 `cli:"-" usage:"ignored field"`

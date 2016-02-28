@@ -200,10 +200,11 @@ type flagSlice []*flag
 
 func (fs flagSlice) String() string {
 	var (
-		lenShort  = 0
-		lenLong   = 0
-		lenSep    = len(sepName)
-		sepSpaces = strings.Repeat(" ", lenSep)
+		lenShort          = 0
+		lenLong           = 0
+		lenDefaultAndLong = 0
+		lenSep            = len(sepName)
+		sepSpaces         = strings.Repeat(" ", lenSep)
 	)
 	for _, fl := range fs {
 		tag := fl.tag
@@ -221,31 +222,51 @@ func (fs flagSlice) String() string {
 		if l > lenLong {
 			lenLong = l
 		}
+		lenDft := 0
+		if tag.defaultValue != "" {
+			lenDft = len(tag.defaultValue) + 3 // 3=len("[=]")
+		}
+		if l+lenDft > lenDefaultAndLong {
+			lenDefaultAndLong = l + lenDft
+		}
 	}
 
 	buff := bytes.NewBufferString("")
 	for _, fl := range fs {
-		tag := fl.tag
-		shortStr := strings.Join(tag.shortNames, sepName)
-		longStr := strings.Join(tag.longNames, sepName)
-		format := ""
-		l1, l2 := lenShort+lenSep, lenLong+lenSep
-		if shortStr == "" {
-			format = fmt.Sprintf("%%%ds%%-%ds%%s", l1, l2)
-		} else if longStr == "" {
-			format = fmt.Sprintf("%%%ds%s%%-%ds%%s", lenShort, sepSpaces, l2)
-		} else {
-			format = fmt.Sprintf("%%%ds%s%%-%ds%%s", lenShort, sepName, l2)
+		var (
+			tag         = fl.tag
+			shortStr    = strings.Join(tag.shortNames, sepName)
+			longStr     = strings.Join(tag.longNames, sepName)
+			format      = ""
+			defaultStr  = ""
+			usagePrefix = " "
+		)
+		if tag.defaultValue != "" {
+			defaultStr = fmt.Sprintf("[=%s]", tag.defaultValue)
 		}
-		usagePrefix := " "
 		if tag.required {
 			usagePrefix = red("*")
 		}
 		usage := usagePrefix + tag.usage
-		if tag.defaultValue != "" {
-			usage += gray("[default=%s]", tag.defaultValue)
+
+		spaceSize := lenSep + lenDefaultAndLong - len(defaultStr) - len(longStr)
+		if longStr == "" {
+			format = fmt.Sprintf("%%%ds%%s%s%%s", lenShort, sepSpaces)
+			fillStr := fillSpaces(gray(defaultStr), spaceSize)
+			buff.WriteString(fmt.Sprintf(format+"\n", shortStr, fillStr, usage))
+		} else {
+			if shortStr == "" {
+				format = fmt.Sprintf("%%%ds%%s%%s", lenShort+lenSep)
+			} else {
+				format = fmt.Sprintf("%%%ds%s%%s%%s", lenShort, sepName)
+			}
+			fillStr := fillSpaces(longStr+gray(defaultStr), spaceSize)
+			buff.WriteString(fmt.Sprintf(format+"\n", shortStr, fillStr, usage))
 		}
-		buff.WriteString(fmt.Sprintf(format+"\n", shortStr, longStr, usage))
 	}
 	return buff.String()
+}
+
+func fillSpaces(s string, spaceSize int) string {
+	return s + strings.Repeat(" ", spaceSize)
 }

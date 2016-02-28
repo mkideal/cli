@@ -13,6 +13,8 @@ const VERSION = "v1.0.0"
 var app = &cli.Command{
 	Name: os.Args[0],
 	Desc: "Golang package manager",
+	Text: `gogo is a new golang package manager
+very very good`,
 	Argv: func() interface{} { return new(gogo_t) },
 	Fn:   gogo,
 }

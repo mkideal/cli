@@ -211,14 +211,16 @@ func (cmd *Command) Usage() string {
 		return cmd.usage
 	}
 	buff := bytes.NewBufferString("")
-	fmt.Fprintf(buff, "Usage of `%s':\n", cmd.Path())
 	if cmd.Desc != "" {
-		fmt.Fprintf(buff, "\n%s\n\n", cmd.Desc)
+		fmt.Fprintf(buff, "%s\n\n", cmd.Desc)
 	}
 	if cmd.Text != "" {
-		fmt.Fprintf(buff, "\n%s\n\n", cmd.Text)
+		fmt.Fprintf(buff, "%s\n\n", cmd.Text)
 	}
-	fmt.Fprintf(buff, usage(cmd.Argv()))
+	fmt.Fprintf(buff, "Usage:\n%s\n", usage(cmd.Argv()))
+	if cmd.children != nil && len(cmd.children) > 0 {
+		fmt.Fprintf(buff, "Commands:\n%v", cmd.ListChildren("  ", "   "))
+	}
 	cmd.usage = buff.String()
 	return cmd.usage
 }
