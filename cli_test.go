@@ -2,53 +2,236 @@ package cli
 
 import (
 	"fmt"
+	"math"
 	"testing"
 )
 
 type arg_t struct {
-	OnlySingle     bool    `cli:"v" usage:"only single char"`
-	ManySingle     string  `cli:"X,Y" usage:"many single char"`
-	SingleAndMulti int     `cli:"s,single-and-multi" usage:"single and multi"`
-	OnlyMulti      uint    `cli:"only-multi, " usage:"only multi"`
-	Required       int8    `cli:"*required" usage:"required value"`
-	Default        uint8   `cli:"id" usage:"default value" dft:"102"`
-	Ignored        int16   `cli:"-" usage:"ignored field"`
-	UnName         uint16  `usage:"unname field"`
-	Int32          int32   `cli:"i32" usage:"type int32"`
-	Uint32         uint32  `cli:"u32" usage:"type uint32"`
-	Int64          int64   `cli:"i64" usage:"type int64"`
-	Uint64         int64   `cli:"u64" usage:"type uint64"`
-	Float32        float32 `cli:"f32" usage:"type float32"`
-	Float64        float64 `cli:"f364" usage:"type float64"`
+	Short         bool   `cli:"s" usage:"short flag"`
+	ShortAndLong  string `cli:"S,long" usage:"short and long flags"`
+	ShortsAndLong int    `cli:"x,y,abcd,omitof" usage:"many short and long flags"`
+	Long          uint   `cli:"long-flag" usage:"long flag"`
+	Required      int8   `cli:"*required" usage:"required flag, note the *"`
+	Default       uint8  `cli:"dft,default" usage:"default value" dft:"102"`
+	UnName        uint16 `usage:"unname field"`
+
+	Int8    int8    `cli:"i8" usage:"type int8"`
+	Uint8   uint8   `cli:"u8" usage:"type uint8"`
+	Int16   int16   `cli:"i16" usage:"type int16"`
+	Uint16  uint16  `cli:"u16" usage:"type uint16"`
+	Int32   int32   `cli:"i32" usage:"type int32"`
+	Uint32  uint32  `cli:"u32" usage:"type uint32"`
+	Int64   int64   `cli:"i64" usage:"type int64"`
+	Uint64  uint64  `cli:"u64" usage:"type uint64"`
+	Float32 float32 `cli:"f32" usage:"type float32"`
+	Float64 float64 `cli:"f64" usage:"type float64"`
 }
 
-func TestUsage(t *testing.T) {
-	args := []string{
-		"--required=120",
-	}
-	v := new(arg_t)
-	flagSet := Parse(args, v)
-	if flagSet.Error != nil {
-		t.Errorf("error: %v", flagSet.Error)
-	}
-	wantUsage := fmt.Sprintf(`      -v                         only single char
-  -X, -Y                         many single char
-      -s, --single-and-multi     single and multi
-          --only-multi           only multi
-          --required            %srequired value
-          --id                   default value%s
-          --UnName               unname field
-          --i32                  type int32
-          --u32                  type uint32
-          --i64                  type int64
-          --u64                  type uint64
-          --f32                  type float32
-          --f364                 type float64
-`, red("*"), gray("[default=102]"))
-	if flagSet.Usage != wantUsage {
-		t.Errorf("usage from `Parse` func want: `%s`, got `%s`", wantUsage, flagSet.Usage)
-	}
-	if u := Usage(v); u != wantUsage {
-		t.Errorf("usage from `Usage` func want: `%s`, got `%s`", wantUsage, u)
+func toStr(i interface{}) string {
+	return fmt.Sprintf("%v", i)
+}
+
+func TestParse(t *testing.T) {
+	for i, tab := range []struct {
+		args  []string
+		want  arg_t
+		isErr bool
+	}{
+		//Case: missing required
+		{
+			args:  []string{},
+			isErr: true,
+		},
+		//Case: undefined flag
+		{
+			args:  []string{"--required=0", "-Q"},
+			isErr: true,
+		},
+		//Case: undefined flag
+		{
+			args:  []string{"--required=0", "--KdjiiejdfwkHJH"},
+			isErr: true,
+		},
+		//Case: check default
+		{
+			args: []string{"--required=0"},
+			want: arg_t{Default: 102},
+		},
+		//Case: modify default
+		{
+			args: []string{"--required=0", "--dft", "55"},
+			want: arg_t{Default: 55},
+		},
+		//Case: modify default
+		{
+			args: []string{"--required=0", "--default", "55"},
+			want: arg_t{Default: 55},
+		},
+		//Case: UnName
+		{
+			args: []string{"--required=0", "--UnName", "64"},
+			want: arg_t{Default: 102, UnName: 64},
+		},
+		//Case: not a bool
+		{
+			args:  []string{"--required=0", "-s", "not-a-bool"},
+			isErr: true,
+		},
+		//Case: "" -> bool
+		{
+			args: []string{"--required=0", "-s"},
+			want: arg_t{Default: 102, Short: true},
+		},
+		//Case: "true" -> bool
+		{
+			args: []string{"--required=0", "-s", "true"},
+			want: arg_t{Default: 102, Short: true},
+		},
+		//Case: non-zero integer -> bool
+		{
+			args: []string{"--required=0", "-s", "1"},
+			want: arg_t{Default: 102, Short: true},
+		},
+		//Case: zero -> bool
+		{
+			args: []string{"--required=0", "-s", "0"},
+			want: arg_t{Default: 102},
+		},
+		//Case: no -> bool
+		{
+			args: []string{"--required=0", "-s", "no"},
+			want: arg_t{Default: 102},
+		},
+		//Case: not -> bool
+		{
+			args: []string{"--required=0", "-s", "not"},
+			want: arg_t{Default: 102},
+		},
+		//Case: none -> bool
+		{
+			args: []string{"--required=0", "-s", "none"},
+			want: arg_t{Default: 102},
+		},
+		//Case: false -> bool
+		{
+			args: []string{"--required=0", "-s", "false"},
+			want: arg_t{Default: 102},
+		},
+		//Case: int64
+		{
+			args: []string{"--required=0", "--i64", toStr(12)},
+			want: arg_t{Default: 102, Int64: 12},
+		},
+		//Case: int64 overflow
+		{
+			args:  []string{"--required=0", "--i64", toStr(uint64(math.MaxUint64))},
+			isErr: true,
+		},
+		//Case: uint64
+		{
+			args: []string{"--required=0", "--u64", toStr(12)},
+			want: arg_t{Default: 102, Uint64: 12},
+		},
+		//Case: max uint64
+		{
+			args: []string{"--required=0", "--u64", toStr(uint64(math.MaxUint64))},
+			want: arg_t{Default: 102, Uint64: uint64(math.MaxUint64)},
+		},
+		//Case: negative -> uint64
+		{
+			args:  []string{"--required=0", "--u64", "-1"},
+			isErr: true,
+		},
+		//Case: int32
+		{
+			args: []string{"--required=0", "--i32", toStr(12)},
+			want: arg_t{Default: 102, Int32: 12},
+		},
+		//Case: int32 overflow
+		{
+			args:  []string{"--required=0", "--i32", toStr(uint32(math.MaxUint32))},
+			isErr: true,
+		},
+		//Case: uint32
+		{
+			args: []string{"--required=0", "--u32", toStr(12)},
+			want: arg_t{Default: 102, Uint32: 12},
+		},
+		//Case: max uint32
+		{
+			args: []string{"--required=0", "--u32", toStr(uint32(math.MaxUint32))},
+			want: arg_t{Default: 102, Uint32: uint32(math.MaxUint32)},
+		},
+		//Case: negative -> uint32
+		{
+			args:  []string{"--required=0", "--u32", "-1"},
+			isErr: true,
+		},
+		//Case: int16
+		{
+			args: []string{"--required=0", "--i16", toStr(12)},
+			want: arg_t{Default: 102, Int16: 12},
+		},
+		//Case: int16 overflow
+		{
+			args:  []string{"--required=0", "--i16", toStr(uint16(math.MaxUint16))},
+			isErr: true,
+		},
+		//Case: uint16
+		{
+			args: []string{"--required=0", "--u16", toStr(12)},
+			want: arg_t{Default: 102, Uint16: 12},
+		},
+		//Case: max uint16
+		{
+			args: []string{"--required=0", "--u16", toStr(uint16(math.MaxUint16))},
+			want: arg_t{Default: 102, Uint16: uint16(math.MaxUint16)},
+		},
+		//Case: negative -> uint16
+		{
+			args:  []string{"--required=0", "--u16", "-1"},
+			isErr: true,
+		},
+		//Case: int8
+		{
+			args: []string{"--required=0", "--i8", toStr(12)},
+			want: arg_t{Default: 102, Int8: 12},
+		},
+		//Case: int8 overflow
+		{
+			args:  []string{"--required=0", "--i8", toStr(uint8(math.MaxUint8))},
+			isErr: true,
+		},
+		//Case: uint8
+		{
+			args: []string{"--required=0", "--u8", toStr(12)},
+			want: arg_t{Default: 102, Uint8: 12},
+		},
+		//Case: max uint8
+		{
+			args: []string{"--required=0", "--u8", toStr(uint8(math.MaxUint8))},
+			want: arg_t{Default: 102, Uint8: uint8(math.MaxUint8)},
+		},
+		//Case: negative -> uint8
+		{
+			args:  []string{"--required=0", "--u8", "-1"},
+			isErr: true,
+		},
+	} {
+		v := new(arg_t)
+		flagSet := parseArgv(tab.args, v)
+		if tab.isErr {
+			if flagSet.err == nil {
+				t.Errorf("[%2d] want error, got nil")
+			}
+			continue
+		}
+		if flagSet.err != nil {
+			t.Errorf("[%2d] parseArgv error: %v", i, flagSet.err)
+			continue
+		}
+		if *v != tab.want {
+			t.Errorf("[%2d] want %v, got %v", i, tab.want, *v)
+		}
 	}
 }

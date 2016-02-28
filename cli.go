@@ -51,7 +51,7 @@ func usage(v interface{}) string {
 	if typ.Kind() == reflect.Ptr {
 		if reflect.Indirect(val).Type().Kind() == reflect.Struct {
 			initFlagSet(typ, val, flagSet)
-			return flagSet.usage
+			return flagSlice(flagSet.flags).String()
 		}
 	}
 	return ""
@@ -74,7 +74,7 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet) {
 		if fl == nil {
 			continue
 		}
-		flagSet.slice = append(flagSet.slice, fl)
+		flagSet.flags = append(flagSet.flags, fl)
 		value := ""
 		if fl.assigned {
 			value = fmt.Sprintf("%v", vfield.Interface())
@@ -82,17 +82,16 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet) {
 
 		names := append(fl.tag.shortNames, fl.tag.longNames...)
 		for _, name := range names {
-			if _, ok := flagSet.flags[name]; ok {
+			if _, ok := flagSet.flagMap[name]; ok {
 				flagSet.err = fmt.Errorf("flag `%s` repeat", name)
 				return
 			}
-			flagSet.flags[name] = fl
+			flagSet.flagMap[name] = fl
 			if fl.assigned {
 				flagSet.values[name] = []string{value}
 			}
 		}
 	}
-	flagSet.usage = flagSlice(flagSet.slice).String()
 }
 
 func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet) {
@@ -122,7 +121,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 		}
 
 		arg = strs[0]
-		fl, ok := flagSet.flags[arg]
+		fl, ok := flagSet.flagMap[arg]
 		if !ok {
 			// If has prefix `--`
 			if strings.HasPrefix(arg, dashTwo) {
@@ -133,7 +132,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 			chars := []byte(strings.TrimPrefix(arg, dashOne))
 			for _, c := range chars {
 				tmp := dashOne + string([]byte{c})
-				if fl, ok := flagSet.flags[tmp]; !ok {
+				if fl, ok := flagSet.flagMap[tmp]; !ok {
 					flagSet.err = fmt.Errorf("undefined flag `%s`", tmp)
 					return
 				} else {
@@ -165,7 +164,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 	}
 
 	buff := bytes.NewBufferString("")
-	for _, fl := range flagSet.slice {
+	for _, fl := range flagSet.flags {
 		if !fl.assigned && fl.tag.required {
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')

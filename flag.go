@@ -17,18 +17,17 @@ var (
 
 type flagSet struct {
 	err    error
-	usage  string
 	values url.Values
 
-	flags map[string]*flag
-	slice []*flag
+	flagMap map[string]*flag
+	flags   []*flag
 }
 
 func newFlagSet() *flagSet {
 	return &flagSet{
-		flags:  make(map[string]*flag),
-		slice:  []*flag{},
-		values: url.Values(make(map[string][]string)),
+		flagMap: make(map[string]*flag),
+		flags:   []*flag{},
+		values:  url.Values(make(map[string][]string)),
 	}
 }
 
