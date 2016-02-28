@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -29,10 +30,10 @@ type (
 	ArgvFunc func() interface{}
 
 	Command struct {
-		Name   string
-		Desc   string
-		Fn     CommandFunc
-		ArgvFn ArgvFunc
+		Name string
+		Desc string
+		Fn   CommandFunc
+		Argv ArgvFunc
 
 		parent   *Command
 		children []*Command
@@ -84,22 +85,52 @@ func (ctx *Context) Command() *Command {
 	return ctx.command
 }
 
+func (ctx *Context) Usage() string {
+	return ctx.command.Usage()
+}
+
 func (ctx *Context) Writer() io.Writer {
-	if ctx.command.writer == nil {
-		return os.Stdout
+	return ctx.command.Writer()
+}
+
+func (ctx *Context) String(format string, args ...interface{}) {
+	fmt.Fprintf(ctx.Writer(), format, args...)
+}
+
+func (ctx *Context) JSON(obj interface{}) {
+	data, err := json.Marshal(obj)
+	if err == nil {
+		fmt.Fprintf(ctx.Writer(), string(data))
 	}
-	return ctx.command.writer
+}
+
+func (ctx *Context) JSONIndent(obj interface{}, prefix, indent string) {
+	data, err := json.MarshalIndent(obj, prefix, indent)
+	if err == nil {
+		fmt.Fprintf(ctx.Writer(), string(data))
+	}
 }
 
 //---------
 // Command
 //---------
+func (cmd *Command) Writer() io.Writer {
+	if cmd.writer == nil {
+		cmd.writer = os.Stdout
+	}
+	return cmd.writer
+}
+
+func (cmd *Command) SetWriter(writer io.Writer) {
+	cmd.writer = writer
+}
+
 func (cmd *Command) Register(child *Command) *Command {
 	if child.Name == "" {
 		panic(`child.Name == ""`)
 	}
-	if child.ArgvFn == nil {
-		panic(`child.ArgvFn == nil`)
+	if child.Argv == nil {
+		panic(`child.Argv == nil`)
 	}
 	if cmd.children == nil {
 		cmd.children = []*Command{}
@@ -116,7 +147,7 @@ func (cmd *Command) Register(child *Command) *Command {
 }
 
 func (cmd *Command) RegisterFunc(name string, fn CommandFunc, argvFn ArgvFunc) *Command {
-	return cmd.Register(&Command{Name: name, Fn: fn, ArgvFn: argvFn})
+	return cmd.Register(&Command{Name: name, Fn: fn, Argv: argvFn})
 }
 
 func (cmd *Command) Run(args []string) error {
@@ -128,7 +159,7 @@ func (cmd *Command) Run(args []string) error {
 		router = append(router, arg)
 	}
 	if len(router) == 0 {
-		if cmd.Fn == nil || cmd.ArgvFn == nil {
+		if cmd.Fn == nil || cmd.Argv == nil {
 			return errEmptyCommand
 		}
 	}
@@ -136,7 +167,7 @@ func (cmd *Command) Run(args []string) error {
 	if child == nil {
 		return errCommandNotFound
 	}
-	ctx, err := newContext(router, args[len(router):], child.ArgvFn())
+	ctx, err := newContext(router, args[len(router):], child.Argv())
 	if err != nil {
 		return err
 	}
@@ -150,7 +181,7 @@ func (cmd *Command) Usage() string {
 	if cmd.Desc != "" {
 		fmt.Fprintf(buff, "\n%s\n\n", cmd.Desc)
 	}
-	fmt.Fprintf(buff, Usage(cmd.ArgvFn()))
+	fmt.Fprintf(buff, Usage(cmd.Argv()))
 	return buff.String()
 }
 
@@ -191,4 +222,22 @@ func (cmd *Command) findChild(name string) *Command {
 		}
 	}
 	return nil
+}
+
+func (cmd *Command) ListChildren(prefix, indent string) string {
+	if cmd.children == nil || len(cmd.children) == 0 {
+		return ""
+	}
+	buff := bytes.NewBufferString("")
+	length := 0
+	for _, child := range cmd.children {
+		if len(child.Name) > length {
+			length = len(child.Name)
+		}
+	}
+	format := fmt.Sprintf("%s%%-%ds%s%%s\n", prefix, length, indent)
+	for _, child := range cmd.children {
+		fmt.Fprintf(buff, format, child.Name, child.Desc)
+	}
+	return buff.String()
 }

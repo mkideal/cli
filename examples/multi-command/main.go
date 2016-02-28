@@ -10,12 +10,12 @@ import (
 
 const VERSION = "v1.0.0"
 
-var app = cli.NewWithCommand(&cli.Command{
-	Name:   os.Args[0],
-	Desc:   "Golang package manager",
-	ArgvFn: func() interface{} { return new(gogo_t) },
-	Fn:     gogo,
-}, os.Stdout)
+var app = &cli.Command{
+	Name: os.Args[0],
+	Desc: "Golang package manager",
+	Argv: func() interface{} { return new(gogo_t) },
+	Fn:   gogo,
+}
 
 type gogo_t struct {
 	Help    bool `cli:"h,help" usage:"display help information"`
@@ -35,16 +35,7 @@ func gogo(ctx *cli.Context) error {
 	}
 
 	if argv.List {
-		length := 0
-		for _, cmd := range ctx.Command().Children() {
-			if len(cmd.Name) > length {
-				length = len(cmd.Name)
-			}
-		}
-		format := fmt.Sprintf("%%-%ds%%s\n", length+4)
-		for _, cmd := range ctx.Command().Children() {
-			fmt.Fprintf(ctx.Writer(), format, cmd.Name, cmd.Desc)
-		}
+		ctx.String(ctx.Command().ListChildren("", "    "))
 		return nil
 	}
 
@@ -61,6 +52,10 @@ func jsonIndent(i interface{}) string {
 }
 
 func main() {
+	//NOTE: You can set any writer implements io.Writer
+	// default writer is os.Stdout
+	app.SetWriter(os.Stderr)
+
 	if err := app.Run(os.Args[1:]); err != nil {
 		fmt.Printf("%v\n", err)
 	}

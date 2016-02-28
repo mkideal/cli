@@ -1,16 +1,14 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/mkideal/cli"
 )
 
 var _ = app.Register(&cli.Command{
-	Name:   "install",
-	Desc:   "Install golang application",
-	ArgvFn: func() interface{} { return new(install_t) },
-	Fn:     install,
+	Name: "install",
+	Desc: "Install golang application",
+	Argv: func() interface{} { return new(install_t) },
+	Fn:   install,
 })
 
 type install_t struct {
@@ -24,9 +22,9 @@ func install(ctx *cli.Context) error {
 	argv := ctx.Argv().(*install_t)
 
 	if argv.Help {
-		fmt.Fprintf(ctx.Writer(), ctx.Command().Usage())
+		ctx.String(ctx.Usage())
 		return nil
 	}
-	fmt.Fprintf(ctx.Writer(), "%s: %v", ctx.Path(), jsonIndent(argv))
+	ctx.String("%s: %v", ctx.Path(), jsonIndent(argv))
 	return nil
 }

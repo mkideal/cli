@@ -8,19 +8,18 @@ import (
 )
 
 func main() {
-	app := cli.New(os.Args[0], nil)
-
-	app.Root().Fn = func(ctx *cli.Context) error {
-		argv := ctx.Argv().(*arg_t)
-		if argv.Help {
-			fmt.Printf(ctx.Command().Usage())
-		} else {
-			fmt.Printf("argv=%v\n", *argv)
-		}
-		return nil
-	}
-	app.Root().ArgvFn = func() interface{} {
-		return new(arg_t)
+	app := &cli.Command{
+		Name: os.Args[0],
+		Argv: func() interface{} { return new(arg_t) },
+		Fn: func(ctx *cli.Context) error {
+			argv := ctx.Argv().(*arg_t)
+			if argv.Help {
+				fmt.Printf(ctx.Command().Usage())
+			} else {
+				fmt.Printf("argv=%v\n", *argv)
+			}
+			return nil
+		},
 	}
 
 	app.RegisterFunc("help", func(ctx *cli.Context) error {
@@ -33,14 +32,14 @@ func main() {
 	app.Register(&cli.Command{
 		// NOTE: Name is required, panic if ""
 		Name: "version",
+
+		// NOTE: ArgvFn is required, panic if nil
+		Argv: func() interface{} { return new(version_t) },
+
 		// NOTE: Fn is required, panic if nil
 		Fn: func(ctx *cli.Context) error {
 			fmt.Println(`version: v0.0.1`)
 			return nil
-		},
-		// NOTE: ArgvFn is required, panic if nil
-		ArgvFn: func() interface{} {
-			return new(version_t)
 		},
 
 		Desc: "Desc is optional",

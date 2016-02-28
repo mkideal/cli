@@ -3,43 +3,9 @@ package cli
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"reflect"
 	"strings"
 )
-
-//-----
-// Cli
-//-----
-type Cli struct {
-	root *Command
-}
-
-func New(root string, writer io.Writer) *Cli {
-	return NewWithCommand(&Command{Name: root, writer: writer}, writer)
-}
-
-func NewWithCommand(cmd *Command, writer io.Writer) *Cli {
-	app := new(Cli)
-	app.root = cmd
-	return app
-}
-
-func (app *Cli) Root() *Command {
-	return app.root
-}
-
-func (app *Cli) Register(cmd *Command) *Command {
-	return app.root.Register(cmd)
-}
-
-func (app *Cli) RegisterFunc(name string, fn CommandFunc, argvFn ArgvFunc) *Command {
-	return app.root.RegisterFunc(name, fn, argvFn)
-}
-
-func (app *Cli) Run(args []string) error {
-	return app.root.Run(args)
-}
 
 //---------------------
 // `Parse` parses args

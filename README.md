@@ -14,6 +14,7 @@ go get github.com/mkideal/cli
 2. Support specify default value: use `dft` tag
 3. Support required declaration: `cli` tag with prefix `*`
 4. Support multi flag name for same field: like `cli:"h,help"`
+5. Type safty
 
 ## Usage
 	
@@ -48,7 +49,7 @@ if flagSet.Error != nil {
 // fmt.Printf("Usage of `%s'`: \n%s", os.Args[0], flagSet.Usage)
 ```
 
-If you only want show help, you can directly call function `cli.Usage`:
+If you only want to show help, you can directly call function `cli.Usage`:
 ```go
 usage := cli.Usage(new(Args))
 fmt.Printf("Usage of `%s'`: \n%s", os.Args[0], usage)

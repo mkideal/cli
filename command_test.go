@@ -5,7 +5,7 @@ import (
 )
 
 func TestCommand(t *testing.T) {
-	app := New("test", nil)
+	app := &Command{}
 
 	type arg_t struct {
 		Help    bool   `cli:"h,help" usage:"show help"`
@@ -24,8 +24,8 @@ func TestCommand(t *testing.T) {
 			}
 			return nil
 		},
-		Desc:   "sub1 command describe",
-		ArgvFn: func() interface{} { return new(arg_t) },
+		Desc: "sub1 command describe",
+		Argv: func() interface{} { return new(arg_t) },
 	})
 
 	sub1.Register(&Command{
@@ -40,8 +40,8 @@ func TestCommand(t *testing.T) {
 			}
 			return nil
 		},
-		Desc:   "sub1 sub11 command describe",
-		ArgvFn: func() interface{} { return new(arg_t) },
+		Desc: "sub1 sub11 command describe",
+		Argv: func() interface{} { return new(arg_t) },
 	})
 
 	if err := app.Run([]string{
