@@ -68,6 +68,50 @@ Try
 $> ./hello -a 256
 ```
 
+## Tags
+
+### cli
+
+`cli` tag supports short format and long format, e.g.
+
+```go
+Help    bool    `cli:"h,help"`
+Version string  `cli:"version"`
+Port    int     `cli:"p"`
+XYZ     bool    `cli:"x,y,z,xyz,XYZ"` 
+```
+
+The argument is required if `cli` tag has prefix `*`, e.g.
+
+```go
+Required string `cli:"*required"`
+```
+
+### usage
+
+`usage` tag describe the argument. If the argument is required, description has prefix `*` while show usage(`*` is red on unix-like os).
+
+### dft
+`dft` tag specify argument's default value.
+
+## Command
+
+### Command struct
+```go
+type Command struct {
+	Name   string
+	Desc   string
+	Text   string
+	Fn     CommandFunc
+	Argv   ArgvFunc
+
+	parent   *Command
+	children []*Command
+
+	writer io.Writer
+}
+```
+
 ### Command tree
 
 Command can register child command using `Register` method or `RegisterFunc` method.
@@ -115,50 +159,7 @@ var sub2 = root.Register(&cli.Command{
 })
 ```
 
-## Tags
-
-### cli
-
-`cli` tag supports short format and long format, e.g.
-
-```go
-Help    bool    `cli:"h,help"`
-Version string  `cli:"version"`
-Port    int     `cli:"p"`
-XYZ     bool    `cli:"x,y,z,xyz,XYZ"` 
-```
-
-The argument is required if `cli` tag has prefix `*`, e.g.
-
-```go
-Required string `cli:"*required"`
-```
-
-### usage
-
-`usage` tag describe the argument. If the argument is required, description has prefix `*` while show usage(`*` is red on unix-like os).
-
-### dft
-`dft` tag specify argument's default value.
-
-## Command
-
-```go
-type Command struct {
-	Name   string
-	Desc   string
-	Text   string
-	Fn     CommandFunc
-	Argv   ArgvFunc
-
-	parent   *Command
-	children []*Command
-
-	writer io.Writer
-}
-```
-
-Examples:
+## Examples
 
 * [Hello](https://github.com/mkideal/cli/blob/master/examples/hello/main.go)
 * [Basic](https://github.com/mkideal/cli/blob/master/examples/basic/main.go)
