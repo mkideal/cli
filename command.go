@@ -255,9 +255,9 @@ func (cmd *Command) Usage() string {
 	if cmd.Text != "" {
 		fmt.Fprintf(buff, "%s\n\n", cmd.Text)
 	}
-	fmt.Fprintf(buff, "Usage:\n%s\n", usage(cmd.Argv()))
+	fmt.Fprintf(buff, "%s:\n%s\n", bold("Usage"), usage(cmd.Argv()))
 	if cmd.children != nil && len(cmd.children) > 0 {
-		fmt.Fprintf(buff, "Commands:\n%v", cmd.ListChildren("  ", "   "))
+		fmt.Fprintf(buff, "%s:\n%v", bold("Commands"), cmd.ListChildren("  ", "   "))
 	}
 	cmd.usage = buff.String()
 	return cmd.usage

@@ -11,3 +11,7 @@ func gray(format string, args ...interface{}) string {
 func red(format string, args ...interface{}) string {
 	return fmt.Sprintf(format, args...)
 }
+
+func bold(format string, args ...interface{}) string {
+	return fmt.Sprintf(format, args...)
+}

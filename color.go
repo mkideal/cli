@@ -13,3 +13,7 @@ func gray(format string, args ...interface{}) string {
 func red(format string, args ...interface{}) string {
 	return fmt.Sprintf("\x1b[31m"+format+"\x1b[0m", args...)
 }
+
+func bold(format string, args ...interface{}) string {
+	return fmt.Sprintf("\x1b[;1m"+format+"\x1b[0m", args...)
+}
