@@ -8,13 +8,9 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
-
-	"github.com/sajari/fuzzy"
 )
-
-// MaxCommandTreeDeep is the max deep of command tree
-const MaxCommandTreeDeep = 10
 
 var (
 	errEmptyCommand = errors.New("empty command")
@@ -219,7 +215,16 @@ func (cmd Command) Run(args []string) error {
 	path := strings.Join(router, " ")
 	child := cmd.route(router)
 	if child == nil {
-		return fmt.Errorf("command `%s` not found", path)
+		suggestions := cmd.Suggestions(path)
+		buff := bytes.NewBufferString("")
+		fmt.Fprintf(buff, "command %s not found", yellow(path))
+		if suggestions != nil && len(suggestions) > 0 {
+			fmt.Fprintf(buff, "\n\nDid you mean one of these?\n")
+			for _, sug := range suggestions {
+				fmt.Fprintf(buff, "    %s\n", sug)
+			}
+		}
+		return fmt.Errorf(buff.String())
 	}
 
 	var argv interface{}
@@ -265,13 +270,17 @@ func (cmd *Command) Usage() string {
 
 // Path returns command full name
 func (cmd *Command) Path() string {
-	path := cmd.Name
+	path := ""
 	cur := cmd
 	for cur.parent != nil {
-		cur = cur.parent
 		if cur.Name != "" {
-			path = cur.Name + " " + path
+			if path == "" {
+				path = cur.Name
+			} else {
+				path = cur.Name + " " + path
+			}
 		}
+		cur = cur.parent
 	}
 	return path
 }
@@ -350,8 +359,15 @@ func (cmd *Command) Suggestions(path string) []string {
 		}
 	}
 
-	m := fuzzy.NewModel()
-	m.SetDepth(5)
-	m.Train(targets)
-	return m.Suggestions(path, false)
+	dists := []editDistanceRank{}
+	for i, size := 0, len(targets); i < size; i++ {
+		if d, ok := match(path, targets[i]); ok {
+			dists = append(dists, editDistanceRank{s: targets[i], d: d})
+		}
+	}
+	sort.Sort(editDistanceRankSlice(dists))
+	for i := 0; i < len(dists); i++ {
+		targets[i] = dists[i].s
+	}
+	return targets[:len(dists)]
 }
