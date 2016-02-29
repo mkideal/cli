@@ -9,7 +9,12 @@ import (
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/sajari/fuzzy"
 )
+
+// MaxCommandTreeDeep is the max deep of command tree
+const MaxCommandTreeDeep = 10
 
 var (
 	errEmptyCommand = errors.New("empty command")
@@ -193,6 +198,10 @@ func (cmd *Command) RegisterFunc(name string, fn CommandFunc, argvFn ArgvFunc) *
 	return cmd.Register(&Command{Name: name, Fn: fn, Argv: argvFn})
 }
 
+// RegisterTree registers a command tree
+//func (cmd *Command) RegisterTree(tree *CommandTree) {
+//}
+
 // Run runs the command with args
 func (cmd Command) Run(args []string) error {
 	router := []string{}
@@ -260,9 +269,20 @@ func (cmd *Command) Path() string {
 	cur := cmd
 	for cur.parent != nil {
 		cur = cur.parent
-		path = cur.Name + " " + path
+		if cur.Name != "" {
+			path = cur.Name + " " + path
+		}
 	}
 	return path
+}
+
+// Root returns command's ancestor
+func (cmd *Command) Root() *Command {
+	ancestor := cmd
+	for ancestor.parent != nil {
+		ancestor = ancestor.parent
+	}
+	return ancestor
 }
 
 func (cmd *Command) route(router []string) *Command {
@@ -288,7 +308,7 @@ func (cmd *Command) findChild(name string) *Command {
 
 // ListChildren returns all children's brief infos
 func (cmd *Command) ListChildren(prefix, indent string) string {
-	if cmd.children == nil || len(cmd.children) == 0 {
+	if cmd.nochild() {
 		return ""
 	}
 	buff := bytes.NewBufferString("")
@@ -303,4 +323,35 @@ func (cmd *Command) ListChildren(prefix, indent string) string {
 		fmt.Fprintf(buff, format, child.Name, child.Desc)
 	}
 	return buff.String()
+}
+
+func (cmd *Command) nochild() bool {
+	return cmd.children == nil || len(cmd.children) == 0
+}
+
+// Suggestions returns all similar commands
+func (cmd *Command) Suggestions(path string) []string {
+	if cmd.parent != nil {
+		return cmd.Root().Suggestions(path)
+	}
+
+	var (
+		cmds    = []*Command{cmd}
+		targets = []string{}
+	)
+	for len(cmds) > 0 {
+		if cmds[0].nochild() {
+			cmds = cmds[1:]
+		} else {
+			for _, child := range cmds[0].children {
+				targets = append(targets, child.Path())
+			}
+			cmds = append(cmds[0].children, cmds[1:]...)
+		}
+	}
+
+	m := fuzzy.NewModel()
+	m.SetDepth(5)
+	m.Train(targets)
+	return m.Suggestions(path, false)
 }
