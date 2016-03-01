@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"reflect"
-	"sort"
 	"testing"
 )
 

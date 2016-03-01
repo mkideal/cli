@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"math"
+	"os"
 	"testing"
 )
 
@@ -38,6 +39,11 @@ func TestParse(t *testing.T) {
 		want  argT
 		isErr bool
 	}{
+		//Case: ENV
+		{
+			args: []string{"--required=0"},
+			want: argT{Default: 102},
+		},
 		//Case: missing required
 		{
 			args:  []string{},
@@ -310,11 +316,24 @@ func TestParse(t *testing.T) {
 	if usage(new(tmpT)) != "" {
 		t.Errorf("want usage empty, but not")
 	}
+
+	type envT struct {
+		DefaultEnv string `cli:"default-env" usage:"default value" dft:"$ENV_CLI_TEST"`
+	}
+	envV := new(envT)
+	if flagSet := parseArgv([]string{}, envV); flagSet.err != nil {
+		t.Errorf(flagSet.err.Error())
+	} else {
+		if want := os.Getenv("ENV_CLI_TEST"); want != envV.DefaultEnv {
+			t.Errorf("ENV_CLI_TEST want `%s`, got `%s`", want, envV.DefaultEnv)
+		}
+	}
 }
 
 func TestUsage(t *testing.T) {
 	usage := usage(new(argT))
-	want := fmt.Sprintf(`      -s                             short flag
+	want := fmt.Sprintf(
+		`      -s                             short flag
       -2                             another short flag
       -S, --long                     short and long flags
   -x, -y, --abcd, --omitof           many short and long flags
@@ -332,7 +351,7 @@ func TestUsage(t *testing.T) {
           --u64                      type uint64
           --f32                      type float32
           --f64                      type float64
-`, red("*"), gray("[=102]"))
+`, Red("*"), Gray("[=102]"))
 	if usage != want {
 		t.Errorf("usage want `%s`, got `%s`", want, usage)
 	}

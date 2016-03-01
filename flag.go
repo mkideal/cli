@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -52,8 +53,13 @@ func newFlag(t reflect.StructField, v reflect.Value) (fl *flag, err error) {
 }
 
 func (fl *flag) init() error {
-	if fl.tag.defaultValue != "" {
-		return fl.set(fl.tag.defaultValue)
+	dft := fl.tag.defaultValue
+	if strings.HasPrefix(dft, "$") && !strings.HasPrefix(dft, "$$") {
+		key := strings.TrimPrefix(dft, "$")
+		dft = os.Getenv(key)
+	}
+	if dft != "" {
+		return fl.set(dft)
 	}
 	return nil
 }
