@@ -178,13 +178,13 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')
 			}
-			fmt.Fprintf(buff, "%s required argument `%s` missing", red("ERR!"), fl.name())
+			fmt.Fprintf(buff, "%s required argument `%s` missing", Red("ERR!"), fl.name())
 		}
 		if fl.assigned && fl.err != nil {
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')
 			}
-			fmt.Fprintf(buff, "%s assigned argument `%s` invalid: %v", red("ERR!"), fl.name(), fl.err)
+			fmt.Fprintf(buff, "%s assigned argument `%s` invalid: %v", Red("ERR!"), fl.name(), fl.err)
 		}
 	}
 	if buff.Len() > 0 {

@@ -4,18 +4,18 @@ import (
 	"fmt"
 )
 
-func gray(format string, args ...interface{}) string {
+func Gray(format string, args ...interface{}) string {
 	return fmt.Sprintf(format, args...)
 }
 
-func red(format string, args ...interface{}) string {
+func Red(format string, args ...interface{}) string {
 	return fmt.Sprintf(format, args...)
 }
 
-func yellow(format string, args ...interface{}) string {
+func Yellow(format string, args ...interface{}) string {
 	return fmt.Sprintf(format, args...)
 }
 
-func bold(format string, args ...interface{}) string {
+func Bold(format string, args ...interface{}) string {
 	return fmt.Sprintf(format, args...)
 }

@@ -40,17 +40,23 @@ type (
 
 	// Command is the main object in command-line app
 	Command struct {
-		Name string      // Command name
-		Desc string      // Command abstract
-		Text string      // Command detailed description
-		Fn   CommandFunc // Command handler
-		Argv ArgvFunc    // Command argument factory function
+		Name        string      // Command name
+		Desc        string      // Command abstract
+		Text        string      // Command detailed description
+		Fn          CommandFunc // Command handler
+		Argv        ArgvFunc    // Command argument factory function
+		CanSubRoute bool
 
 		parent   *Command
 		children []*Command
 
 		writer io.Writer
 		usage  string
+	}
+
+	commandTree struct {
+		command *Command
+		forest  []*commandTree
 	}
 )
 
@@ -195,8 +201,14 @@ func (cmd *Command) RegisterFunc(name string, fn CommandFunc, argvFn ArgvFunc) *
 }
 
 // RegisterTree registers a command tree
-//func (cmd *Command) RegisterTree(tree *CommandTree) {
-//}
+func (cmd *Command) RegisterTree(forest ...*commandTree) {
+	for _, tree := range forest {
+		cmd.Register(tree.command)
+		if tree.forest != nil && len(tree.forest) > 0 {
+			tree.command.RegisterTree(tree.forest...)
+		}
+	}
+}
 
 // Run runs the command with args
 func (cmd Command) Run(args []string) error {
@@ -213,15 +225,19 @@ func (cmd Command) Run(args []string) error {
 		}
 	}
 	path := strings.Join(router, " ")
-	child := cmd.route(router)
-	if child == nil {
+	child, end := cmd.SubRoute(router)
+	if child == nil || (!child.CanSubRoute && end != len(router)) {
 		suggestions := cmd.Suggestions(path)
 		buff := bytes.NewBufferString("")
-		fmt.Fprintf(buff, "command %s not found", yellow(path))
+		fmt.Fprintf(buff, "Command %s not found", Yellow(path))
 		if suggestions != nil && len(suggestions) > 0 {
-			fmt.Fprintf(buff, "\n\nDid you mean one of these?\n")
-			for _, sug := range suggestions {
-				fmt.Fprintf(buff, "    %s\n", sug)
+			if len(suggestions) == 1 {
+				fmt.Fprintf(buff, "\n\nDid you mean %s?", Bold(suggestions[0]))
+			} else {
+				fmt.Fprintf(buff, "\n\nDid you mean one of these?\n")
+				for _, sug := range suggestions {
+					fmt.Fprintf(buff, "    %s\n", sug)
+				}
 			}
 		}
 		return fmt.Errorf(buff.String())
@@ -231,7 +247,7 @@ func (cmd Command) Run(args []string) error {
 	if child.Argv != nil {
 		argv = child.Argv()
 	}
-	ctx, err := newContext(path, router, args[len(router):], argv)
+	ctx, err := newContext(path, router[:end], args[end:], argv)
 	if err != nil {
 		return err
 	}
@@ -260,9 +276,11 @@ func (cmd *Command) Usage() string {
 	if cmd.Text != "" {
 		fmt.Fprintf(buff, "%s\n\n", cmd.Text)
 	}
-	fmt.Fprintf(buff, "%s:\n%s\n", bold("Usage"), usage(cmd.Argv()))
+	if cmd.Argv != nil {
+		fmt.Fprintf(buff, "%s:\n%s\n", Bold("Usage"), usage(cmd.Argv()))
+	}
 	if cmd.children != nil && len(cmd.children) > 0 {
-		fmt.Fprintf(buff, "%s:\n%v", bold("Commands"), cmd.ListChildren("  ", "   "))
+		fmt.Fprintf(buff, "%s:\n%v", Bold("Commands"), cmd.ListChildren("  ", "   "))
 	}
 	cmd.usage = buff.String()
 	return cmd.usage
@@ -294,16 +312,24 @@ func (cmd *Command) Root() *Command {
 	return ancestor
 }
 
-func (cmd *Command) route(router []string) *Command {
+func (cmd *Command) Route(router []string) *Command {
+	child, end := cmd.SubRoute(router)
+	if end != len(router) {
+		return nil
+	}
+	return child
+}
+
+func (cmd *Command) SubRoute(router []string) (*Command, int) {
 	cur := cmd
-	for _, name := range router {
+	for i, name := range router {
 		child := cur.findChild(name)
 		if child == nil {
-			return nil
+			return cur, i
 		}
 		cur = child
 	}
-	return cur
+	return cur, len(router)
 }
 
 func (cmd *Command) findChild(name string) *Command {
@@ -370,4 +396,16 @@ func (cmd *Command) Suggestions(path string) []string {
 		targets[i] = dists[i].s
 	}
 	return targets[:len(dists)]
+}
+
+func Root(root *Command, forest ...*commandTree) *Command {
+	root.RegisterTree(forest...)
+	return root
+}
+
+func Tree(cmd *Command, forest ...*commandTree) *commandTree {
+	return &commandTree{
+		command: cmd,
+		forest:  forest,
+	}
 }

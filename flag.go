@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	errValueOverflow = errors.New(red("value overflow"))
+	errValueOverflow = errors.New(Red("value overflow"))
 )
 
 type flagSet struct {
@@ -167,7 +167,7 @@ func getBool(s string) (bool, error) {
 	}
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		return false, fmt.Errorf("`%s` couldn't convert to a %s value", s, red("bool"))
+		return false, fmt.Errorf("`%s` couldn't convert to a %s value", s, Red("bool"))
 	}
 	return i != 0, nil
 }
@@ -175,7 +175,7 @@ func getBool(s string) (bool, error) {
 func getInt(s string) (int64, error) {
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, red("int"))
+		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, Red("int"))
 	}
 	return i, nil
 }
@@ -183,7 +183,7 @@ func getInt(s string) (int64, error) {
 func getUint(s string) (uint64, error) {
 	i, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, red("uint"))
+		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, Red("uint"))
 	}
 	return i, nil
 }
@@ -191,7 +191,7 @@ func getUint(s string) (uint64, error) {
 func getFloat(s string) (float64, error) {
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to a %s value", s, red("float"))
+		return 0, fmt.Errorf("`%s` couldn't convert to a %s value", s, Red("float"))
 	}
 	return f, nil
 }
@@ -245,13 +245,13 @@ func (fs flagSlice) String() string {
 			defaultStr = fmt.Sprintf("[=%s]", tag.defaultValue)
 		}
 		if tag.required {
-			usagePrefix = red("*")
+			usagePrefix = Red("*")
 		}
 		usage := usagePrefix + tag.usage
 
 		spaceSize := lenSep + lenDefaultAndLong - len(defaultStr) - len(longStr)
 		if defaultStr != "" {
-			defaultStr = gray(defaultStr)
+			defaultStr = Gray(defaultStr)
 		}
 		if longStr == "" {
 			format = fmt.Sprintf("%%%ds%%s%s%%s", lenShort, sepSpaces)
