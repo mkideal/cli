@@ -14,6 +14,8 @@ type argT struct {
 	ShortDefault  uint8  `cli:"d" usage:"default value" dft:"102"`
 	Default       uint8  `cli:"dft,default" usage:"default value" dft:"102"`
 	MixDefault    uint8  `cli:"f,mixdefault" usage:"default value" dft:"102"`
+	Home          string `cli:"home" usage:"home dir" dft:"$HOME"`
+	DollarHome    string `cli:"dollar-home" usage:"default=$+HOME" dft:"$$HOME"`
 
 	// Ignored field: spacify `cli` tag=-
 	Ignored int16 `cli:"-" usage:"ignored field"`
@@ -41,9 +43,6 @@ func (argv *argT) Validate() error {
 
 func main() {
 	cli.Run(new(argT), func(ctx *cli.Context) error {
-		// Show usage information
-		ctx.String(ctx.Usage())
-
 		// Get argv
 		argv := ctx.Argv().(*argT)
 
@@ -56,6 +55,9 @@ func main() {
 
 		// Show the args as url.Values
 		ctx.JSONIndentln(ctx.FormValues(), "", "    ")
+
+		// Show usage information
+		ctx.String(ctx.Usage())
 
 		return nil
 	})

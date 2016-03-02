@@ -16,15 +16,33 @@ var (
 
 // Run runs a single command app
 func Run(argv interface{}, fn CommandFunc) {
-	err := Command{
+	err := (&Command{
 		Name: os.Args[0],
 		Argv: func() interface{} { return argv },
 		Fn:   fn,
-	}.Run(os.Args[1:])
+	}).Run(os.Args[1:])
 	if err != nil {
 		fmt.Println(err)
 	}
 }
+
+// Root registers forest for root and return root
+func Root(root *Command, forest ...*CommandTree) *Command {
+	root.RegisterTree(forest...)
+	return root
+}
+
+// Tree creates a CommandTree
+func Tree(cmd *Command, forest ...*CommandTree) *CommandTree {
+	return &CommandTree{
+		command: cmd,
+		forest:  forest,
+	}
+}
+
+//-----------------------------
+// Implements parse and others
+//-----------------------------
 
 func parseArgv(args []string, argv interface{}) *flagSet {
 	var (

@@ -23,8 +23,6 @@ func TestEditDistance(t *testing.T) {
 		{"publish", "pbish", 2},
 	} {
 		dist := editDistance([]byte(arg.s), []byte(arg.t))
-		_ = dist
-		continue
 		if dist != arg.dist {
 			t.Errorf("dist of between %s and %s: want %f, got %f", Bold(arg.s), Bold(arg.t), arg.dist, dist)
 		}
