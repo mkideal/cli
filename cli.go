@@ -145,7 +145,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 					return
 				}
 
-				if flagSet.err = fl.set(""); flagSet.err != nil {
+				if flagSet.err = fl.set(tmp, ""); flagSet.err != nil {
 					return
 				}
 				if fl.err == nil {
@@ -158,17 +158,20 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 
 		values = append(strs[1:], values...)
 		if len(values) == 0 {
-			flagSet.err = fl.set("")
+			flagSet.err = fl.set(arg, "")
 		} else if len(values) == 1 {
-			flagSet.err = fl.set(values[0])
+			flagSet.err = fl.set(arg, values[0])
 		} else {
-			flagSet.err = fmt.Errorf("too many(%d) value for flag `%s`", len(values), arg)
+			flagSet.err = fmt.Errorf("%s too many(%d) value for flag `%s`", Red("ERR!"), len(values), arg)
 		}
 		if flagSet.err != nil {
 			return
 		}
 		if fl.err == nil {
 			flagSet.values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
+		} else if fl.assigned {
+			flagSet.err = fmt.Errorf("%s assigned argument `%s` invalid: %v", Red("ERR!"), fl.name(), fl.err)
+			return
 		}
 	}
 
@@ -179,12 +182,6 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 				buff.WriteByte('\n')
 			}
 			fmt.Fprintf(buff, "%s required argument `%s` missing", Red("ERR!"), fl.name())
-		}
-		if fl.assigned && fl.err != nil {
-			if buff.Len() > 0 {
-				buff.WriteByte('\n')
-			}
-			fmt.Fprintf(buff, "%s assigned argument `%s` invalid: %v", Red("ERR!"), fl.name(), fl.err)
 		}
 	}
 	if buff.Len() > 0 {

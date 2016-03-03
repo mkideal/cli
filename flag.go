@@ -39,6 +39,8 @@ type flag struct {
 	assigned bool
 	err      error
 	tag      cliTag
+
+	actual string
 }
 
 func newFlag(t reflect.StructField, v reflect.Value) (fl *flag, err error) {
@@ -59,12 +61,15 @@ func (fl *flag) init() error {
 		dft = os.Getenv(key)
 	}
 	if dft != "" {
-		return fl.set(dft)
+		return fl.set("", dft)
 	}
 	return nil
 }
 
 func (fl *flag) name() string {
+	if fl.actual != "" {
+		return fl.actual
+	}
 	if len(fl.tag.longNames) > 0 {
 		return fl.tag.longNames[0]
 	}
@@ -74,9 +79,10 @@ func (fl *flag) name() string {
 	return ""
 }
 
-func (fl *flag) set(s string) error {
+func (fl *flag) set(actual, s string) error {
 	kind := fl.t.Type.Kind()
 	fl.assigned = true
+	fl.actual = actual
 	switch kind {
 	case reflect.Bool:
 		if v, err := getBool(s); err == nil {
