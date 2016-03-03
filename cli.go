@@ -106,13 +106,13 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet) {
 		}
 
 		names := append(fl.tag.shortNames, fl.tag.longNames...)
-		for _, name := range names {
+		for i, name := range names {
 			if _, ok := flagSet.flagMap[name]; ok {
 				flagSet.err = fmt.Errorf("flag `%s` repeat", name)
 				return
 			}
 			flagSet.flagMap[name] = fl
-			if fl.assigned {
+			if fl.assigned && i == 0 {
 				flagSet.values[name] = []string{value}
 			}
 		}
