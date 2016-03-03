@@ -56,9 +56,11 @@ func newFlag(t reflect.StructField, v reflect.Value) (fl *flag, err error) {
 
 func (fl *flag) init() error {
 	dft := fl.tag.defaultValue
-	if strings.HasPrefix(dft, "$") && !strings.HasPrefix(dft, "$$") {
-		key := strings.TrimPrefix(dft, "$")
-		dft = os.Getenv(key)
+	if strings.HasPrefix(dft, "$") {
+		dft = dft[1:]
+		if !strings.HasPrefix(dft, "$") {
+			dft = os.Getenv(dft)
+		}
 	}
 	if dft != "" {
 		return fl.set("", dft)

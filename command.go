@@ -54,9 +54,9 @@ type (
 		usage  string
 	}
 
-	commandTree struct {
+	CommandTree struct {
 		command *Command
-		forest  []*commandTree
+		forest  []*CommandTree
 	}
 )
 
@@ -123,7 +123,7 @@ func (ctx *Context) Writer() io.Writer {
 	return ctx.command.Writer()
 }
 
-// String writes format string to writer
+// String writes formatted string to writer
 func (ctx *Context) String(format string, args ...interface{}) *Context {
 	fmt.Fprintf(ctx.Writer(), format, args...)
 	return ctx
@@ -169,21 +169,27 @@ func (cmd *Command) Writer() io.Writer {
 	return cmd.writer
 }
 
-// SetWriter sets sepcify writer
+// SetWriter sets sepcified writer
 func (cmd *Command) SetWriter(writer io.Writer) {
 	cmd.writer = writer
 }
 
 // Register registers a child command
 func (cmd *Command) Register(child *Command) *Command {
+	if child == nil {
+		panicf("command `%s` try register a nil command", cmd.Name)
+	}
 	if child.Name == "" {
-		panic(`child.Name == ""`)
+		panicf("command `%s` try register a empty command", cmd.Name)
 	}
 	if cmd.children == nil {
 		cmd.children = []*Command{}
 	}
+	if child.parent != nil {
+		panicf("command `%s` has been child of `%s`", child.Name, child.parent.Name)
+	}
 	if cmd.findChild(child.Name) != nil {
-		panic(fmt.Sprintf("repeat register child `%s` for command `%s`", child.Name, cmd.Name))
+		panicf("repeat register child `%s` for command `%s`", child.Name, cmd.Name)
 	}
 	cmd.children = append(cmd.children, child)
 	child.parent = cmd
@@ -201,7 +207,7 @@ func (cmd *Command) RegisterFunc(name string, fn CommandFunc, argvFn ArgvFunc) *
 }
 
 // RegisterTree registers a command tree
-func (cmd *Command) RegisterTree(forest ...*commandTree) {
+func (cmd *Command) RegisterTree(forest ...*CommandTree) {
 	for _, tree := range forest {
 		cmd.Register(tree.command)
 		if tree.forest != nil && len(tree.forest) > 0 {
@@ -211,7 +217,8 @@ func (cmd *Command) RegisterTree(forest ...*commandTree) {
 }
 
 // Run runs the command with args
-func (cmd Command) Run(args []string) error {
+func (cmd *Command) Run(args []string) error {
+	// split args
 	router := []string{}
 	for _, arg := range args {
 		if strings.HasPrefix(arg, dashOne) {
@@ -226,13 +233,15 @@ func (cmd Command) Run(args []string) error {
 	}
 	path := strings.Join(router, " ")
 	child, end := cmd.SubRoute(router)
+
+	// if route fail
 	if child == nil || (!child.CanSubRoute && end != len(router)) {
 		suggestions := cmd.Suggestions(path)
 		buff := bytes.NewBufferString("")
 		fmt.Fprintf(buff, "Command %s not found", Yellow(path))
 		if suggestions != nil && len(suggestions) > 0 {
 			if len(suggestions) == 1 {
-				fmt.Fprintf(buff, "\n\nDid you mean %s?", Bold(suggestions[0]))
+				fmt.Fprintf(buff, "\nDid you mean %s?", Bold(suggestions[0]))
 			} else {
 				fmt.Fprintf(buff, "\n\nDid you mean one of these?\n")
 				for _, sug := range suggestions {
@@ -243,22 +252,27 @@ func (cmd Command) Run(args []string) error {
 		return fmt.Errorf(buff.String())
 	}
 
+	// create argv
 	var argv interface{}
 	if child.Argv != nil {
 		argv = child.Argv()
 	}
+
+	// create Context
 	ctx, err := newContext(path, router[:end], args[end:], argv)
 	if err != nil {
 		return err
 	}
+
+	// validate argv if argv implements Validator interface
 	if argv != nil {
-		// validate argv if argv implements Validator interface
 		if validator, ok := argv.(Validator); ok {
 			if err := validator.Validate(); err != nil {
 				return err
 			}
 		}
 	}
+
 	ctx.command = child
 	return child.Fn(ctx)
 }
@@ -277,10 +291,10 @@ func (cmd *Command) Usage() string {
 		fmt.Fprintf(buff, "%s\n\n", cmd.Text)
 	}
 	if cmd.Argv != nil {
-		fmt.Fprintf(buff, "%s:\n%s\n", Bold("Usage"), usage(cmd.Argv()))
+		fmt.Fprintf(buff, "%s:\n%s", Bold("Usage"), usage(cmd.Argv()))
 	}
 	if cmd.children != nil && len(cmd.children) > 0 {
-		fmt.Fprintf(buff, "%s:\n%v", Bold("Commands"), cmd.ListChildren("  ", "   "))
+		fmt.Fprintf(buff, "\n%s:\n%v", Bold("Commands"), cmd.ListChildren("  ", "   "))
 	}
 	cmd.usage = buff.String()
 	return cmd.usage
@@ -312,6 +326,7 @@ func (cmd *Command) Root() *Command {
 	return ancestor
 }
 
+// Route find command full matching router
 func (cmd *Command) Route(router []string) *Command {
 	child, end := cmd.SubRoute(router)
 	if end != len(router) {
@@ -320,6 +335,7 @@ func (cmd *Command) Route(router []string) *Command {
 	return child
 }
 
+// SubRoute find command partial matching router
 func (cmd *Command) SubRoute(router []string) (*Command, int) {
 	cur := cmd
 	for i, name := range router {
@@ -332,6 +348,7 @@ func (cmd *Command) SubRoute(router []string) (*Command, int) {
 	return cur, len(router)
 }
 
+// findChild find child command by name
 func (cmd *Command) findChild(name string) *Command {
 	for _, child := range cmd.children {
 		if child.Name == name {
@@ -396,16 +413,4 @@ func (cmd *Command) Suggestions(path string) []string {
 		targets[i] = dists[i].s
 	}
 	return targets[:len(dists)]
-}
-
-func Root(root *Command, forest ...*commandTree) *Command {
-	root.RegisterTree(forest...)
-	return root
-}
-
-func Tree(cmd *Command, forest ...*commandTree) *commandTree {
-	return &commandTree{
-		command: cmd,
-		forest:  forest,
-	}
 }

@@ -14,15 +14,15 @@ go get github.com/mkideal/cli
 * Simplest, fast to learn how to use.
 * Safety. Support type check, range check, and custom validate function.
 * Based on golang tag. Support three tags: `cli`,`usage`,`dft`.
-* Support specify default value and required declaration.
+* Support default value and required declaration.
 * Support multiple flag name for same argument.
 * Support command tree.
+* Support command suggestion
 
 ## TODOs
 * Add HTTP router
 * Support `[]string` as argument struct's field
 * Support argument struct inherit
-* Support command suggestion
 * Support command completion
 
 ## Getting started

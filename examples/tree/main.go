@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	err := cli.Root(
-		&cli.Command{},
+	root := cli.Root(
+		&cli.Command{Name: "tree"},
 		cli.Tree(cmd1,
 			cli.Tree(cmd11),
 			cli.Tree(cmd12),
@@ -21,9 +21,13 @@ func main() {
 				cli.Tree(cmd223),
 			),
 		),
-	).Run(os.Args[1:])
+	)
 
-	if err != nil {
+	if err := cli.InstallBashCompletion(root); err != nil {
+		fmt.Println(err)
+	}
+
+	if err := root.Run(os.Args[1:]); err != nil {
 		fmt.Println(err)
 	}
 }
