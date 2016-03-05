@@ -69,7 +69,7 @@ func genBashCompletion(root *Command) (*bytes.Buffer, error) {
 }
 
 func genCompleteFn(root *Command) string {
-	return "#TODO"
+	return "TODO=true"
 }
 
 const shellTemplateText = `# {{.Cli}} command completion script

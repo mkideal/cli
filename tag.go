@@ -16,7 +16,7 @@ const (
 	sepName = ", "
 )
 
-type cliTag struct {
+type fieldTag struct {
 	required     bool
 	shortNames   []string
 	longNames    []string
@@ -26,22 +26,22 @@ type cliTag struct {
 	isHelp bool
 }
 
-func parseTag(fieldName string, tag reflect.StructTag) (*cliTag, error) {
-	clitag := &cliTag{
+func parseTag(fieldName string, tag reflect.StructTag) (*fieldTag, error) {
+	ftag := &fieldTag{
 		shortNames: []string{},
 		longNames:  []string{},
 	}
 	cli := tag.Get(tagCli)
-	clitag.usage = tag.Get(tagUsage)
-	clitag.defaultValue = tag.Get(tagDefaut)
+	ftag.usage = tag.Get(tagUsage)
+	ftag.defaultValue = tag.Get(tagDefaut)
 
 	cli = strings.TrimSpace(cli)
 	for {
 		if strings.HasPrefix(cli, "*") {
-			clitag.required = true
+			ftag.required = true
 			cli = strings.TrimSpace(strings.TrimPrefix(cli, "*"))
 		} else if strings.HasPrefix(cli, "!") {
-			clitag.isHelp = true
+			ftag.isHelp = true
 			cli = strings.TrimSpace(strings.TrimPrefix(cli, "!"))
 		} else {
 			break
@@ -57,14 +57,14 @@ func parseTag(fieldName string, tag reflect.StructTag) (*cliTag, error) {
 		if len(name) == 0 {
 			continue
 		} else if len(name) == 1 {
-			clitag.shortNames = append(clitag.shortNames, dashOne+name)
+			ftag.shortNames = append(ftag.shortNames, dashOne+name)
 		} else {
-			clitag.longNames = append(clitag.longNames, dashTwo+name)
+			ftag.longNames = append(ftag.longNames, dashTwo+name)
 		}
 		isEmpty = false
 	}
 	if isEmpty {
-		clitag.longNames = append(clitag.longNames, dashTwo+fieldName)
+		ftag.longNames = append(ftag.longNames, dashTwo+fieldName)
 	}
-	return clitag, nil
+	return ftag, nil
 }

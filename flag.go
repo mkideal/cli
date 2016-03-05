@@ -40,7 +40,7 @@ type flag struct {
 
 	assigned bool
 	err      error
-	tag      cliTag
+	tag      fieldTag
 
 	actual string
 }

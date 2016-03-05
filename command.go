@@ -10,6 +10,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 )
 
 var (
@@ -17,7 +18,7 @@ var (
 )
 
 type (
-	// Context provider running context
+	// Context provide running context
 	Context struct {
 		router     []string
 		path       string
@@ -25,9 +26,10 @@ type (
 		nativeArgs []string
 		flagSet    *flagSet
 		command    *Command
+		writer     io.Writer
 	}
 
-	// Validator validate flag before run command
+	// Validator validate flag before running command
 	Validator interface {
 		Validate() error
 	}
@@ -51,6 +53,8 @@ type (
 		children []*Command
 
 		writer io.Writer
+
+		locker sync.Mutex // protect following data
 		usage  string
 	}
 
@@ -120,6 +124,9 @@ func (ctx *Context) Usage() string {
 
 // Writer returns current command's writer
 func (ctx *Context) Writer() io.Writer {
+	if ctx.writer != nil {
+		return ctx.writer
+	}
 	return ctx.command.Writer()
 }
 
@@ -218,6 +225,11 @@ func (cmd *Command) RegisterTree(forest ...*CommandTree) {
 
 // Run runs the command with args
 func (cmd *Command) Run(args []string) error {
+	return cmd.RunWithWriter(args, nil)
+}
+
+// RunWithWriter runs the command with args and writer
+func (cmd *Command) RunWithWriter(args []string, writer io.Writer) error {
 	var ctx *Context
 	var suggestion string
 	err := func() error {
@@ -229,10 +241,8 @@ func (cmd *Command) Run(args []string) error {
 			}
 			router = append(router, arg)
 		}
-		if len(router) == 0 {
-			if cmd.Fn == nil {
-				return errEmptyCommand
-			}
+		if len(router) == 0 && cmd.Fn == nil {
+			return errEmptyCommand
 		}
 		path := strings.Join(router, " ")
 		child, end := cmd.SubRoute(router)
@@ -268,7 +278,7 @@ func (cmd *Command) Run(args []string) error {
 			return tmpErr
 		}
 
-		// validate argv if argv implements Validator interface
+		// validate argv if argv implements interface Validator
 		if argv != nil && !ctx.flagSet.dontValidate {
 			if validator, ok := argv.(Validator); ok {
 				if err := validator.Validate(); err != nil {
@@ -278,6 +288,7 @@ func (cmd *Command) Run(args []string) error {
 		}
 
 		ctx.command = child
+		ctx.writer = writer
 		return nil
 	}()
 
@@ -295,8 +306,12 @@ func (cmd *Command) Run(args []string) error {
 // Usage sets usage and returns it
 func (cmd *Command) Usage() string {
 	// get usage form cache
-	if cmd.usage != "" {
-		return cmd.usage
+	cmd.locker.Lock()
+	tmpUsage := cmd.usage
+	cmd.locker.Unlock()
+	if tmpUsage != "" {
+		debugf("get command `%s` usage from cache", cmd.Name)
+		return tmpUsage
 	}
 	buff := bytes.NewBufferString("")
 	if cmd.Desc != "" {
@@ -311,8 +326,11 @@ func (cmd *Command) Usage() string {
 	if cmd.children != nil && len(cmd.children) > 0 {
 		fmt.Fprintf(buff, "\n%s:\n%v", Bold("Commands"), cmd.ListChildren("  ", "   "))
 	}
-	cmd.usage = buff.String()
-	return cmd.usage
+	tmpUsage = buff.String()
+	cmd.locker.Lock()
+	cmd.usage = tmpUsage
+	cmd.locker.Unlock()
+	return tmpUsage
 }
 
 // Path returns command full name
