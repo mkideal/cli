@@ -22,6 +22,8 @@ type cliTag struct {
 	longNames    []string
 	usage        string
 	defaultValue string
+
+	isHelp bool
 }
 
 func parseTag(fieldName string, tag reflect.StructTag) (*cliTag, error) {
@@ -34,9 +36,16 @@ func parseTag(fieldName string, tag reflect.StructTag) (*cliTag, error) {
 	clitag.defaultValue = tag.Get(tagDefaut)
 
 	cli = strings.TrimSpace(cli)
-	for strings.HasPrefix(cli, "*") {
-		clitag.required = true
-		cli = strings.TrimSpace(strings.TrimPrefix(cli, "*"))
+	for {
+		if strings.HasPrefix(cli, "*") {
+			clitag.required = true
+			cli = strings.TrimSpace(strings.TrimPrefix(cli, "*"))
+		} else if strings.HasPrefix(cli, "!") {
+			clitag.isHelp = true
+			cli = strings.TrimSpace(strings.TrimPrefix(cli, "!"))
+		} else {
+			break
+		}
 	}
 
 	names := strings.Split(cli, ",")

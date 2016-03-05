@@ -44,6 +44,23 @@ func Tree(cmd *Command, forest ...*CommandTree) *CommandTree {
 // Implements parse and others
 //-----------------------------
 
+func wrapError(err error) error {
+	if err == nil {
+		return err
+	}
+	errs := strings.Split(err.Error(), "\n")
+	buff := bytes.NewBufferString("")
+	errPrefix := Red("ERR!") + " "
+	for i, e := range errs {
+		if i != 0 {
+			buff.WriteByte('\n')
+		}
+		buff.WriteString(errPrefix)
+		buff.WriteString(e)
+	}
+	return fmt.Errorf(buff.String())
+}
+
 func parseArgv(args []string, argv interface{}) *flagSet {
 	var (
 		typ     = reflect.TypeOf(argv)
@@ -180,7 +197,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 		} else if len(values) == 1 {
 			flagSet.err = fl.set(arg, values[0])
 		} else {
-			flagSet.err = fmt.Errorf("%s too many(%d) value for flag `%s`", Red("ERR!"), len(values), arg)
+			flagSet.err = fmt.Errorf("too many(%d) value for flag `%s`", len(values), arg)
 		}
 		if flagSet.err != nil {
 			return
@@ -188,7 +205,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 		if fl.err == nil {
 			flagSet.values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
 		} else if fl.assigned {
-			flagSet.err = fmt.Errorf("%s assigned argument `%s` invalid: %v", Red("ERR!"), fl.name(), fl.err)
+			flagSet.err = fmt.Errorf("assigned argument `%s` invalid: %v", fl.name(), fl.err)
 			return
 		}
 	}
@@ -199,10 +216,18 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')
 			}
-			fmt.Fprintf(buff, "%s required argument `%s` missing", Red("ERR!"), fl.name())
+			fmt.Fprintf(buff, "required argument `%s` missing", fl.name())
 		}
 	}
 	if buff.Len() > 0 {
-		flagSet.err = fmt.Errorf(buff.String())
+		for _, fl := range flagSet.flags {
+			if fl.tag.isHelp && fl.getBool() {
+				flagSet.dontValidate = true
+				break
+			}
+		}
+		if !flagSet.dontValidate {
+			flagSet.err = fmt.Errorf(buff.String())
+		}
 	}
 }

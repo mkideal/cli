@@ -22,6 +22,8 @@ type flagSet struct {
 
 	flagMap map[string]*flag
 	flags   []*flag
+
+	dontValidate bool
 }
 
 func newFlagSet() *flagSet {
@@ -79,6 +81,13 @@ func (fl *flag) name() string {
 		return fl.tag.shortNames[0]
 	}
 	return ""
+}
+
+func (fl *flag) getBool() bool {
+	if fl.t.Type.Kind() != reflect.Bool {
+		return false
+	}
+	return fl.v.Bool()
 }
 
 func (fl *flag) set(actual, s string) error {
@@ -181,7 +190,7 @@ func getBool(s string) (bool, error) {
 	}
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		return false, fmt.Errorf("`%s` couldn't convert to a %s value", s, Red("bool"))
+		return false, fmt.Errorf("`%s` couldn't convert to a %s value", s, Bold("bool"))
 	}
 	return i != 0, nil
 }
@@ -189,7 +198,7 @@ func getBool(s string) (bool, error) {
 func getInt(s string) (int64, error) {
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, Red("int"))
+		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, Bold("int"))
 	}
 	return i, nil
 }
@@ -197,7 +206,7 @@ func getInt(s string) (int64, error) {
 func getUint(s string) (uint64, error) {
 	i, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, Red("uint"))
+		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, Bold("uint"))
 	}
 	return i, nil
 }
@@ -205,7 +214,7 @@ func getUint(s string) (uint64, error) {
 func getFloat(s string) (float64, error) {
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to a %s value", s, Red("float"))
+		return 0, fmt.Errorf("`%s` couldn't convert to a %s value", s, Bold("float"))
 	}
 	return f, nil
 }

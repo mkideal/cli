@@ -218,63 +218,78 @@ func (cmd *Command) RegisterTree(forest ...*CommandTree) {
 
 // Run runs the command with args
 func (cmd *Command) Run(args []string) error {
-	// split args
-	router := []string{}
-	for _, arg := range args {
-		if strings.HasPrefix(arg, dashOne) {
-			break
+	var ctx *Context
+	var suggestion string
+	err := func() error {
+		// split args
+		router := []string{}
+		for _, arg := range args {
+			if strings.HasPrefix(arg, dashOne) {
+				break
+			}
+			router = append(router, arg)
 		}
-		router = append(router, arg)
-	}
-	if len(router) == 0 {
-		if cmd.Fn == nil {
-			return errEmptyCommand
+		if len(router) == 0 {
+			if cmd.Fn == nil {
+				return errEmptyCommand
+			}
 		}
-	}
-	path := strings.Join(router, " ")
-	child, end := cmd.SubRoute(router)
+		path := strings.Join(router, " ")
+		child, end := cmd.SubRoute(router)
 
-	// if route fail
-	if child == nil || (!child.CanSubRoute && end != len(router)) {
-		suggestions := cmd.Suggestions(path)
-		buff := bytes.NewBufferString("")
-		fmt.Fprintf(buff, "Command %s not found", Yellow(path))
-		if suggestions != nil && len(suggestions) > 0 {
-			if len(suggestions) == 1 {
-				fmt.Fprintf(buff, "\nDid you mean %s?", Bold(suggestions[0]))
-			} else {
-				fmt.Fprintf(buff, "\n\nDid you mean one of these?\n")
-				for _, sug := range suggestions {
-					fmt.Fprintf(buff, "    %s\n", sug)
+		// if route fail
+		if child == nil || (!child.CanSubRoute && end != len(router)) {
+			suggestions := cmd.Suggestions(path)
+			buff := bytes.NewBufferString("")
+			if suggestions != nil && len(suggestions) > 0 {
+				if len(suggestions) == 1 {
+					fmt.Fprintf(buff, "\nDid you mean %s?", Bold(suggestions[0]))
+				} else {
+					fmt.Fprintf(buff, "\n\nDid you mean one of these?\n")
+					for _, sug := range suggestions {
+						fmt.Fprintf(buff, "    %s\n", sug)
+					}
+				}
+			}
+			suggestion = buff.String()
+			return fmt.Errorf("Command %s not found", Yellow(path))
+		}
+
+		// create argv
+		var argv interface{}
+		if child.Argv != nil {
+			argv = child.Argv()
+		}
+
+		// create Context
+		var tmpErr error
+		ctx, tmpErr = newContext(path, router[:end], args[end:], argv)
+		if tmpErr != nil {
+			return tmpErr
+		}
+
+		// validate argv if argv implements Validator interface
+		if argv != nil && !ctx.flagSet.dontValidate {
+			if validator, ok := argv.(Validator); ok {
+				if err := validator.Validate(); err != nil {
+					return err
 				}
 			}
 		}
-		return fmt.Errorf(buff.String())
-	}
 
-	// create argv
-	var argv interface{}
-	if child.Argv != nil {
-		argv = child.Argv()
-	}
+		ctx.command = child
+		return nil
+	}()
 
-	// create Context
-	ctx, err := newContext(path, router[:end], args[end:], argv)
 	if err != nil {
+		err = wrapError(err)
+		if suggestion != "" {
+			err = fmt.Errorf("%v%s", err, suggestion)
+		}
 		return err
 	}
 
-	// validate argv if argv implements Validator interface
-	if argv != nil {
-		if validator, ok := argv.(Validator); ok {
-			if err := validator.Validate(); err != nil {
-				return err
-			}
-		}
-	}
-
-	ctx.command = child
-	return child.Fn(ctx)
+	return ctx.command.Fn(ctx)
 }
 
 // Usage sets usage and returns it

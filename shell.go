@@ -9,7 +9,7 @@ import (
 	"text/template"
 )
 
-// InstallShell install bash_completion
+// InstallBashCompletion install bash_completion
 func InstallBashCompletion(root *Command) error {
 	if root.Name == "" {
 		return fmt.Errorf("root command's name is empty")

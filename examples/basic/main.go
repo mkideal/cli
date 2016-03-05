@@ -6,6 +6,7 @@ import (
 )
 
 type argT struct {
+	Help          bool   `cli:"!h,help" usage:"this is a help flag, note the !"`
 	Short         bool   `cli:"s" usage:"short flag"`
 	ShortAndLong  string `cli:"S,long" usage:"short and long flags"`
 	ShortsAndLong int    `cli:"x,y,abcd,omitof" usage:"many short and long flags"`
@@ -50,7 +51,7 @@ func main() {
 		ctx.JSON(argv).String("\n")
 		ctx.JSONIndent(argv, "", "    ").String("\n")
 
-		// Get show native args
+		// Get and show native args
 		ctx.JSONln(ctx.Args())
 
 		// Show the args as url.Values
