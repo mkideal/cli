@@ -3,12 +3,15 @@ package cli
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 
 	"github.com/labstack/gommon/color"
+	"github.com/mattn/go-colorable"
 )
 
 var enableDebug = false
@@ -36,18 +39,28 @@ func gopaths() []string {
 	return paths
 }
 
-func debugf(format string, args ...interface{}) {
+var debugOut, debugColor = func() (io.Writer, color.Color) {
+	clr := color.Color{}
+	out := colorable.NewColorableStdout()
+	colorSwitch(&clr, out)
+	return out, clr
+}()
+
+func Debugf(format string, args ...interface{}) {
 	if !enableDebug {
 		return
 	}
 	_, file, line, _ := runtime.Caller(1)
 	fileline := makeFileLine(file, line)
-	fmt.Printf(color.Bold(fileline)+" "+format+"\n", args...)
+	fmt.Fprintf(debugOut, "[DEBUG]"+debugColor.Bold(fileline)+" "+format+"\n", args...)
 }
 
-func panicf(format string, args ...interface{}) {
+func Panicf(format string, args ...interface{}) {
+	clr := color.Color{}
+	out := colorable.NewColorableStderr()
+	colorSwitch(&clr, out)
 	buff := bytes.NewBufferString("")
-	buff.WriteString(color.Red(fmt.Sprintf(format, args...)))
+	buff.WriteString(clr.Red(fmt.Sprintf(format, args...)))
 	buff.WriteString("\n\n[stack]\n")
 	skip := 1
 	for {
@@ -59,8 +72,16 @@ func panicf(format string, args ...interface{}) {
 		buff.WriteString(makeFileLine(file, line))
 		buff.WriteString("\n")
 	}
-	fmt.Fprintf(os.Stderr, buff.String())
+	fmt.Fprintf(out, buff.String())
 	os.Exit(999)
+}
+
+func TypeName(i interface{}) string {
+	t := reflect.TypeOf(i)
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t.Name()
 }
 
 func makeFileLine(file string, line int) string {

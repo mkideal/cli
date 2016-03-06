@@ -2,18 +2,12 @@ package cli
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"reflect"
 	"strings"
 
 	"github.com/labstack/gommon/color"
-)
-
-var (
-	errNotPointToStruct = errors.New("argv does not indirect a struct")
-	errNotAPointer      = errors.New("argv is not a pointer")
 )
 
 // Run runs a single command app
@@ -45,23 +39,6 @@ func Tree(cmd *Command, forest ...*CommandTree) *CommandTree {
 //-----------------------------
 // Implements parse and others
 //-----------------------------
-
-func wrapError(err error, clr color.Color) error {
-	if err == nil {
-		return err
-	}
-	errs := strings.Split(err.Error(), "\n")
-	buff := bytes.NewBufferString("")
-	errPrefix := clr.Red("ERR!") + " "
-	for i, e := range errs {
-		if i != 0 {
-			buff.WriteByte('\n')
-		}
-		buff.WriteString(errPrefix)
-		buff.WriteString(e)
-	}
-	return fmt.Errorf(buff.String())
-}
 
 func parseArgv(args []string, argv interface{}, clr color.Color) *flagSet {
 	var (
@@ -140,7 +117,7 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 		names := append(fl.tag.shortNames, fl.tag.longNames...)
 		for i, name := range names {
 			if _, ok := flagSet.flagMap[name]; ok {
-				flagSet.err = fmt.Errorf("flag `%s` repeat", name)
+				flagSet.err = fmt.Errorf("flag %s repeat", clr.Bold(name))
 				return
 			}
 			flagSet.flagMap[name] = fl
@@ -182,7 +159,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 		if !ok {
 			// If has prefix `--`
 			if strings.HasPrefix(arg, dashTwo) {
-				flagSet.err = fmt.Errorf("undefined flag `%s`", arg)
+				flagSet.err = fmt.Errorf("undefined flag %s", clr.Bold(arg))
 				return
 			}
 			// Else find arg char by char
@@ -191,7 +168,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 				tmp := dashOne + string([]byte{c})
 				fl, ok := flagSet.flagMap[tmp]
 				if !ok {
-					flagSet.err = fmt.Errorf("undefined flag `%s`", tmp)
+					flagSet.err = fmt.Errorf("undefined flag %s", clr.Bold(tmp))
 					return
 				}
 
@@ -212,7 +189,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 		} else if len(values) == 1 {
 			flagSet.err = fl.set(arg, values[0], clr)
 		} else {
-			flagSet.err = fmt.Errorf("too many(%d) value for flag `%s`", len(values), arg)
+			flagSet.err = fmt.Errorf("too many(%d) value for flag %s", len(values), clr.Bold(arg))
 		}
 		if flagSet.err != nil {
 			return
@@ -220,7 +197,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 		if fl.err == nil {
 			flagSet.values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
 		} else if fl.assigned {
-			flagSet.err = fmt.Errorf("assigned argument `%s` invalid: %v", fl.name(), fl.err)
+			flagSet.err = fmt.Errorf("assigned argument %s invalid: %v", clr.Bold(fl.name()), fl.err)
 			return
 		}
 	}
@@ -231,7 +208,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')
 			}
-			fmt.Fprintf(buff, "required argument `%s` missing", fl.name())
+			fmt.Fprintf(buff, "required argument %s missing", clr.Bold(fl.name()))
 		}
 	}
 	if buff.Len() > 0 {

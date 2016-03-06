@@ -9,6 +9,7 @@ const (
 	tagCli    = "cli"
 	tagUsage  = "usage"
 	tagDefaut = "dft"
+	tagName   = "name"
 
 	dashOne = "-"
 	dashTwo = "--"
@@ -22,6 +23,7 @@ type fieldTag struct {
 	longNames    []string
 	usage        string
 	defaultValue string
+	name         string
 
 	isHelp bool
 }
@@ -34,6 +36,7 @@ func parseTag(fieldName string, tag reflect.StructTag) (*fieldTag, bool) {
 	cli := tag.Get(tagCli)
 	ftag.usage = tag.Get(tagUsage)
 	ftag.defaultValue = tag.Get(tagDefaut)
+	ftag.name = tag.Get(tagName)
 
 	cli = strings.TrimSpace(cli)
 	for {

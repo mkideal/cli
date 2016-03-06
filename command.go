@@ -3,7 +3,6 @@ package cli
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -13,11 +12,8 @@ import (
 	"sync"
 
 	"github.com/labstack/gommon/color"
+	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
-)
-
-var (
-	errEmptyCommand = errors.New("empty command")
 )
 
 type (
@@ -38,13 +34,13 @@ type (
 		Validate() error
 	}
 
-	// CommandFunc aliases command handle function
+	// CommandFunc ...
 	CommandFunc func(*Context) error
 
-	// ArgvFunc aliases command argv factory function
+	// ArgvFunc ...
 	ArgvFunc func() interface{}
 
-	// Command is the main object in command-line app
+	// Command is the top-level instance in command-line app
 	Command struct {
 		Name        string      // Command name
 		Desc        string      // Command abstract
@@ -52,6 +48,11 @@ type (
 		Fn          CommandFunc // Command handler
 		Argv        ArgvFunc    // Command argument factory function
 		CanSubRoute bool
+
+		HTTPRouters []string
+		HTTPMethods []string
+
+		routersMap map[string]string
 
 		parent   *Command
 		children []*Command
@@ -115,12 +116,12 @@ func (ctx *Context) FormValues() url.Values {
 	return ctx.flagSet.values
 }
 
-// Command returns current command object
+// Command returns current command instance
 func (ctx *Context) Command() *Command {
 	return ctx.command
 }
 
-// Usage returns current command's usage
+// Usage returns current command's usage with current context
 func (ctx *Context) Usage() string {
 	return ctx.command.Usage(ctx)
 }
@@ -128,7 +129,7 @@ func (ctx *Context) Usage() string {
 // Writer returns writer
 func (ctx *Context) Writer() io.Writer {
 	if ctx.writer == nil {
-		ctx.writer = os.Stdout
+		ctx.writer = colorable.NewColorableStdout()
 	}
 	return ctx.writer
 }
@@ -179,19 +180,19 @@ func (ctx *Context) JSONIndentln(obj interface{}, prefix, indent string) *Contex
 // Register registers a child command
 func (cmd *Command) Register(child *Command) *Command {
 	if child == nil {
-		panicf("command `%s` try register a nil command", cmd.Name)
+		Panicf("command `%s` try register a nil command", cmd.Name)
 	}
 	if child.Name == "" {
-		panicf("command `%s` try register a empty command", cmd.Name)
+		Panicf("command `%s` try register a empty command", cmd.Name)
 	}
 	if cmd.children == nil {
 		cmd.children = []*Command{}
 	}
 	if child.parent != nil {
-		panicf("command `%s` has been child of `%s`", child.Name, child.parent.Name)
+		Panicf("command `%s` has been child of `%s`", child.Name, child.parent.Name)
 	}
 	if cmd.findChild(child.Name) != nil {
-		panicf("repeat register child `%s` for command `%s`", child.Name, cmd.Name)
+		Panicf("repeat register child `%s` for command `%s`", child.Name, cmd.Name)
 	}
 	cmd.children = append(cmd.children, child)
 	child.parent = cmd
@@ -225,9 +226,9 @@ func (cmd *Command) Run(args []string) error {
 }
 
 // RunWithWriter runs the command with args and writer
-func (cmd *Command) RunWithWriter(args []string, writer io.Writer) error {
+func (cmd *Command) RunWithWriter(args []string, writer io.Writer, httpMethods ...string) error {
 	if writer == nil {
-		writer = os.Stdout
+		writer = colorable.NewColorableStdout()
 	}
 	clr := color.Color{}
 	colorSwitch(&clr, writer)
@@ -245,7 +246,7 @@ func (cmd *Command) RunWithWriter(args []string, writer io.Writer) error {
 			router = append(router, arg)
 		}
 		if len(router) == 0 && cmd.Fn == nil {
-			return errEmptyCommand
+			return throwCommandNotFound(clr.Yellow(cmd.Name))
 		}
 		path := strings.Join(router, " ")
 		child, end := cmd.SubRoute(router)
@@ -265,7 +266,25 @@ func (cmd *Command) RunWithWriter(args []string, writer io.Writer) error {
 				}
 			}
 			suggestion = buff.String()
-			return fmt.Errorf("Command %s not found", clr.Yellow(path))
+			return throwCommandNotFound(clr.Yellow(path))
+		}
+
+		methodAllowed := false
+		if len(httpMethods) == 0 ||
+			child.HTTPMethods == nil ||
+			len(child.HTTPMethods) == 0 {
+			methodAllowed = true
+		} else {
+			method := httpMethods[0]
+			for _, m := range child.HTTPMethods {
+				if method == m {
+					methodAllowed = true
+					break
+				}
+			}
+		}
+		if !methodAllowed {
+			return throwMethodNotAllowed(clr.Yellow(httpMethods[0]))
 		}
 
 		// create argv
@@ -296,13 +315,14 @@ func (cmd *Command) RunWithWriter(args []string, writer io.Writer) error {
 	}()
 
 	if err != nil {
-		err = wrapError(err, clr)
-		if suggestion != "" {
-			err = fmt.Errorf("%v%s", err, suggestion)
-		}
-		return err
+		return wrapErr(err, suggestion, clr)
 	}
 
+	if ctx.Argv() != nil {
+		Debugf("command %s ready exec with argv %v", ctx.command.Name, ctx.Argv())
+	} else {
+		Debugf("command %s ready exec", ctx.command.Name)
+	}
 	return ctx.command.Fn(ctx)
 }
 
@@ -318,7 +338,7 @@ func (cmd *Command) Usage(ctxs ...*Context) string {
 	tmpUsage := cmd.usage
 	cmd.locker.Unlock()
 	if tmpUsage != "" {
-		debugf("get command `%s` usage from cache", cmd.Name)
+		Debugf("get usage of command %s from cache", clr.Bold(cmd.Name))
 		return tmpUsage
 	}
 	buff := bytes.NewBufferString("")
@@ -370,7 +390,7 @@ func (cmd *Command) Root() *Command {
 	return ancestor
 }
 
-// Route find command full matching router
+// Route finds command full matching router
 func (cmd *Command) Route(router []string) *Command {
 	child, end := cmd.SubRoute(router)
 	if end != len(router) {
@@ -379,7 +399,7 @@ func (cmd *Command) Route(router []string) *Command {
 	return child
 }
 
-// SubRoute find command partial matching router
+// SubRoute finds command partial matching router
 func (cmd *Command) SubRoute(router []string) (*Command, int) {
 	cur := cmd
 	for i, name := range router {
@@ -392,7 +412,7 @@ func (cmd *Command) SubRoute(router []string) (*Command, int) {
 	return cur, len(router)
 }
 
-// findChild find child command by name
+// findChild finds child command by name
 func (cmd *Command) findChild(name string) *Command {
 	for _, child := range cmd.children {
 		if child.Name == name {

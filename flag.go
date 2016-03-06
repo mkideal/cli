@@ -135,7 +135,7 @@ func (fl *flag) set(actual, s string, clr color.Color) error {
 			fl.err = err
 		}
 	default:
-		return fmt.Errorf("invalid field type: %s", kind.String())
+		return fmt.Errorf("unsupported type of field: %s", kind.String())
 	}
 	return nil
 }
@@ -179,10 +179,10 @@ func minmaxFloatCheck(kind reflect.Kind, v float64) bool {
 }
 
 func getBool(s string, clr color.Color) (bool, error) {
-	if s == "true" || s == "" {
+	if s == "true" || s == "yes" || s == "y" || s == "" {
 		return true, nil
 	}
-	if s == "false" || s == "none" || s == "no" || s == "not" {
+	if s == "false" || s == "none" || s == "no" || s == "not" || s == "n" {
 		return false, nil
 	}
 	i, err := strconv.Atoi(s)
@@ -220,11 +220,11 @@ type flagSlice []*flag
 
 func (fs flagSlice) String(clr color.Color) string {
 	var (
-		lenShort          = 0
-		lenLong           = 0
-		lenDefaultAndLong = 0
-		lenSep            = len(sepName)
-		sepSpaces         = strings.Repeat(" ", lenSep)
+		lenShort                 = 0
+		lenLong                  = 0
+		lenNameAndDefaultAndLong = 0
+		lenSep                   = len(sepName)
+		sepSpaces                = strings.Repeat(" ", lenSep)
 	)
 	for _, fl := range fs {
 		tag := fl.tag
@@ -246,8 +246,12 @@ func (fs flagSlice) String(clr color.Color) string {
 		if tag.defaultValue != "" {
 			lenDft = len(tag.defaultValue) + 3 // 3=len("[=]")
 		}
-		if l+lenDft > lenDefaultAndLong {
-			lenDefaultAndLong = l + lenDft
+		l += lenDft
+		if tag.name != "" {
+			l += len(tag.name) + 1
+		}
+		if l > lenNameAndDefaultAndLong {
+			lenNameAndDefaultAndLong = l
 		}
 	}
 
@@ -259,23 +263,33 @@ func (fs flagSlice) String(clr color.Color) string {
 			longStr     = strings.Join(tag.longNames, sepName)
 			format      = ""
 			defaultStr  = ""
+			nameStr     = ""
 			usagePrefix = " "
 		)
 		if tag.defaultValue != "" {
 			defaultStr = fmt.Sprintf("[=%s]", tag.defaultValue)
+		}
+		if tag.name != "" {
+			nameStr = "=" + tag.name
 		}
 		if tag.required {
 			usagePrefix = clr.Red("*")
 		}
 		usage := usagePrefix + tag.usage
 
-		spaceSize := lenSep + lenDefaultAndLong - len(defaultStr) - len(longStr)
+		spaceSize := lenSep + lenNameAndDefaultAndLong
+		spaceSize -= len(nameStr) + len(defaultStr) + len(longStr)
+
 		if defaultStr != "" {
 			defaultStr = clr.Grey(defaultStr)
 		}
+		if nameStr != "" {
+			nameStr = "=" + clr.Bold(tag.name)
+		}
+
 		if longStr == "" {
 			format = fmt.Sprintf("%%%ds%%s%s%%s", lenShort, sepSpaces)
-			fillStr := fillSpaces(defaultStr, spaceSize)
+			fillStr := fillSpaces(nameStr+defaultStr, spaceSize)
 			buff.WriteString(fmt.Sprintf(format+"\n", shortStr, fillStr, usage))
 		} else {
 			if shortStr == "" {
@@ -283,7 +297,7 @@ func (fs flagSlice) String(clr color.Color) string {
 			} else {
 				format = fmt.Sprintf("%%%ds%s%%s%%s", lenShort, sepName)
 			}
-			fillStr := fillSpaces(longStr+defaultStr, spaceSize)
+			fillStr := fillSpaces(longStr+nameStr+defaultStr, spaceSize)
 			buff.WriteString(fmt.Sprintf(format+"\n", shortStr, fillStr, usage))
 		}
 	}

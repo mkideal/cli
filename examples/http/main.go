@@ -40,6 +40,9 @@ var help = &cli.Command{
 	Name:        "help",
 	Desc:        "display help",
 	CanSubRoute: true,
+	HTTPRouters: []string{"/help", "/v1/help"},
+	HTTPMethods: []string{http.MethodGet},
+
 	Fn: func(ctx *cli.Context) error {
 		parent := ctx.Command().Parent()
 		if len(ctx.Args()) == 0 {
@@ -49,7 +52,7 @@ var help = &cli.Command{
 		child := parent.Route(ctx.Args())
 		if child == nil {
 			cmd := strings.Join(ctx.Args(), " ")
-			return fmt.Errorf("Command %s not found", ctx.Color().Yellow(cmd))
+			return fmt.Errorf("command %s not found", ctx.Color().Yellow(cmd))
 		}
 		ctx.String(child.Usage(ctx))
 		return nil
@@ -84,6 +87,10 @@ var daemon = &cli.Command{
 		cli.EnableDebug()
 		addr := fmt.Sprintf(":%d", argv.Port)
 		ctx.String("http addr: %s\n", addr)
+
+		if err := ctx.Command().Root().RegisterHTTP(ctx); err != nil {
+			return err
+		}
 		return http.ListenAndServe(addr, ctx.Command().Root())
 	},
 }
@@ -119,7 +126,7 @@ var api = &cli.Command{
 //-------
 type buildT struct {
 	cli.Helper
-	Dir string `cli:"dir" usage:"Dest path" dft:"./"`
+	Dir string `cli:"dir" usage:"dest path" dft:"./"`
 }
 
 var build = &cli.Command{
