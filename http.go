@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bytes"
 	"net/http"
 	"strings"
 )
@@ -11,7 +10,7 @@ const (
 	StatusRunError = 1
 )
 
-func (ctx *Context) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		return
 	}
@@ -36,13 +35,11 @@ func (ctx *Context) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		args = append(args, key, values[len(values)-1])
 	}
-	buff := bytes.NewBufferString("")
-	if err := ctx.Command().Root().RunWithWriter(args, buff); err != nil {
-		w.WriteHeader(StatusRunError)
-		buff.WriteString(err.Error())
-	}
 	debugf("path: %s", path)
 	debugf("args: %q", args)
-	debugf("resp: %s", buff.String())
-	w.Write(buff.Bytes())
+
+	if err := cmd.RunWithWriter(args, w); err != nil {
+		w.WriteHeader(StatusRunError)
+		w.Write([]byte(err.Error()))
+	}
 }

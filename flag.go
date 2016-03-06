@@ -10,10 +10,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-)
 
-var (
-	errValueOverflow = errors.New(Red("value overflow"))
+	"github.com/labstack/gommon/color"
 )
 
 type flagSet struct {
@@ -45,18 +43,17 @@ type flag struct {
 	actual string
 }
 
-func newFlag(t reflect.StructField, v reflect.Value) (fl *flag, err error) {
+func newFlag(t reflect.StructField, v reflect.Value, tag *fieldTag, clr color.Color) (fl *flag, err error) {
 	fl = &flag{t: t, v: v}
-	tag, err := parseTag(t.Name, t.Tag)
-	if tag == nil {
-		return nil, nil
+	if !fl.v.CanSet() {
+		return nil, fmt.Errorf("field %s can not set", clr.Bold(fl.t.Name))
 	}
 	fl.tag = *tag
-	err = fl.init()
+	err = fl.init(clr)
 	return
 }
 
-func (fl *flag) init() error {
+func (fl *flag) init(clr color.Color) error {
 	dft := fl.tag.defaultValue
 	if strings.HasPrefix(dft, "$") {
 		dft = dft[1:]
@@ -65,7 +62,7 @@ func (fl *flag) init() error {
 		}
 	}
 	if dft != "" {
-		return fl.set("", dft)
+		return fl.set("", dft, clr)
 	}
 	return nil
 }
@@ -90,13 +87,13 @@ func (fl *flag) getBool() bool {
 	return fl.v.Bool()
 }
 
-func (fl *flag) set(actual, s string) error {
+func (fl *flag) set(actual, s string, clr color.Color) error {
 	kind := fl.t.Type.Kind()
 	fl.assigned = true
 	fl.actual = actual
 	switch kind {
 	case reflect.Bool:
-		if v, err := getBool(s); err == nil {
+		if v, err := getBool(s, clr); err == nil {
 			fl.v.SetBool(v)
 		} else {
 			fl.err = err
@@ -106,33 +103,33 @@ func (fl *flag) set(actual, s string) error {
 		fl.v.SetString(s)
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		if v, err := getInt(s); err == nil {
+		if v, err := getInt(s, clr); err == nil {
 			if minmaxIntCheck(kind, v) {
 				fl.v.SetInt(v)
 			} else {
-				fl.err = errValueOverflow
+				fl.err = errors.New(clr.Red("value overflow"))
 			}
 		} else {
 			fl.err = err
 		}
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		if v, err := getUint(s); err == nil {
+		if v, err := getUint(s, clr); err == nil {
 			if minmaxUintCheck(kind, v) {
 				fl.v.SetUint(uint64(v))
 			} else {
-				fl.err = errValueOverflow
+				fl.err = errors.New(clr.Red("value overflow"))
 			}
 		} else {
 			fl.err = err
 		}
 
 	case reflect.Float32, reflect.Float64:
-		if v, err := getFloat(s); err == nil {
+		if v, err := getFloat(s, clr); err == nil {
 			if minmaxFloatCheck(kind, v) {
 				fl.v.SetFloat(float64(v))
 			} else {
-				fl.err = errValueOverflow
+				fl.err = errors.New(clr.Red("value overflow"))
 			}
 		} else {
 			fl.err = err
@@ -181,7 +178,7 @@ func minmaxFloatCheck(kind reflect.Kind, v float64) bool {
 	return true
 }
 
-func getBool(s string) (bool, error) {
+func getBool(s string, clr color.Color) (bool, error) {
 	if s == "true" || s == "" {
 		return true, nil
 	}
@@ -190,38 +187,38 @@ func getBool(s string) (bool, error) {
 	}
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		return false, fmt.Errorf("`%s` couldn't convert to a %s value", s, Bold("bool"))
+		return false, fmt.Errorf("`%s` couldn't convert to a %s value", s, clr.Bold("bool"))
 	}
 	return i != 0, nil
 }
 
-func getInt(s string) (int64, error) {
+func getInt(s string, clr color.Color) (int64, error) {
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, Bold("int"))
+		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, clr.Bold("int"))
 	}
 	return i, nil
 }
 
-func getUint(s string) (uint64, error) {
+func getUint(s string, clr color.Color) (uint64, error) {
 	i, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, Bold("uint"))
+		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, clr.Bold("uint"))
 	}
 	return i, nil
 }
 
-func getFloat(s string) (float64, error) {
+func getFloat(s string, clr color.Color) (float64, error) {
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to a %s value", s, Bold("float"))
+		return 0, fmt.Errorf("`%s` couldn't convert to a %s value", s, clr.Bold("float"))
 	}
 	return f, nil
 }
 
 type flagSlice []*flag
 
-func (fs flagSlice) String() string {
+func (fs flagSlice) String(clr color.Color) string {
 	var (
 		lenShort          = 0
 		lenLong           = 0
@@ -268,13 +265,13 @@ func (fs flagSlice) String() string {
 			defaultStr = fmt.Sprintf("[=%s]", tag.defaultValue)
 		}
 		if tag.required {
-			usagePrefix = Red("*")
+			usagePrefix = clr.Red("*")
 		}
 		usage := usagePrefix + tag.usage
 
 		spaceSize := lenSep + lenDefaultAndLong - len(defaultStr) - len(longStr)
 		if defaultStr != "" {
-			defaultStr = Gray(defaultStr)
+			defaultStr = clr.Grey(defaultStr)
 		}
 		if longStr == "" {
 			format = fmt.Sprintf("%%%ds%%s%s%%s", lenShort, sepSpaces)

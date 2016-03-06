@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/labstack/gommon/color"
 )
 
 var enableDebug = false
@@ -40,12 +42,12 @@ func debugf(format string, args ...interface{}) {
 	}
 	_, file, line, _ := runtime.Caller(1)
 	fileline := makeFileLine(file, line)
-	fmt.Printf(Bold(fileline)+" "+format+"\n", args...)
+	fmt.Printf(color.Bold(fileline)+" "+format+"\n", args...)
 }
 
 func panicf(format string, args ...interface{}) {
 	buff := bytes.NewBufferString("")
-	buff.WriteString(Red(format, args...))
+	buff.WriteString(color.Red(fmt.Sprintf(format, args...)))
 	buff.WriteString("\n\n[stack]\n")
 	skip := 1
 	for {

@@ -56,9 +56,7 @@ func jsonIndent(i interface{}) string {
 func main() {
 	//NOTE: You can set any writer implements io.Writer
 	// default writer is os.Stdout
-	app.SetWriter(os.Stderr)
-
-	if err := app.Run(os.Args[1:]); err != nil {
+	if err := app.RunWithWriter(os.Args[1:], os.Stderr); err != nil {
 		fmt.Printf("%v\n", err)
 	}
 }

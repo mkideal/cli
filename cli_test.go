@@ -5,6 +5,8 @@ import (
 	"math"
 	"os"
 	"testing"
+
+	"github.com/labstack/gommon/color"
 )
 
 type argT struct {
@@ -34,6 +36,7 @@ func toStr(i interface{}) string {
 }
 
 func TestParse(t *testing.T) {
+	clr := color.Color{}
 	for i, tab := range []struct {
 		args  []string
 		want  argT
@@ -271,7 +274,7 @@ func TestParse(t *testing.T) {
 		},
 	} {
 		v := new(argT)
-		flagSet := parseArgv(tab.args, v)
+		flagSet := parseArgv(tab.args, v, clr)
 		if tab.isErr {
 			if flagSet.err == nil {
 				t.Errorf("[%2d] want error, got nil", i)
@@ -288,20 +291,20 @@ func TestParse(t *testing.T) {
 	}
 
 	//Case parse non-pointer object
-	if flagSet := parseArgv([]string{}, argT{}); flagSet.err != errNotAPointer {
+	if flagSet := parseArgv([]string{}, argT{}, clr); flagSet.err != errNotAPointer {
 		t.Errorf("want %v, got %v", errNotAPointer, flagSet.err)
 	}
-	if usage(argT{}) != "" {
+	if usage(argT{}, clr) != "" {
 		t.Errorf("want usage empty, but not")
 	}
 
 	//Case parse pointer, but not indirect a struct
 	tmp := 0
 	ptrInt := &tmp
-	if flagSet := parseArgv([]string{}, ptrInt); flagSet.err != errNotPointToStruct {
+	if flagSet := parseArgv([]string{}, ptrInt, clr); flagSet.err != errNotPointToStruct {
 		t.Errorf("want %v, got %v", errNotPointToStruct, flagSet.err)
 	}
-	if usage(ptrInt) != "" {
+	if usage(ptrInt, clr) != "" {
 		t.Errorf("want usage empty, but not")
 	}
 
@@ -310,10 +313,10 @@ func TestParse(t *testing.T) {
 		A bool `cli:"a"`
 		B bool `cli:"a"`
 	}
-	if flagSet := parseArgv([]string{}, new(tmpT)); flagSet.err == nil {
+	if flagSet := parseArgv([]string{}, new(tmpT), clr); flagSet.err == nil {
 		t.Errorf("want error, got nil")
 	}
-	if usage(new(tmpT)) != "" {
+	if usage(new(tmpT), clr) != "" {
 		t.Errorf("want usage empty, but not")
 	}
 
@@ -321,7 +324,7 @@ func TestParse(t *testing.T) {
 		DefaultEnv string `cli:"default-env" usage:"default value" dft:"$ENV_CLI_TEST"`
 	}
 	envV := new(envT)
-	if flagSet := parseArgv([]string{}, envV); flagSet.err != nil {
+	if flagSet := parseArgv([]string{}, envV, clr); flagSet.err != nil {
 		t.Errorf(flagSet.err.Error())
 	} else {
 		if want := os.Getenv("ENV_CLI_TEST"); want != envV.DefaultEnv {
@@ -331,7 +334,8 @@ func TestParse(t *testing.T) {
 }
 
 func TestUsage(t *testing.T) {
-	usage := usage(new(argT))
+	clr := color.Color{}
+	usage := usage(new(argT), clr)
 	want := fmt.Sprintf(
 		`      -s                             short flag
       -2                             another short flag
@@ -351,8 +355,35 @@ func TestUsage(t *testing.T) {
           --u64                      type uint64
           --f32                      type float32
           --f64                      type float64
-`, Red("*"), Gray("[=102]"))
+`, clr.Red("*"), clr.Grey("[=102]"))
 	if usage != want {
 		t.Errorf("usage want `%s`, got `%s`", want, usage)
+	}
+}
+
+func TestStructField(t *testing.T) {
+	type BaseT struct {
+		Help bool `cli:"!h,help" usage:"display help"`
+	}
+	type subT struct {
+		BaseT
+		Version string `cli:"v" usage:"display version" dft:"v0.0.1"`
+	}
+	args := []string{
+		"-h",
+		"-v=v1.1.1",
+	}
+	argv := new(subT)
+	clr := color.Color{}
+	flagSet := parseArgv(args, argv, clr)
+	if flagSet.err != nil {
+		t.Errorf("parseArgv error: %v", flagSet.err)
+	} else {
+		if argv.BaseT.Help != true {
+			t.Errorf("Help want true, but got false")
+		}
+		if argv.Version != "v1.1.1" {
+			t.Errorf("Version want v1.1.1, but got %s", argv.Version)
+		}
 	}
 }

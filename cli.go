@@ -7,6 +7,8 @@ import (
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/labstack/gommon/color"
 )
 
 var (
@@ -44,13 +46,13 @@ func Tree(cmd *Command, forest ...*CommandTree) *CommandTree {
 // Implements parse and others
 //-----------------------------
 
-func wrapError(err error) error {
+func wrapError(err error, clr color.Color) error {
 	if err == nil {
 		return err
 	}
 	errs := strings.Split(err.Error(), "\n")
 	buff := bytes.NewBufferString("")
-	errPrefix := Red("ERR!") + " "
+	errPrefix := clr.Red("ERR!") + " "
 	for i, e := range errs {
 		if i != 0 {
 			buff.WriteByte('\n')
@@ -61,7 +63,7 @@ func wrapError(err error) error {
 	return fmt.Errorf(buff.String())
 }
 
-func parseArgv(args []string, argv interface{}) *flagSet {
+func parseArgv(args []string, argv interface{}, clr color.Color) *flagSet {
 	var (
 		typ     = reflect.TypeOf(argv)
 		val     = reflect.ValueOf(argv)
@@ -73,7 +75,7 @@ func parseArgv(args []string, argv interface{}) *flagSet {
 			flagSet.err = errNotPointToStruct
 			return flagSet
 		}
-		parse(args, typ, val, flagSet)
+		parse(args, typ, val, flagSet, clr)
 		return flagSet
 	default:
 		flagSet.err = errNotAPointer
@@ -81,7 +83,7 @@ func parseArgv(args []string, argv interface{}) *flagSet {
 	}
 }
 
-func usage(v interface{}) string {
+func usage(v interface{}, clr color.Color) string {
 	var (
 		typ     = reflect.TypeOf(v)
 		val     = reflect.ValueOf(v)
@@ -89,17 +91,17 @@ func usage(v interface{}) string {
 	)
 	if typ.Kind() == reflect.Ptr {
 		if reflect.Indirect(val).Type().Kind() == reflect.Struct {
-			initFlagSet(typ, val, flagSet)
+			initFlagSet(typ, val, flagSet, clr)
 			if flagSet.err != nil {
 				return ""
 			}
-			return flagSlice(flagSet.flags).String()
+			return flagSlice(flagSet.flags).String(clr)
 		}
 	}
 	return ""
 }
 
-func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet) {
+func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr color.Color) {
 	var (
 		tm       = typ.Elem()
 		vm       = val.Elem()
@@ -108,7 +110,20 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet) {
 	for i := 0; i < fieldNum; i++ {
 		tfield := tm.Field(i)
 		vfield := vm.Field(i)
-		fl, err := newFlag(tfield, vfield)
+		tag, isEmpty := parseTag(tfield.Name, tfield.Tag)
+		if tag == nil {
+			continue
+		}
+		// if `cli` tag is empty and the field is a struct
+		if isEmpty && vfield.Kind() == reflect.Struct {
+			subObj := vfield.Addr().Interface()
+			initFlagSet(reflect.TypeOf(subObj), reflect.ValueOf(subObj), flagSet, clr)
+			if flagSet.err != nil {
+				return
+			}
+			continue
+		}
+		fl, err := newFlag(tfield, vfield, tag, clr)
 		if flagSet.err = err; err != nil {
 			return
 		}
@@ -136,8 +151,8 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet) {
 	}
 }
 
-func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet) {
-	initFlagSet(typ, val, flagSet)
+func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet, clr color.Color) {
+	initFlagSet(typ, val, flagSet, clr)
 	if flagSet.err != nil {
 		return
 	}
@@ -180,7 +195,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 					return
 				}
 
-				if flagSet.err = fl.set(tmp, ""); flagSet.err != nil {
+				if flagSet.err = fl.set(tmp, "", clr); flagSet.err != nil {
 					return
 				}
 				if fl.err == nil {
@@ -193,9 +208,9 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet)
 
 		values = append(strs[1:], values...)
 		if len(values) == 0 {
-			flagSet.err = fl.set(arg, "")
+			flagSet.err = fl.set(arg, "", clr)
 		} else if len(values) == 1 {
-			flagSet.err = fl.set(arg, values[0])
+			flagSet.err = fl.set(arg, values[0], clr)
 		} else {
 			flagSet.err = fmt.Errorf("too many(%d) value for flag `%s`", len(values), arg)
 		}

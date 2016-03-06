@@ -1,5 +1,5 @@
 package cli
 
-type Help struct {
-	Help bool `cli:"!h,help" usage:"Dispaly help"`
+type Helper struct {
+	Help bool `cli:"!h,help" usage:"dispaly help"`
 }

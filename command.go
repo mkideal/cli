@@ -11,6 +11,9 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/labstack/gommon/color"
+	"github.com/mattn/go-isatty"
 )
 
 var (
@@ -27,6 +30,7 @@ type (
 		flagSet    *flagSet
 		command    *Command
 		writer     io.Writer
+		color      color.Color
 	}
 
 	// Validator validate flag before running command
@@ -52,8 +56,6 @@ type (
 		parent   *Command
 		children []*Command
 
-		writer io.Writer
-
 		locker sync.Mutex // protect following data
 		usage  string
 	}
@@ -68,15 +70,16 @@ type (
 // Context
 //---------
 
-func newContext(path string, router, args []string, argv interface{}) (*Context, error) {
+func newContext(path string, router, args []string, argv interface{}, clr color.Color) (*Context, error) {
 	ctx := &Context{
 		path:       path,
 		router:     router,
 		argv:       argv,
 		nativeArgs: args,
+		color:      clr,
 	}
 	if argv != nil {
-		ctx.flagSet = parseArgv(args, argv)
+		ctx.flagSet = parseArgv(args, argv, ctx.color)
 		if ctx.flagSet.err != nil {
 			return nil, ctx.flagSet.err
 		}
@@ -119,15 +122,20 @@ func (ctx *Context) Command() *Command {
 
 // Usage returns current command's usage
 func (ctx *Context) Usage() string {
-	return ctx.command.Usage()
+	return ctx.command.Usage(ctx)
 }
 
-// Writer returns current command's writer
+// Writer returns writer
 func (ctx *Context) Writer() io.Writer {
-	if ctx.writer != nil {
-		return ctx.writer
+	if ctx.writer == nil {
+		ctx.writer = os.Stdout
 	}
-	return ctx.command.Writer()
+	return ctx.writer
+}
+
+// Color returns color instance
+func (ctx *Context) Color() *color.Color {
+	return &ctx.color
 }
 
 // String writes formatted string to writer
@@ -168,19 +176,6 @@ func (ctx *Context) JSONIndentln(obj interface{}, prefix, indent string) *Contex
 // Command
 //---------
 
-// Writer sets default writer(os.Stdout) if nil and returns writer
-func (cmd *Command) Writer() io.Writer {
-	if cmd.writer == nil {
-		cmd.writer = os.Stdout
-	}
-	return cmd.writer
-}
-
-// SetWriter sets sepcified writer
-func (cmd *Command) SetWriter(writer io.Writer) {
-	cmd.writer = writer
-}
-
 // Register registers a child command
 func (cmd *Command) Register(child *Command) *Command {
 	if child == nil {
@@ -201,10 +196,6 @@ func (cmd *Command) Register(child *Command) *Command {
 	cmd.children = append(cmd.children, child)
 	child.parent = cmd
 
-	// inherit parent's writer if nil
-	if child.writer == nil {
-		child.writer = child.parent.writer
-	}
 	return child
 }
 
@@ -223,6 +214,11 @@ func (cmd *Command) RegisterTree(forest ...*CommandTree) {
 	}
 }
 
+// Parent returns command's parent
+func (cmd *Command) Parent() *Command {
+	return cmd.parent
+}
+
 // Run runs the command with args
 func (cmd *Command) Run(args []string) error {
 	return cmd.RunWithWriter(args, nil)
@@ -230,8 +226,15 @@ func (cmd *Command) Run(args []string) error {
 
 // RunWithWriter runs the command with args and writer
 func (cmd *Command) RunWithWriter(args []string, writer io.Writer) error {
+	if writer == nil {
+		writer = os.Stdout
+	}
+	clr := color.Color{}
+	colorSwitch(&clr, writer)
+
 	var ctx *Context
 	var suggestion string
+
 	err := func() error {
 		// split args
 		router := []string{}
@@ -253,7 +256,7 @@ func (cmd *Command) RunWithWriter(args []string, writer io.Writer) error {
 			buff := bytes.NewBufferString("")
 			if suggestions != nil && len(suggestions) > 0 {
 				if len(suggestions) == 1 {
-					fmt.Fprintf(buff, "\nDid you mean %s?", Bold(suggestions[0]))
+					fmt.Fprintf(buff, "\nDid you mean %s?", clr.Bold(suggestions[0]))
 				} else {
 					fmt.Fprintf(buff, "\n\nDid you mean one of these?\n")
 					for _, sug := range suggestions {
@@ -262,7 +265,7 @@ func (cmd *Command) RunWithWriter(args []string, writer io.Writer) error {
 				}
 			}
 			suggestion = buff.String()
-			return fmt.Errorf("Command %s not found", Yellow(path))
+			return fmt.Errorf("Command %s not found", clr.Yellow(path))
 		}
 
 		// create argv
@@ -273,7 +276,7 @@ func (cmd *Command) RunWithWriter(args []string, writer io.Writer) error {
 
 		// create Context
 		var tmpErr error
-		ctx, tmpErr = newContext(path, router[:end], args[end:], argv)
+		ctx, tmpErr = newContext(path, router[:end], args[end:], argv, clr)
 		if tmpErr != nil {
 			return tmpErr
 		}
@@ -293,7 +296,7 @@ func (cmd *Command) RunWithWriter(args []string, writer io.Writer) error {
 	}()
 
 	if err != nil {
-		err = wrapError(err)
+		err = wrapError(err, clr)
 		if suggestion != "" {
 			err = fmt.Errorf("%v%s", err, suggestion)
 		}
@@ -304,7 +307,12 @@ func (cmd *Command) RunWithWriter(args []string, writer io.Writer) error {
 }
 
 // Usage sets usage and returns it
-func (cmd *Command) Usage() string {
+func (cmd *Command) Usage(ctxs ...*Context) string {
+	clr := color.Color{}
+	clr.Disable()
+	if len(ctxs) > 0 {
+		clr = ctxs[0].color
+	}
 	// get usage form cache
 	cmd.locker.Lock()
 	tmpUsage := cmd.usage
@@ -321,10 +329,13 @@ func (cmd *Command) Usage() string {
 		fmt.Fprintf(buff, "%s\n\n", cmd.Text)
 	}
 	if cmd.Argv != nil {
-		fmt.Fprintf(buff, "%s:\n%s", Bold("Usage"), usage(cmd.Argv()))
+		fmt.Fprintf(buff, "%s:\n%s", clr.Bold("Usage"), usage(cmd.Argv(), clr))
 	}
 	if cmd.children != nil && len(cmd.children) > 0 {
-		fmt.Fprintf(buff, "\n%s:\n%v", Bold("Commands"), cmd.ListChildren("  ", "   "))
+		if cmd.Argv != nil {
+			buff.WriteByte('\n')
+		}
+		fmt.Fprintf(buff, "%s:\n%v", clr.Bold("Commands"), cmd.ListChildren("  ", "   "))
 	}
 	tmpUsage = buff.String()
 	cmd.locker.Lock()
@@ -446,4 +457,11 @@ func (cmd *Command) Suggestions(path string) []string {
 		targets[i] = dists[i].s
 	}
 	return targets[:len(dists)]
+}
+
+func colorSwitch(clr *color.Color, w io.Writer) {
+	clr.Disable()
+	if w, ok := w.(*os.File); ok && isatty.IsTerminal(w.Fd()) {
+		clr.Enable()
+	}
 }

@@ -24,7 +24,7 @@ func TestEditDistance(t *testing.T) {
 	} {
 		dist := editDistance([]byte(arg.s), []byte(arg.t))
 		if dist != arg.dist {
-			t.Errorf("dist of between %s and %s: want %f, got %f", Bold(arg.s), Bold(arg.t), arg.dist, dist)
+			t.Errorf("dist of between %s and %s: want %f, got %f", arg.s, arg.t, arg.dist, dist)
 		}
 	}
 }

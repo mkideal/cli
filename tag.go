@@ -26,7 +26,7 @@ type fieldTag struct {
 	isHelp bool
 }
 
-func parseTag(fieldName string, tag reflect.StructTag) (*fieldTag, error) {
+func parseTag(fieldName string, tag reflect.StructTag) (*fieldTag, bool) {
 	ftag := &fieldTag{
 		shortNames: []string{},
 		longNames:  []string{},
@@ -52,7 +52,7 @@ func parseTag(fieldName string, tag reflect.StructTag) (*fieldTag, error) {
 	isEmpty := true
 	for _, name := range names {
 		if name = strings.TrimSpace(name); name == dashOne {
-			return nil, nil
+			return nil, false
 		}
 		if len(name) == 0 {
 			continue
@@ -66,5 +66,5 @@ func parseTag(fieldName string, tag reflect.StructTag) (*fieldTag, error) {
 	if isEmpty {
 		ftag.longNames = append(ftag.longNames, dashTwo+fieldName)
 	}
-	return ftag, nil
+	return ftag, isEmpty
 }

@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/mkideal/cli"
 )
 
-var isClient = true
-
 func main() {
 	if err := cli.Root(root,
+		cli.Tree(help),
 		cli.Tree(daemon),
 		cli.Tree(ping),
-		cli.Tree(app,
+		cli.Tree(api,
 			cli.Tree(build),
 			cli.Tree(install),
 		),
@@ -23,41 +23,89 @@ func main() {
 	}
 }
 
-type daemonT struct {
-	Help bool `cli:"!h,help" usage:"Dispaly help"`
-	Port int  `cli:"p,port" usage:"http port" dft:"8080"`
+//------
+// root
+//------
+var root = &cli.Command{
+	Fn: func(ctx *cli.Context) error {
+		ctx.String(ctx.Usage())
+		return nil
+	},
 }
 
-var root = &cli.Command{}
+//------
+// help
+//------
+var help = &cli.Command{
+	Name:        "help",
+	Desc:        "display help",
+	CanSubRoute: true,
+	Fn: func(ctx *cli.Context) error {
+		parent := ctx.Command().Parent()
+		if len(ctx.Args()) == 0 {
+			ctx.String(parent.Usage())
+			return nil
+		}
+		child := parent.Route(ctx.Args())
+		if child == nil {
+			cmd := strings.Join(ctx.Args(), " ")
+			return fmt.Errorf("Command %s not found", ctx.Color().Yellow(cmd))
+		}
+		ctx.String(child.Usage(ctx))
+		return nil
+	},
+}
+
+//--------
+// daemon
+//--------
+type daemonT struct {
+	cli.Helper
+	Port uint16 `cli:"p,port" usage:"http port" dft:"8080"`
+}
+
+func (t *daemonT) Validate() error {
+	if t.Port == 0 {
+		return fmt.Errorf("please don't use 0 as http port")
+	}
+	return nil
+}
 
 var daemon = &cli.Command{
 	Name: "daemon",
+	Desc: "startup app as daemon",
 	Argv: func() interface{} { return new(daemonT) },
-
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*daemonT)
 		if argv.Help {
 			ctx.String(ctx.Usage())
 			return nil
 		}
-		isClient = false
 		cli.EnableDebug()
 		addr := fmt.Sprintf(":%d", argv.Port)
 		ctx.String("http addr: %s\n", addr)
-		return http.ListenAndServe(addr, ctx)
+		return http.ListenAndServe(addr, ctx.Command().Root())
 	},
 }
 
+//------
+// ping
+//------
 var ping = &cli.Command{
 	Name: "ping",
+	Desc: "ping server",
 	Fn: func(ctx *cli.Context) error {
 		ctx.String("pong\n")
 		return nil
 	},
 }
 
-var app = &cli.Command{
-	Name: "app",
+//-----
+// api
+//-----
+var api = &cli.Command{
+	Name: "api",
+	Desc: "display all api",
 	Fn: func(ctx *cli.Context) error {
 		ctx.String("Commands:\n")
 		ctx.String("    build\n")
@@ -66,13 +114,17 @@ var app = &cli.Command{
 	},
 }
 
+//-------
+// build
+//-------
 type buildT struct {
-	Help bool   `cli:"h,help" usage:"Dispaly help"`
-	Dir  string `cli:"dir" usage:"Dest path" dft:"./"`
+	cli.Helper
+	Dir string `cli:"dir" usage:"Dest path" dft:"./"`
 }
 
 var build = &cli.Command{
 	Name: "build",
+	Desc: "build application",
 	Argv: func() interface{} { return new(buildT) },
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*buildT)
@@ -85,8 +137,12 @@ var build = &cli.Command{
 	},
 }
 
+//---------
+// install
+//---------
 var install = &cli.Command{
 	Name: "install",
+	Desc: "install application",
 	Argv: func() interface{} { return new(buildT) },
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*buildT)
