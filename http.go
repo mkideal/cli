@@ -95,7 +95,7 @@ func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			statusCode = http.StatusInternalServerError
 		}
 	}
-	Debugf("reap: %s", buf.String())
+	Debugf("resp: %s", buf.String())
 	w.WriteHeader(statusCode)
 	w.Write(buf.Bytes())
 }
