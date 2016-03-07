@@ -211,15 +211,13 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 			fmt.Fprintf(buff, "required argument %s missing", clr.Bold(fl.name()))
 		}
 	}
-	if buff.Len() > 0 {
-		for _, fl := range flagSet.flags {
-			if fl.tag.isHelp && fl.getBool() {
-				flagSet.dontValidate = true
-				break
-			}
+	for _, fl := range flagSet.flags {
+		if fl.tag.isHelp && fl.getBool() {
+			flagSet.dontValidate = true
+			break
 		}
-		if !flagSet.dontValidate {
-			flagSet.err = fmt.Errorf(buff.String())
-		}
+	}
+	if buff.Len() > 0 && !flagSet.dontValidate {
+		flagSet.err = fmt.Errorf(buff.String())
 	}
 }
