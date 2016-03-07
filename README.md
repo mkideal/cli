@@ -17,15 +17,15 @@ go get github.com/mkideal/cli
 
 * Simplest, fast to learn.
 * Safety. Support type check, range check, and custom validate function.
-* Based on golang tag. Support three tags: `cli`,`usage`,`dft`.
+* Based on golang tag. Support four tags: `cli`,`usage`,`dft`, `name`.
 * Support default value and required declaration.
 * Support multiple flag name for same argument.
 * Support command tree.
 * Support command suggestion
 * Support HTTP router
+* Support struct field
 
 ## TODOs
-* Support argument struct inherit
 * Support command completion
 
 ## Getting started
@@ -115,24 +115,68 @@ GoRoot string `cli:"goroot" usage:"Go root dir" dft:"$GOROOT"`
 ## Command
 
 ### Command struct
+
 ```go
 type Command struct {
-	Name   string
-	Desc   string
-	Text   string
-	Fn     CommandFunc
-	Argv   ArgvFunc
+	Name        string
+	Desc        string
+	Text        string
+	Fn          CommandFunc
+	Argv        ArgvFunc
+	CanSubRoute bool
 
-	parent   *Command
-	children []*Command
-
-	writer io.Writer
+	...
 }
 ```
 
 ### Command tree
 
-#### Method 1: Register child command
+#### Method 1: Construct command tree
+
+```go
+// Tree creates a CommandTree
+func Tree(cmd *Command, forest ...*CommandTree) *CommandTree
+
+// Root registers forest for root and return root
+func Root(root *Command, forest ...*CommandTree) *Command
+```
+
+```go
+func log(ctx *cli.Context) error {
+	ctx.String("path: `%s`\n", ctx.Path())
+	return nil
+}
+var (
+	cmd1  = &cli.Command{Name: "cmd1", Fn: log}
+	cmd11 = &cli.Command{Name: "cmd11", Fn: log}
+	cmd12 = &cli.Command{Name: "cmd12", Fn: log}
+
+	cmd2   = &cli.Command{Name: "cmd2", Fn: log}
+	cmd21  = &cli.Command{Name: "cmd21", Fn: log}
+	cmd22  = &cli.Command{Name: "cmd22", Fn: log}
+	cmd221 = &cli.Command{Name: "cmd221", Fn: log}
+	cmd222 = &cli.Command{Name: "cmd222", Fn: log}
+	cmd223 = &cli.Command{Name: "cmd223", Fn: log}
+)
+
+root := cli.Root(
+	&cli.Command{Name: "tree"},
+	cli.Tree(cmd1,
+		cli.Tree(cmd11),
+		cli.Tree(cmd12),
+	),
+	cli.Tree(cmd2,
+		cli.Tree(cmd21),
+		cli.Tree(cmd22,
+			cli.Tree(cmd221),
+			cli.Tree(cmd222),
+			cli.Tree(cmd223),
+		),
+	),
+)
+```
+
+#### Method 2: Register child command
 Command registers child command using `Register` method or `RegisterFunc` method.
 
 ```go
@@ -178,51 +222,6 @@ var sub2 = root.Register(&cli.Command{
 })
 ```
 
-#### Method 2: Construct command tree
-
-```go
-// Tree creates a CommandTree
-func Tree(cmd *Command, forest ...*CommandTree) *CommandTree
-
-// Root registers forest for root and return root
-func Root(root *Command, forest ...*CommandTree) *Command
-```
-
-```go
-func log(ctx *cli.Context) error {
-	ctx.String("path: `%s`\n", ctx.Path())
-	return nil
-}
-var (
-	cmd1  = &cli.Command{Name: "cmd1", Fn: log}
-	cmd11 = &cli.Command{Name: "cmd11", Fn: log}
-	cmd12 = &cli.Command{Name: "cmd12", Fn: log}
-
-	cmd2   = &cli.Command{Name: "cmd2", Fn: log}
-	cmd21  = &cli.Command{Name: "cmd21", Fn: log}
-	cmd22  = &cli.Command{Name: "cmd22", Fn: log}
-	cmd221 = &cli.Command{Name: "cmd221", Fn: log}
-	cmd222 = &cli.Command{Name: "cmd222", Fn: log}
-	cmd223 = &cli.Command{Name: "cmd223", Fn: log}
-)
-
-root := cli.Root(
-	&cli.Command{Name: "tree"},
-	cli.Tree(cmd1,
-		cli.Tree(cmd11),
-		cli.Tree(cmd12),
-	),
-	cli.Tree(cmd2,
-		cli.Tree(cmd21),
-		cli.Tree(cmd22,
-			cli.Tree(cmd221),
-			cli.Tree(cmd222),
-			cli.Tree(cmd223),
-		),
-	),
-)
-```
-
 ## HTTP router
 
 Context implements ServeHTTP method.
@@ -230,7 +229,6 @@ Context implements ServeHTTP method.
 ```go
 func (ctx *Context) ServeHTTP(w http.ResponseWriter, r *http.Request)
 ```
-
 
 ## Examples
 
@@ -241,3 +239,7 @@ func (ctx *Context) ServeHTTP(w http.ResponseWriter, r *http.Request)
 * [Multi Command](https://github.com/mkideal/cli/blob/master/examples/multi-command)
 * [Tree](https://github.com/mkideal/cli/blob/master/examples/tree/main.go)
 * [HTTP](https://github.com/mkideal/cli/blob/master/examples/http/main.go)
+
+## External tools
+
+* [goplus](https://github.com/mkideal/goplus) - `generate go application skeleton`
