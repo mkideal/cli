@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/mkideal/cli"
 )
@@ -41,22 +40,9 @@ var help = &cli.Command{
 	Desc:        "display help",
 	CanSubRoute: true,
 	HTTPRouters: []string{"/help", "/v1/help"},
-	HTTPMethods: []string{http.MethodGet},
+	HTTPMethods: []string{"GET"},
 
-	Fn: func(ctx *cli.Context) error {
-		parent := ctx.Command().Parent()
-		if len(ctx.Args()) == 0 {
-			ctx.String(parent.Usage())
-			return nil
-		}
-		child := parent.Route(ctx.Args())
-		if child == nil {
-			cmd := strings.Join(ctx.Args(), " ")
-			return fmt.Errorf("command %s not found", ctx.Color().Yellow(cmd))
-		}
-		ctx.String(child.Usage(ctx))
-		return nil
-	},
+	Fn: cli.HelpCommandFn,
 }
 
 //--------

@@ -485,3 +485,34 @@ func colorSwitch(clr *color.Color, w io.Writer) {
 		clr.Enable()
 	}
 }
+
+// HelpCommandFn implements buildin help command function
+func HelpCommandFn(ctx *Context) error {
+	var (
+		args   = ctx.Args()
+		parent = ctx.Command().Parent()
+	)
+	if len(args) == 0 {
+		ctx.String(parent.Usage(ctx))
+		return nil
+	}
+	var (
+		child = parent.Route(args)
+		clr   = ctx.Color()
+	)
+	if child == nil {
+		return fmt.Errorf("command %s not found", clr.Yellow(strings.Join(args, " ")))
+	}
+	ctx.String(child.Usage(ctx))
+	return nil
+}
+
+// HelpCommand returns a buildin help command
+func HelpCommand(desc string) *Command {
+	return &Command{
+		Name:        "help",
+		Desc:        desc,
+		CanSubRoute: true,
+		Fn:          HelpCommandFn,
+	}
+}
