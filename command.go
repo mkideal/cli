@@ -31,7 +31,7 @@ type (
 
 	// Validator validate flag before running command
 	Validator interface {
-		Validate() error
+		Validate(*Context) error
 	}
 
 	// CommandFunc ...
@@ -303,7 +303,7 @@ func (cmd *Command) RunWithWriter(args []string, writer io.Writer, httpMethods .
 		// validate argv if argv implements interface Validator
 		if argv != nil && !ctx.flagSet.dontValidate {
 			if validator, ok := argv.(Validator); ok {
-				if err := validator.Validate(); err != nil {
+				if err := validator.Validate(ctx); err != nil {
 					return err
 				}
 			}

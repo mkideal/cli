@@ -35,7 +35,7 @@ type argT struct {
 
 // Implements `cli.Validator` interface{}
 // NOTE: This is optional
-func (argv *argT) Validate() error {
+func (argv *argT) Validate(ctx *cli.Context) error {
 	if argv.Long >= 1000 {
 		return fmt.Errorf("`--long-flag` must be less than 1000")
 	}

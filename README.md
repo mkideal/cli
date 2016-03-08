@@ -11,7 +11,7 @@ go get github.com/mkideal/cli
 
 ## Screenshot
 
-[!screenshot](./screenshot.png)
+![screenshot](./screenshot.png)
 
 ## Features
 
@@ -108,8 +108,9 @@ If `help` is assigned with true, then don't check required flags.
 `dft` tag specifies argument's default value.You can specify ENV as default value. e.g.
 
 ```go
-Home   string `cli:"home" usage:"Home dir" dft:"$HOME"`
-GoRoot string `cli:"goroot" usage:"Go root dir" dft:"$GOROOT"`
+Port   int    `cli:"p,port" usage:"http port" dft:"8080"` 
+Home   string `cli:"home" usage:"home dir" dft:"$HOME"`
+GoRoot string `cli:"goroot" usage:"go root dir" dft:"$GOROOT"`
 ```
 
 ## Command
@@ -124,7 +125,8 @@ type Command struct {
 	Fn          CommandFunc
 	Argv        ArgvFunc
 	CanSubRoute bool
-
+	HTTPRouters []string
+	HTTPMethods []string
 	...
 }
 ```
@@ -229,6 +231,41 @@ Context implements ServeHTTP method.
 ```go
 func (ctx *Context) ServeHTTP(w http.ResponseWriter, r *http.Request)
 ```
+
+`Command` instance has two http property: `HTTPMethods` and `HTTPRouters`.
+
+```go
+HTTPRouters []string
+HTTPMethods []string
+```
+
+Echo command have one default router: slashes-separated router path of command. e.g. command
+`$app sub1 sub11` has router `/sub1/sub11`. The `HTTPRouters` property will add some new extra routers, it would'nt replace the default router. The `HTTPMethods` is a string array. It will handle any method if `HTTPMethods` is empty.
+
+```go
+var help = &cli.Command{
+	Name:        "help",
+	Desc:        "display help",
+	CanSubRoute: true,
+	HTTPRouters: []string{"/v1/help", "/v2/help"},
+	HTTPMethods: []string{"GET", "POST"},
+
+	Fn: cli.HelpCommandFn,
+}
+```
+
+**NOTE**: Must call root command's RegisterHTTP method if you want to use custom `HTTPRouters`
+
+```go
+...
+if err := ctx.Command().Root().RegisterHTTP(ctx); err != nil {
+	return err
+}
+return http.ListenAndServe(addr, ctx.Command().Root())
+...
+```
+
+See [HTTP](https://github.com/mkideal/cli/blob/master/examples/http/main.go)
 
 ## Examples
 

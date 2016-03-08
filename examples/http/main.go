@@ -53,7 +53,7 @@ type daemonT struct {
 	Port uint16 `cli:"p,port" usage:"http port" dft:"8080"`
 }
 
-func (t *daemonT) Validate() error {
+func (t *daemonT) Validate(ctx *cli.Context) error {
 	if t.Port == 0 {
 		return fmt.Errorf("please don't use 0 as http port")
 	}
