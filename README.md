@@ -92,13 +92,13 @@ The argument is required if `cli` tag has prefix `*`, e.g.
 Required string `cli:"*required"`
 ```
 
-The argument is marked as `help` flag if `cli` tag has prefix `!`, e.g
+The argument is marked as `force` flag if `cli` tag has prefix `!`, e.g
 
 ```go
 Help bool `cli:"!h,help"`
 ```
 
-If `help` is assigned with true, then don't check required flags.
+Don't validate flags if `force` assigned with true.
 
 ### usage
 
@@ -112,6 +112,9 @@ Port   int    `cli:"p,port" usage:"http port" dft:"8080"`
 Home   string `cli:"home" usage:"home dir" dft:"$HOME"`
 GoRoot string `cli:"goroot" usage:"go root dir" dft:"$GOROOT"`
 ```
+
+### name
+`name` tag give a name for show.
 
 ## Command
 
@@ -232,15 +235,15 @@ Context implements ServeHTTP method.
 func (ctx *Context) ServeHTTP(w http.ResponseWriter, r *http.Request)
 ```
 
-`Command` instance has two http property: `HTTPMethods` and `HTTPRouters`.
+`Command` has two http properties: `HTTPMethods` and `HTTPRouters`.
 
 ```go
 HTTPRouters []string
 HTTPMethods []string
 ```
 
-Echo command have one default router: slashes-separated router path of command. e.g. command
-`$app sub1 sub11` has router `/sub1/sub11`. The `HTTPRouters` property will add some new extra routers, it would'nt replace the default router. The `HTTPMethods` is a string array. It will handle any method if `HTTPMethods` is empty.
+Each command have one default router: slashes-separated router path of command. e.g. command
+`$app sub1 sub11` has default router `/sub1/sub11`. The `HTTPRouters` property will add some new extra routers, it would'nt replace the default router. The `HTTPMethods` is a string array. It will handle any method if `HTTPMethods` is empty.
 
 ```go
 var help = &cli.Command{
@@ -265,7 +268,7 @@ return http.ListenAndServe(addr, ctx.Command().Root())
 ...
 ```
 
-See [HTTP](https://github.com/mkideal/cli/blob/master/examples/http/main.go)
+See example [HTTP](https://github.com/mkideal/cli/blob/master/examples/http/main.go).
 
 ## Examples
 
@@ -276,6 +279,10 @@ See [HTTP](https://github.com/mkideal/cli/blob/master/examples/http/main.go)
 * [Multi Command](https://github.com/mkideal/cli/blob/master/examples/multi-command)
 * [Tree](https://github.com/mkideal/cli/blob/master/examples/tree/main.go)
 * [HTTP](https://github.com/mkideal/cli/blob/master/examples/http/main.go)
+
+## Who use
+
+* [goplus](https://github.com/mkideal/goplus)
 
 ## External tools
 
