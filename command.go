@@ -227,11 +227,13 @@ func (cmd *Command) Run(args []string) error {
 
 // RunWithWriter runs the command with args and writer
 func (cmd *Command) RunWithWriter(args []string, writer io.Writer, httpMethods ...string) error {
+	fds := []uintptr{}
 	if writer == nil {
-		writer = colorable.NewColorableStdout()
+		writer = colorable.NewColorable(os.Stdout)
+		fds = append(fds, os.Stdout.Fd())
 	}
 	clr := color.Color{}
-	colorSwitch(&clr, writer)
+	colorSwitch(&clr, writer, fds...)
 
 	var ctx *Context
 	var suggestion string
@@ -479,9 +481,14 @@ func (cmd *Command) Suggestions(path string) []string {
 	return targets[:len(dists)]
 }
 
-func colorSwitch(clr *color.Color, w io.Writer) {
+func colorSwitch(clr *color.Color, w io.Writer, fds ...uintptr) {
 	clr.Disable()
-	if w, ok := w.(*os.File); ok && isatty.IsTerminal(w.Fd()) {
+	if len(fds) > 0 {
+		println("fd:", fds[0])
+		if isatty.IsTerminal(fds[0]) {
+			clr.Enable()
+		}
+	} else if w, ok := w.(*os.File); ok && isatty.IsTerminal(w.Fd()) {
 		clr.Enable()
 	}
 }
