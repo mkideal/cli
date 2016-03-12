@@ -494,7 +494,6 @@ func (cmd *Command) Suggestions(path string) []string {
 func colorSwitch(clr *color.Color, w io.Writer, fds ...uintptr) {
 	clr.Disable()
 	if len(fds) > 0 {
-		println("fd:", fds[0])
 		if isatty.IsTerminal(fds[0]) {
 			clr.Enable()
 		}
