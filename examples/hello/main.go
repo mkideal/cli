@@ -14,7 +14,7 @@ func main() {
 	cli.Run(&argT{}, func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		if argv.Help {
-			ctx.String(ctx.Usage())
+			ctx.WriteUsage()
 		} else {
 			ctx.String("Hello, %s! Your age is %d?\n", argv.Name, argv.Age)
 		}

@@ -22,7 +22,7 @@ func build(ctx *cli.Context) error {
 	argv := ctx.Argv().(*buildT)
 
 	if argv.Help {
-		ctx.String(ctx.Usage())
+		ctx.WriteUsage()
 		return nil
 	}
 	ctx.String("%s: %v", ctx.Path(), jsonIndent(argv))

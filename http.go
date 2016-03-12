@@ -77,7 +77,7 @@ func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	buf := new(bytes.Buffer)
 	statusCode := http.StatusOK
-	if err := cmd.RunWithWriter(args, buf, r.Method); err != nil {
+	if err := cmd.RunWith(args, buf, r.Method); err != nil {
 		buf.Write([]byte(err.Error()))
 		nativeError := err
 		if werr, ok := err.(wrapError); ok {

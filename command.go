@@ -126,12 +126,22 @@ func (ctx *Context) Usage() string {
 	return ctx.command.Usage(ctx)
 }
 
+// WriteUsage writes usage to writer
+func (ctx *Context) WriteUsage() {
+	ctx.String(ctx.Usage())
+}
+
 // Writer returns writer
 func (ctx *Context) Writer() io.Writer {
 	if ctx.writer == nil {
 		ctx.writer = colorable.NewColorableStdout()
 	}
 	return ctx.writer
+}
+
+// Write implements io.Writer
+func (ctx *Context) Write(data []byte) (n int, err error) {
+	return ctx.Writer().Write(data)
 }
 
 // Color returns color instance
@@ -222,11 +232,11 @@ func (cmd *Command) Parent() *Command {
 
 // Run runs the command with args
 func (cmd *Command) Run(args []string) error {
-	return cmd.RunWithWriter(args, nil)
+	return cmd.RunWith(args, nil)
 }
 
-// RunWithWriter runs the command with args and writer
-func (cmd *Command) RunWithWriter(args []string, writer io.Writer, httpMethods ...string) error {
+// RunWith runs the command with args and writer,httpMethods
+func (cmd *Command) RunWith(args []string, writer io.Writer, httpMethods ...string) error {
 	fds := []uintptr{}
 	if writer == nil {
 		writer = colorable.NewColorable(os.Stdout)

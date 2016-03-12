@@ -58,7 +58,7 @@ func main() {
 		ctx.JSONIndentln(ctx.FormValues(), "", "    ")
 
 		// Show usage information
-		ctx.String(ctx.Usage())
+		ctx.WriteUsage()
 
 		return nil
 	})

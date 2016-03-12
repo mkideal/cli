@@ -32,7 +32,7 @@ var root = &cli.Command{
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		if argv.Help {
-			ctx.String(ctx.Usage())
+			ctx.WriteUsage()
 		} else {
 			ctx.String("I am very lazzy! I do nothing!\n")
 		}
