@@ -13,9 +13,10 @@ import (
 // Run runs a single command app
 func Run(argv interface{}, fn CommandFunc) {
 	err := (&Command{
-		Name: os.Args[0],
-		Argv: func() interface{} { return argv },
-		Fn:   fn,
+		Name:        os.Args[0],
+		Argv:        func() interface{} { return argv },
+		CanSubRoute: true,
+		Fn:          fn,
 	}).Run(os.Args[1:])
 	if err != nil {
 		fmt.Println(err)
