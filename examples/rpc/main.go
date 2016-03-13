@@ -163,7 +163,7 @@ var ping = &cli.Command{
 				time.Sleep(time.Millisecond * 1000)
 			}
 		}
-		ctx.String(ctx.Color().Bold(time.Now().Format(time.RFC3339)) + " pong\n")
+		ctx.String(time.Now().Format(time.RFC3339) + " pong\n")
 		return nil
 	},
 }
