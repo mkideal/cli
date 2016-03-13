@@ -26,9 +26,7 @@ func DisableDebug() {
 	enableDebug = false
 }
 
-var paths = gopaths()
-
-func gopaths() []string {
+var gopaths = func() []string {
 	paths := strings.Split(os.Getenv("GOPATH"), ";")
 	for i, path := range paths {
 		paths[i] = filepath.Join(path, "src") + "/"
@@ -37,7 +35,7 @@ func gopaths() []string {
 		paths = append(paths, filepath.Join(goroot, "src")+"/")
 	}
 	return paths
-}
+}()
 
 var debugOut, debugColor = func() (io.Writer, color.Color) {
 	clr := color.Color{}
@@ -85,7 +83,7 @@ func TypeName(i interface{}) string {
 }
 
 func makeFileLine(file string, line int) string {
-	for _, path := range paths {
+	for _, path := range gopaths {
 		if strings.HasPrefix(file, path) {
 			file = strings.TrimPrefix(strings.TrimPrefix(file, path), "/")
 			break

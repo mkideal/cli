@@ -248,7 +248,7 @@ func (fs flagSlice) String(clr color.Color) string {
 		}
 		l += lenDft
 		if tag.name != "" {
-			l += len(tag.name) + 1
+			l += len(tag.name) + 1 // 1=len("=")
 		}
 		if l > lenNameAndDefaultAndLong {
 			lenNameAndDefaultAndLong = l
@@ -290,7 +290,7 @@ func (fs flagSlice) String(clr color.Color) string {
 		if longStr == "" {
 			format = fmt.Sprintf("%%%ds%%s%s%%s", lenShort, sepSpaces)
 			fillStr := fillSpaces(nameStr+defaultStr, spaceSize)
-			buff.WriteString(fmt.Sprintf(format+"\n", shortStr, fillStr, usage))
+			fmt.Fprintf(buff, format+"\n", shortStr, fillStr, usage)
 		} else {
 			if shortStr == "" {
 				format = fmt.Sprintf("%%%ds%%s%%s", lenShort+lenSep)
@@ -298,7 +298,7 @@ func (fs flagSlice) String(clr color.Color) string {
 				format = fmt.Sprintf("%%%ds%s%%s%%s", lenShort, sepName)
 			}
 			fillStr := fillSpaces(longStr+nameStr+defaultStr, spaceSize)
-			buff.WriteString(fmt.Sprintf(format+"\n", shortStr, fillStr, usage))
+			fmt.Fprintf(buff, format+"\n", shortStr, fillStr, usage)
 		}
 	}
 	return buff.String()
