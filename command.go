@@ -80,6 +80,7 @@ func newContext(path string, router, args []string, argv interface{}, clr color.
 		argv:       argv,
 		nativeArgs: args,
 		color:      clr,
+		flagSet:    newFlagSet(),
 	}
 	if argv != nil {
 		ctx.flagSet = parseArgv(args, argv, ctx.color)
@@ -115,6 +116,9 @@ func (ctx *Context) Argv() interface{} {
 
 // FormValues returns parsed args as url.Values
 func (ctx *Context) FormValues() url.Values {
+	if ctx.flagSet == nil {
+		Panicf("ctx.flagSet == nil")
+	}
 	return ctx.flagSet.values
 }
 
@@ -239,12 +243,12 @@ func (cmd *Command) IsServer() bool {
 
 // IsClient returns command whther if run as client
 func (cmd *Command) IsClient() bool {
-	return !cmd.isServer
+	return !cmd.IsServer()
 }
 
 // SetIsServer sets command running mode(server or not)
 func (cmd *Command) SetIsServer(yes bool) {
-	cmd.isServer = yes
+	cmd.Root().isServer = yes
 }
 
 // Run runs the command with args
@@ -395,10 +399,13 @@ func (cmd *Command) Usage(ctxs ...*Context) string {
 
 // Path returns space-separated command full name
 func (cmd *Command) Path() string {
+	return cmd.pathWithSep(" ")
+}
+
+func (cmd *Command) pathWithSep(sep string) string {
 	var (
 		path = ""
 		cur  = cmd
-		sep  = " "
 	)
 	for cur.parent != nil {
 		if cur.Name != "" {

@@ -75,6 +75,7 @@ func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		args = append(args, key, values[len(values)-1])
 	}
+	Debugf("agent: %s", r.UserAgent())
 	Debugf("path: %s", path)
 	Debugf("args: %q", args)
 
@@ -108,35 +109,43 @@ func (cmd *Command) ListenAndServeHTTP(addr string) error {
 	return http.ListenAndServe(addr, cmd)
 }
 
-func (cmd *Command) Serve(l net.Listener, listeners ...net.Listener) (err error) {
+func (cmd *Command) Serve(listeners ...net.Listener) (err error) {
 	cmd.SetIsServer(true)
 	var g sync.WaitGroup
-	for _, ln := range append([]net.Listener{l}, listeners...) {
+	for _, ln := range listeners {
 		g.Add(1)
-		go func() {
+		go func(ln net.Listener) {
 			if e := http.Serve(ln, cmd); e != nil {
 				panic(e.Error())
 			}
 			g.Done()
-		}()
+		}(ln)
 	}
 	g.Wait()
 	return
 }
 
 // RPC run the command from remote
-func (cmd *Command) RPC(addr string, ctx *Context) error {
+func (cmd *Command) RPC(httpc *http.Client, ctx *Context) error {
+	addr := "http://rpc/" + ctx.Command().pathWithSep("/")
 	method := "GET"
 	if cmd.HTTPMethods != nil && len(cmd.HTTPMethods) > 0 {
 		method = cmd.HTTPMethods[0]
 	}
-	body := strings.NewReader(ctx.FormValues().Encode())
+	if ctx == nil {
+		Panicf("ctx == nil")
+	}
+	var body io.Reader
+	if values := ctx.FormValues(); values != nil {
+		body = strings.NewReader(values.Encode())
+	}
 	req, err := http.NewRequest(method, addr, body)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := http.DefaultClient.Do(req)
+	req.Header.Set("User-Agent", "cli-RPC")
+	resp, err := httpc.Do(req)
 	if err != nil {
 		return err
 	}

@@ -267,8 +267,11 @@ if err := ctx.Command().Root().RegisterHTTP(ctx); err != nil {
 return http.ListenAndServe(addr, ctx.Command().Root())
 ...
 ```
-
 See example [HTTP](https://github.com/mkideal/cli/blob/master/examples/http/main.go).
+
+## RPC
+
+See example [RPC](https://github.com/mkideal/cli/blob/master/examples/rpc/main.go).
 
 ## Examples
 
@@ -279,6 +282,7 @@ See example [HTTP](https://github.com/mkideal/cli/blob/master/examples/http/main
 * [Multi Command](https://github.com/mkideal/cli/blob/master/examples/multi-command)
 * [Tree](https://github.com/mkideal/cli/blob/master/examples/tree/main.go)
 * [HTTP](https://github.com/mkideal/cli/blob/master/examples/http/main.go)
+* [RPC](https://github.com/mkideal/cli/blob/master/examples/rpc/main.go)
 
 ## Who use
 
