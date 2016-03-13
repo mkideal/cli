@@ -27,7 +27,7 @@ func publish(ctx *cli.Context) error {
 		return nil
 	}
 	if argv.List {
-		ctx.String(ctx.Command().ListChildren("", "    "))
+		ctx.String(ctx.Command().ChildrenDescriptions("", "    "))
 		return nil
 	}
 	ctx.String("%s: %v", ctx.Path(), jsonIndent(argv))

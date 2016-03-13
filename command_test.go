@@ -64,7 +64,7 @@ func TestCommandTree(t *testing.T) {
 	}
 
 	listWant := "sub11 sub11 desc\n"
-	if listGot := sub1.ListChildren("", " "); listGot != listWant {
-		t.Errorf("ListChildren want `%s`, got `%s`", listWant, listGot)
+	if listGot := sub1.ChildrenDescriptions("", " "); listGot != listWant {
+		t.Errorf("ChildrenDescriptions want `%s`, got `%s`", listWant, listGot)
 	}
 }

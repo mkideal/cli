@@ -74,10 +74,11 @@ var daemon = &cli.Command{
 		addr := fmt.Sprintf(":%d", argv.Port)
 		ctx.String("http addr: %s\n", addr)
 
-		if err := ctx.Command().Root().RegisterHTTP(ctx); err != nil {
+		r := ctx.Command().Root()
+		if err := r.RegisterHTTP(ctx); err != nil {
 			return err
 		}
-		return http.ListenAndServe(addr, ctx.Command().Root())
+		return r.ListenAndServeHTTP(addr)
 	},
 }
 

@@ -57,6 +57,8 @@ type (
 		parent   *Command
 		children []*Command
 
+		isServer bool
+
 		locker sync.Mutex // protect following data
 		usage  string
 	}
@@ -230,6 +232,21 @@ func (cmd *Command) Parent() *Command {
 	return cmd.parent
 }
 
+// IsServer returns command whther if run as server
+func (cmd *Command) IsServer() bool {
+	return cmd.isServer
+}
+
+// IsClient returns command whther if run as client
+func (cmd *Command) IsClient() bool {
+	return !cmd.isServer
+}
+
+// SetIsServer sets command running mode(server or not)
+func (cmd *Command) SetIsServer(yes bool) {
+	cmd.isServer = yes
+}
+
 // Run runs the command with args
 func (cmd *Command) Run(args []string) error {
 	return cmd.RunWith(args, nil)
@@ -330,8 +347,8 @@ func (cmd *Command) RunWith(args []string, writer io.Writer, httpMethods ...stri
 		return wrapErr(err, suggestion, clr)
 	}
 
-	if ctx.Argv() != nil {
-		Debugf("command %s ready exec with argv %v", ctx.command.Name, ctx.Argv())
+	if argv := ctx.Argv(); argv != nil {
+		Debugf("command %s ready exec with argv %v", ctx.command.Name, argv)
 	} else {
 		Debugf("command %s ready exec", ctx.command.Name)
 	}
@@ -367,7 +384,7 @@ func (cmd *Command) Usage(ctxs ...*Context) string {
 		if cmd.Argv != nil {
 			buff.WriteByte('\n')
 		}
-		fmt.Fprintf(buff, "%s:\n%v", clr.Bold("Commands"), cmd.ListChildren("  ", "   "))
+		fmt.Fprintf(buff, "%s:\n%v", clr.Bold("Commands"), cmd.ChildrenDescriptions("  ", "   "))
 	}
 	tmpUsage = buff.String()
 	cmd.locker.Lock()
@@ -376,16 +393,19 @@ func (cmd *Command) Usage(ctxs ...*Context) string {
 	return tmpUsage
 }
 
-// Path returns command full name
+// Path returns space-separated command full name
 func (cmd *Command) Path() string {
-	path := ""
-	cur := cmd
+	var (
+		path = ""
+		cur  = cmd
+		sep  = " "
+	)
 	for cur.parent != nil {
 		if cur.Name != "" {
 			if path == "" {
 				path = cur.Name
 			} else {
-				path = cur.Name + " " + path
+				path = cur.Name + sep + path
 			}
 		}
 		cur = cur.parent
@@ -434,8 +454,21 @@ func (cmd *Command) findChild(name string) *Command {
 	return nil
 }
 
-// ListChildren returns all children's brief infos
-func (cmd *Command) ListChildren(prefix, indent string) string {
+// ListChildren returns all names of command children
+func (cmd *Command) ListChildren() []string {
+	if cmd.nochild() {
+		return []string{}
+	}
+
+	ret := make([]string, 0, len(cmd.children))
+	for _, child := range cmd.children {
+		ret = append(ret, child.Name)
+	}
+	return ret
+}
+
+// ChildrenDescriptions returns all children's brief infos by one string
+func (cmd *Command) ChildrenDescriptions(prefix, indent string) string {
 	if cmd.nochild() {
 		return ""
 	}

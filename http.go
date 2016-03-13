@@ -2,8 +2,11 @@ package cli
 
 import (
 	"bytes"
+	"io"
+	"net"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/labstack/gommon/color"
 )
@@ -98,4 +101,46 @@ func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	Debugf("resp: %s", buf.String())
 	w.WriteHeader(statusCode)
 	w.Write(buf.Bytes())
+}
+
+func (cmd *Command) ListenAndServeHTTP(addr string) error {
+	cmd.SetIsServer(true)
+	return http.ListenAndServe(addr, cmd)
+}
+
+func (cmd *Command) Serve(l net.Listener, listeners ...net.Listener) (err error) {
+	cmd.SetIsServer(true)
+	var g sync.WaitGroup
+	for _, ln := range append([]net.Listener{l}, listeners...) {
+		g.Add(1)
+		go func() {
+			if e := http.Serve(ln, cmd); e != nil {
+				panic(e.Error())
+			}
+			g.Done()
+		}()
+	}
+	g.Wait()
+	return
+}
+
+// RPC run the command from remote
+func (cmd *Command) RPC(addr string, ctx *Context) error {
+	method := "GET"
+	if cmd.HTTPMethods != nil && len(cmd.HTTPMethods) > 0 {
+		method = cmd.HTTPMethods[0]
+	}
+	body := strings.NewReader(ctx.FormValues().Encode())
+	req, err := http.NewRequest(method, addr, body)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	_, err = io.Copy(ctx, resp.Body)
+	return err
 }

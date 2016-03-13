@@ -37,7 +37,7 @@ func gogo(ctx *cli.Context) error {
 	}
 
 	if argv.List {
-		ctx.String(ctx.Command().ListChildren(" ", "  =>  "))
+		ctx.String(ctx.Command().ChildrenDescriptions(" ", "  =>  "))
 		return nil
 	}
 
