@@ -17,6 +17,7 @@ import (
 type flagSet struct {
 	err    error
 	values url.Values
+	args   []string
 
 	flagMap map[string]*flag
 	flags   []*flag
@@ -29,6 +30,7 @@ func newFlagSet() *flagSet {
 		flagMap: make(map[string]*flag),
 		flags:   []*flag{},
 		values:  url.Values(make(map[string][]string)),
+		args:    make([]string, 0),
 	}
 }
 
@@ -37,7 +39,6 @@ type flag struct {
 	v reflect.Value
 
 	assigned bool
-	err      error
 	tag      fieldTag
 
 	actual string
@@ -80,8 +81,12 @@ func (fl *flag) name() string {
 	return ""
 }
 
+func (fl *flag) isBoolean() bool {
+	return fl.t.Type.Kind() == reflect.Bool
+}
+
 func (fl *flag) getBool() bool {
-	if fl.t.Type.Kind() != reflect.Bool {
+	if !fl.isBoolean() {
 		return false
 	}
 	return fl.v.Bool()
@@ -96,7 +101,7 @@ func (fl *flag) set(actual, s string, clr color.Color) error {
 		if v, err := getBool(s, clr); err == nil {
 			fl.v.SetBool(v)
 		} else {
-			fl.err = err
+			return err
 		}
 
 	case reflect.String:
@@ -107,10 +112,10 @@ func (fl *flag) set(actual, s string, clr color.Color) error {
 			if minmaxIntCheck(kind, v) {
 				fl.v.SetInt(v)
 			} else {
-				fl.err = errors.New(clr.Red("value overflow"))
+				return errors.New(clr.Red("value overflow"))
 			}
 		} else {
-			fl.err = err
+			return err
 		}
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -118,10 +123,10 @@ func (fl *flag) set(actual, s string, clr color.Color) error {
 			if minmaxUintCheck(kind, v) {
 				fl.v.SetUint(uint64(v))
 			} else {
-				fl.err = errors.New(clr.Red("value overflow"))
+				return errors.New(clr.Red("value overflow"))
 			}
 		} else {
-			fl.err = err
+			return err
 		}
 
 	case reflect.Float32, reflect.Float64:
@@ -129,10 +134,10 @@ func (fl *flag) set(actual, s string, clr color.Color) error {
 			if minmaxFloatCheck(kind, v) {
 				fl.v.SetFloat(float64(v))
 			} else {
-				fl.err = errors.New(clr.Red("value overflow"))
+				return errors.New(clr.Red("value overflow"))
 			}
 		} else {
-			fl.err = err
+			return err
 		}
 	default:
 		return fmt.Errorf("unsupported type of field: %s", kind.String())

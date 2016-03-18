@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/labstack/gommon/color"
@@ -38,9 +39,10 @@ func toStr(i interface{}) string {
 func TestParse(t *testing.T) {
 	clr := color.Color{}
 	for i, tab := range []struct {
-		args  []string
-		want  argT
-		isErr bool
+		args        []string
+		want        argT
+		isErr       bool
+		freedomArgs []string
 	}{
 		//Case: ENV
 		{
@@ -89,7 +91,7 @@ func TestParse(t *testing.T) {
 		},
 		//Case: not a bool
 		{
-			args:  []string{"--required=0", "-s", "not-a-bool"},
+			args:  []string{"--required=0", "-s=not-a-bool"},
 			isErr: true,
 		},
 		//Case: "" -> bool
@@ -99,37 +101,37 @@ func TestParse(t *testing.T) {
 		},
 		//Case: "true" -> bool
 		{
-			args: []string{"--required=0", "-s", "true"},
+			args: []string{"--required=0", "-s=true"},
 			want: argT{Default: 102, Short: true},
 		},
 		//Case: non-zero integer -> bool
 		{
-			args: []string{"--required=0", "-s", "1"},
+			args: []string{"--required=0", "-s=1"},
 			want: argT{Default: 102, Short: true},
 		},
 		//Case: zero -> bool
 		{
-			args: []string{"--required=0", "-s", "0"},
+			args: []string{"--required=0", "-s=0"},
 			want: argT{Default: 102},
 		},
 		//Case: no -> bool
 		{
-			args: []string{"--required=0", "-s", "no"},
+			args: []string{"--required=0", "-s=no"},
 			want: argT{Default: 102},
 		},
 		//Case: not -> bool
 		{
-			args: []string{"--required=0", "-s", "not"},
+			args: []string{"--required=0", "-s=not"},
 			want: argT{Default: 102},
 		},
 		//Case: none -> bool
 		{
-			args: []string{"--required=0", "-s", "none"},
+			args: []string{"--required=0", "-s=none"},
 			want: argT{Default: 102},
 		},
 		//Case: false -> bool
 		{
-			args: []string{"--required=0", "-s", "false"},
+			args: []string{"--required=0", "-s=false"},
 			want: argT{Default: 102},
 		},
 		//Case: int64
@@ -272,7 +274,37 @@ func TestParse(t *testing.T) {
 			args:  []string{"--required=0", "--f64=not-a-float64"},
 			isErr: true,
 		},
+		//Case: fold flag not boolean
+		{
+			args:  []string{"--required=0", "-2y"},
+			isErr: true,
+		},
+		//Case: test -F<value>
+		{
+			args: []string{"--required=0", "-Sshort-and-long"},
+			want: argT{Default: 102, ShortAndLong: "short-and-long"},
+		},
+		//Case: test `--`
+		{
+			args:        []string{"--required=0", "--", "-Sshort-and-long"},
+			want:        argT{Default: 102, ShortAndLong: ""},
+			freedomArgs: []string{"-Sshort-and-long"},
+		},
+		//Case: test flags and args
+		{
+			args:        []string{"--required=0", "-Sshort-and-long", "abc"},
+			want:        argT{Default: 102, ShortAndLong: "short-and-long"},
+			freedomArgs: []string{"abc"},
+		},
+		{
+			args:        []string{"--required=0", "-Sshort-and-long", "abc", "-s", "xyz"},
+			want:        argT{Default: 102, Short: true, ShortAndLong: "short-and-long"},
+			freedomArgs: []string{"abc", "xyz"},
+		},
 	} {
+		if tab.args == nil {
+			tab.args = []string{}
+		}
 		v := new(argT)
 		flagSet := parseArgv(tab.args, v, clr)
 		if tab.isErr {
@@ -285,8 +317,11 @@ func TestParse(t *testing.T) {
 			t.Errorf("[%2d] parseArgv error: %v", i, flagSet.err)
 			continue
 		}
-		if *v != tab.want {
+		if !reflect.DeepEqual(*v, tab.want) {
 			t.Errorf("[%2d] want %v, got %v", i, tab.want, *v)
+		}
+		if !stringsEqual(tab.freedomArgs, flagSet.args) {
+			t.Errorf("[%2d] want %v, got %v", i, tab.freedomArgs, flagSet.args)
 		}
 	}
 
@@ -386,4 +421,16 @@ func TestStructField(t *testing.T) {
 			t.Errorf("Version want v1.1.1, but got %s", argv.Version)
 		}
 	}
+}
+
+func stringsEqual(ss1, ss2 []string) bool {
+	if len(ss1) != len(ss2) {
+		return false
+	}
+	for i := 0; i < len(ss1); i++ {
+		if ss1[i] != ss2[i] {
+			return false
+		}
+	}
+	return true
 }

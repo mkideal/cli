@@ -37,9 +37,9 @@ func Tree(cmd *Command, forest ...*CommandTree) *CommandTree {
 	}
 }
 
-//-----------------------------
-// Implements parse and others
-//-----------------------------
+//------------------
+// Implements parse
+//------------------
 
 func parseArgv(args []string, argv interface{}, clr color.Color) *flagSet {
 	var (
@@ -139,17 +139,29 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 	for i := 0; i < size; i++ {
 		arg := args[i]
 		if !strings.HasPrefix(arg, dashOne) {
+			// append a freedom argument
+			flagSet.args = append(flagSet.args, arg)
 			continue
 		}
-		values := []string{}
-		for j := i + 1; j < size; j++ {
-			if strings.HasPrefix(args[j], dashOne) {
-				break
-			}
-			values = append(values, args[j])
-		}
-		i += len(values)
 
+		var (
+			next   = ""
+			offset = 0
+		)
+		if i+1 < size {
+			if !strings.HasPrefix(args[i+1], dashOne) {
+				next = args[i+1]
+				offset = 1
+			}
+		}
+
+		// terminate the flag parse while occur `--`
+		if arg == "--" {
+			flagSet.args = append(flagSet.args, args[i+1:]...)
+			break
+		}
+
+		// split arg by "="(key=value)
 		strs := strings.Split(arg, "=")
 		if strs == nil || len(strs) == 0 {
 			continue
@@ -157,50 +169,67 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 
 		arg = strs[0]
 		fl, ok := flagSet.flagMap[arg]
-		if !ok {
-			// If has prefix `--`
-			if strings.HasPrefix(arg, dashTwo) {
-				flagSet.err = fmt.Errorf("undefined flag %s", clr.Bold(arg))
+		if ok {
+			l := len(strs)
+			if l == 1 {
+				if fl.isBoolean() {
+					fl.v.SetBool(true)
+				} else {
+					i += offset
+					flagSet.err = fl.set(arg, next, clr)
+				}
+			} else if l == 2 {
+				flagSet.err = fl.set(arg, strs[1], clr)
+			} else {
+				flagSet.err = fmt.Errorf("too many(%d) value", l, clr.Bold(arg))
+			}
+			if flagSet.err != nil {
+				name := clr.Bold(fl.name())
+				flagSet.err = fmt.Errorf("argument %s invalid: %v", name, flagSet.err)
 				return
 			}
-			// Else find arg char by char
-			chars := []byte(strings.TrimPrefix(arg, dashOne))
-			for _, c := range chars {
-				tmp := dashOne + string([]byte{c})
-				fl, ok := flagSet.flagMap[tmp]
-				if !ok {
-					flagSet.err = fmt.Errorf("undefined flag %s", clr.Bold(tmp))
-					return
-				}
+			flagSet.values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
+			continue
+		}
 
-				if flagSet.err = fl.set(tmp, "", clr); flagSet.err != nil {
-					return
-				}
-				if fl.err == nil {
-					flagSet.values[tmp] = []string{fmt.Sprintf("%v", fl.v.Interface())}
-				}
+		// if arg has prefix `--`, then it's an invalid flag
+		if strings.HasPrefix(arg, dashTwo) {
+			flagSet.err = fmt.Errorf("undefined flag %s", clr.Bold(arg))
+			return
+		}
 
+		arg = strings.TrimPrefix(arg, dashOne)
+
+		// try parse `-F<value>`
+		// NOTE: fl must be not a boolean
+		key, val := dashOne+arg[0:1], arg[1:]
+		if fl, ok := flagSet.flagMap[key]; ok && !fl.isBoolean() {
+			if flagSet.err = fl.set(key, val, clr); flagSet.err != nil {
+				return
 			}
 			continue
 		}
 
-		values = append(strs[1:], values...)
-		if len(values) == 0 {
-			flagSet.err = fl.set(arg, "", clr)
-		} else if len(values) == 1 {
-			flagSet.err = fl.set(arg, values[0], clr)
-		} else {
-			flagSet.err = fmt.Errorf("too many(%d) value for flag %s", len(values), clr.Bold(arg))
+		// other cases, find flag char by char
+		// NOTE: every fold flag should be boolean
+		chars := []byte(arg)
+		for _, c := range chars {
+			tmp := dashOne + string([]byte{c})
+			fl, ok := flagSet.flagMap[tmp]
+			if !ok {
+				flagSet.err = fmt.Errorf("undefined flag %s", clr.Bold(tmp))
+				return
+			}
+
+			if !fl.isBoolean() {
+				flagSet.err = fmt.Errorf("every fold flag should be boolean, but %s not", clr.Bold(tmp))
+				return
+			}
+
+			fl.v.SetBool(true)
+			flagSet.values[tmp] = []string{"true"}
 		}
-		if flagSet.err != nil {
-			return
-		}
-		if fl.err == nil {
-			flagSet.values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
-		} else if fl.assigned {
-			flagSet.err = fmt.Errorf("assigned argument %s invalid: %v", clr.Bold(fl.name()), fl.err)
-			return
-		}
+		continue
 	}
 
 	buff := bytes.NewBufferString("")
