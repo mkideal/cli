@@ -104,9 +104,15 @@ func (ctx *Context) Router() []string {
 }
 
 // Args returns native args
-// `./app hello world -a --xyz=1` will returns ["-a" "--xyz=1"]
+// `./app hello world -a --xyz=1` will return ["-a" "--xyz=1"]
 func (ctx *Context) Args() []string {
 	return ctx.nativeArgs
+}
+
+// FreedomArgs return freedom args
+// `./app hello world -a=1 abc xyz` will return ["abc" "xyz"]
+func (ctx *Context) FreedomArgs() []string {
+	return ctx.flagSet.args
 }
 
 // Argv returns parsed args object
