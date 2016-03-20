@@ -31,6 +31,9 @@ type argT struct {
 	Uint64  int64   `cli:"u64" usage:"type uint64"`
 	Float32 float32 `cli:"f32" usage:"type float32"`
 	Float64 float64 `cli:"f64" usage:"type float64"`
+
+	Slice []uint32          `cli:"S,slice" usage:"type slice"`
+	Map   map[string]uint32 `cli:"M,map" usage:"type map"`
 }
 
 // Implements `cli.Validator` interface{}

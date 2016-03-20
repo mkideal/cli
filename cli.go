@@ -202,7 +202,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 
 		// try parse `-F<value>`
 		// NOTE: fl must be not a boolean
-		key, val := dashOne+arg[0:1], arg[1:]
+		key, val := dashOne+arg[0:1], args[i][2:] // 2=len("-F")
 		if fl, ok := flagSet.flagMap[key]; ok && !fl.isBoolean() {
 			if flagSet.err = fl.set(key, val, clr); flagSet.err != nil {
 				return

@@ -23,6 +23,9 @@ type argT struct {
 	U64 uint64  `cli:"u64" usage:"This is a uint64 flag"`
 	F32 float32 `cli:"f32" usage:"This is a float32 flag"`
 	F64 float64 `cli:"f64" usage:"This is a flaot64 flag"`
+
+	Slice []uint32          `cli:"S,slice" usage:"This is a slice flag"`
+	Map   map[string]uint32 `cli:"M,map" usage:"This is a map flag"`
 }
 
 var root = &cli.Command{
