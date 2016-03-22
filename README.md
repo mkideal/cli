@@ -4,6 +4,8 @@
 
 [The MIT License (MIT)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE)
 
+## [中文文档](./README.cn.md)
+
 ## Install
 ```sh
 go get github.com/mkideal/cli
@@ -274,22 +276,22 @@ if err := ctx.Command().Root().RegisterHTTP(ctx); err != nil {
 return http.ListenAndServe(addr, ctx.Command().Root())
 ...
 ```
-See example [HTTP](https://github.com/mkideal/cli/blob/master/examples/http/main.go).
+See example [HTTP](./examples/http/main.go).
 
 ## RPC
 
-See example [RPC](https://github.com/mkideal/cli/blob/master/examples/rpc/main.go).
+See example [RPC](./examples/rpc/main.go).
 
 ## Examples
 
-* [Hello](https://github.com/mkideal/cli/blob/master/examples/hello/main.go)
-* [Screenshot](https://github.com/mkideal/cli/blob/master/examples/screenshot/main.go)
-* [Basic](https://github.com/mkideal/cli/blob/master/examples/basic/main.go)
-* [Simple Command](https://github.com/mkideal/cli/blob/master/examples/simple-command/main.go)
-* [Multi Command](https://github.com/mkideal/cli/blob/master/examples/multi-command)
-* [Tree](https://github.com/mkideal/cli/blob/master/examples/tree/main.go)
-* [HTTP](https://github.com/mkideal/cli/blob/master/examples/http/main.go)
-* [RPC](https://github.com/mkideal/cli/blob/master/examples/rpc/main.go)
+* [Hello](./examples/hello/main.go)
+* [Screenshot](./examples/screenshot/main.go)
+* [Basic](./examples/basic/main.go)
+* [Simple Command](./examples/simple-command/main.go)
+* [Multi Command](./examples/multi-command)
+* [Tree](./examples/tree/main.go)
+* [HTTP](./examples/http/main.go)
+* [RPC](./examples/rpc/main.go)
 
 ## Who use
 
