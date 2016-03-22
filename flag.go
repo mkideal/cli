@@ -93,24 +93,28 @@ func (fl *flag) getBool() bool {
 }
 
 func (fl *flag) set(actual, s string, clr color.Color) error {
-	kind := fl.t.Type.Kind()
 	fl.assigned = true
 	fl.actual = actual
+	return setWithProperType(fl.t.Type, fl.v, s, clr, false)
+}
+
+func setWithProperType(typ reflect.Type, val reflect.Value, s string, clr color.Color, isSubField bool) error {
+	kind := typ.Kind()
 	switch kind {
 	case reflect.Bool:
 		if v, err := getBool(s, clr); err == nil {
-			fl.v.SetBool(v)
+			val.SetBool(v)
 		} else {
 			return err
 		}
 
 	case reflect.String:
-		fl.v.SetString(s)
+		val.SetString(s)
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if v, err := getInt(s, clr); err == nil {
 			if minmaxIntCheck(kind, v) {
-				fl.v.SetInt(v)
+				val.SetInt(v)
 			} else {
 				return errors.New(clr.Red("value overflow"))
 			}
@@ -121,7 +125,7 @@ func (fl *flag) set(actual, s string, clr color.Color) error {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		if v, err := getUint(s, clr); err == nil {
 			if minmaxUintCheck(kind, v) {
-				fl.v.SetUint(uint64(v))
+				val.SetUint(uint64(v))
 			} else {
 				return errors.New(clr.Red("value overflow"))
 			}
@@ -132,17 +136,74 @@ func (fl *flag) set(actual, s string, clr color.Color) error {
 	case reflect.Float32, reflect.Float64:
 		if v, err := getFloat(s, clr); err == nil {
 			if minmaxFloatCheck(kind, v) {
-				fl.v.SetFloat(float64(v))
+				val.SetFloat(float64(v))
 			} else {
 				return errors.New(clr.Red("value overflow"))
 			}
 		} else {
 			return err
 		}
+
+	case reflect.Slice:
+		if isSubField {
+			return fmt.Errorf("unsupported type %s as sub field type", kind.String())
+		}
+		sliceOf := typ.Elem()
+		if val.IsNil() {
+			slice := reflect.MakeSlice(typ, 0, 4)
+			val.Set(slice)
+		}
+		index := val.Len()
+		sliceCap := val.Cap()
+		if index+1 <= sliceCap {
+			val.SetLen(index + 1)
+		} else {
+			slice := reflect.MakeSlice(typ, index+1, index+sliceCap/2+1)
+			for k := 0; k < index; k++ {
+				slice.Index(k).Set(val.Index(k))
+			}
+			val.Set(slice)
+		}
+		return setWithProperType(sliceOf, val.Index(index), s, clr, true)
+
+	case reflect.Map:
+		if isSubField {
+			return fmt.Errorf("unsupported type %s as sub field type", kind.String())
+		}
+		ks, vs, err := splitKeyVal(s)
+		if err != nil {
+			return err
+		}
+		kt := typ.Key()
+		vt := typ.Elem()
+		if val.IsNil() {
+			val.Set(reflect.MakeMap(typ))
+		}
+		mk, mv := reflect.New(kt), reflect.New(vt)
+		if err := setWithProperType(kt, mk.Elem(), ks, clr, true); err != nil {
+			return err
+		}
+		if err := setWithProperType(vt, mv.Elem(), vs, clr, true); err != nil {
+			return err
+		}
+		val.SetMapIndex(mk.Elem(), mv.Elem())
+
 	default:
 		return fmt.Errorf("unsupported type of field: %s", kind.String())
 	}
 	return nil
+}
+
+func splitKeyVal(s string) (key, val string, err error) {
+	if s == "" {
+		err = fmt.Errorf("empty key,val pair")
+		return
+	}
+	index := strings.Index(s, "=")
+	if index == -1 {
+		return s, "", nil
+	}
+	return s[:index], s[index+1:], nil
 }
 
 func minmaxIntCheck(kind reflect.Kind, v int64) bool {

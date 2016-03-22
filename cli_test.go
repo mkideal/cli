@@ -434,3 +434,148 @@ func stringsEqual(ss1, ss2 []string) bool {
 	}
 	return true
 }
+
+func intsEqual(ss1, ss2 []uint32) bool {
+	if ss1 == nil && ss2 == nil {
+		return true
+	}
+	if len(ss1) != len(ss2) {
+		return false
+	}
+	for i := 0; i < len(ss1); i++ {
+		if ss1[i] != ss2[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func mapEqual(m1, m2 map[uint32]string) bool {
+	if m1 == nil && m2 == nil {
+		return true
+	}
+	for k, v := range m1 {
+		if v2, ok := m2[k]; !ok {
+			return false
+		} else if v2 != v {
+			return false
+		}
+	}
+	for k, v := range m2 {
+		if v1, ok := m1[k]; !ok {
+			return false
+		} else if v1 != v {
+			return false
+		}
+	}
+	return true
+}
+
+func TestSliceAndMap(t *testing.T) {
+	clr := color.Color{}
+	type T struct {
+		Slice []uint32          `cli:"s,slice"`
+		Map   map[uint32]string `cli:"m,map"`
+	}
+	for _, tab := range []struct {
+		args  []string
+		want  T
+		isErr bool
+	}{
+		{
+			args: []string{"--slice=12", "--slice", "23"},
+			want: T{Slice: []uint32{12, 23}},
+		},
+		{
+			args: []string{"-s12", "-s23"},
+			want: T{Slice: []uint32{12, 23}},
+		},
+		{
+			args: []string{"-s=12", "-s=23"},
+			want: T{Slice: []uint32{12, 23}},
+		},
+		{
+			args: []string{"-s", "12", "-s", "23"},
+			want: T{Slice: []uint32{12, 23}},
+		},
+		{
+			args:  []string{"-s", "12", "-s", "not-a-number"},
+			isErr: true,
+		},
+		{
+			args: []string{"-m2=s", "-m3=y"},
+			want: T{Map: map[uint32]string{
+				2: "s",
+				3: "y",
+			}},
+		},
+		{
+			args: []string{"-m2=s", "-m", "3=y"},
+			want: T{Map: map[uint32]string{
+				2: "s",
+				3: "y",
+			}},
+		},
+		{
+			args:  []string{"-m=2=s"},
+			isErr: true,
+		},
+		{
+			args:  []string{"-m"},
+			isErr: true,
+		},
+		{
+			args:  []string{"-ms=2", "-my=3"},
+			isErr: true,
+		},
+	} {
+		v := new(T)
+		flagSet := parseArgv(tab.args, v, clr)
+		if tab.isErr {
+			if flagSet.err == nil {
+				t.Errorf("want error, but not")
+			}
+			continue
+		}
+		if flagSet.err != nil {
+			t.Errorf("TestSliceAndMap: error: %v", flagSet.err)
+			continue
+		}
+		if !intsEqual(tab.want.Slice, v.Slice) {
+			t.Errorf("want %v, got %v", tab.want.Slice, v.Slice)
+		}
+		if !mapEqual(tab.want.Map, v.Map) {
+			t.Errorf("want %v, got %v", tab.want.Map, v.Map)
+		}
+	}
+}
+
+func TestErrorSliceType(t *testing.T) {
+	type A struct {
+		Value string
+	}
+	type T struct {
+		Slice []A `cli:"s"`
+	}
+	clr := color.Color{}
+	v := new(T)
+	flagSet := parseArgv([]string{"-s4"}, v, clr)
+	if flagSet.err == nil {
+		t.Errorf("want error, but not")
+	}
+}
+
+func TestErrorMapType(t *testing.T) {
+	type A struct {
+		Value string
+	}
+	type T struct {
+		Map map[string]A `cli:"m"`
+	}
+	clr := color.Color{}
+	v := new(T)
+	flagSet := parseArgv([]string{"-mkey=val"}, v, clr)
+	if flagSet.err == nil {
+		t.Errorf("want error, but not")
+	}
+}

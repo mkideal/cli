@@ -29,11 +29,11 @@ go get github.com/mkideal/cli
 * Support `-F<value>` flag format
 * Support separated flags and arguments by `--`
 * Distinguish flags and arguments - `app cmd --flag -b=c arg1 arg2` 
+* Support array flag - `-F v1 -F v2` or `-Fv1 -Fv2`
+* Support map flag - `-F k1=v1 -F k2=v2` or `-F<k1=v1> -F<k2=v2>`
 
 ## TODOs
 * Support command completion
-* Support array flag - `-F v1 -F v2` or `-Fv1 -Fv2`
-* Support map flag - `-F k1=v1 -F k2=v2` or `-F<k1=v1> -F<k2=v2>`
 * Support Before/After hooks
 * Support expr for `dft` tag
 
