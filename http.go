@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/gommon/color"
 )
 
+// RegisterHTTP init HTTPRouters for command
 func (cmd *Command) RegisterHTTP(ctxs ...*Context) error {
 	clr := color.Color{}
 	clr.Disable()
@@ -40,6 +41,7 @@ func (cmd *Command) RegisterHTTP(ctxs ...*Context) error {
 	return nil
 }
 
+// ServeHTTP implements HTTP handler
 func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		return
@@ -104,11 +106,13 @@ func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf.Bytes())
 }
 
+// ListenAndServeHTTP set IsServer flag with true and startup http service
 func (cmd *Command) ListenAndServeHTTP(addr string) error {
 	cmd.SetIsServer(true)
 	return http.ListenAndServe(addr, cmd)
 }
 
+// Serve set IsServer with true and serve http with listeners
 func (cmd *Command) Serve(listeners ...net.Listener) (err error) {
 	cmd.SetIsServer(true)
 	var g sync.WaitGroup
@@ -125,7 +129,7 @@ func (cmd *Command) Serve(listeners ...net.Listener) (err error) {
 	return
 }
 
-// RPC run the command from remote
+// RPC runs the command from remote
 func (cmd *Command) RPC(httpc *http.Client, ctx *Context) error {
 	addr := "http://rpc/" + ctx.Command().pathWithSep("/")
 	method := "GET"
