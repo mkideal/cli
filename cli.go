@@ -11,9 +11,14 @@ import (
 )
 
 // Run runs a single command app
-func Run(argv interface{}, fn CommandFunc) {
+func Run(argv interface{}, fn CommandFunc, descs ...string) {
+	desc := ""
+	if len(descs) > 0 {
+		desc = strings.Join(descs, "\n")
+	}
 	err := (&Command{
 		Name:        os.Args[0],
+		Desc:        desc,
 		Argv:        func() interface{} { return argv },
 		CanSubRoute: true,
 		Fn:          fn,
