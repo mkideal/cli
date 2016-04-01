@@ -266,7 +266,7 @@ func (cmd *Command) Run(args []string) error {
 func (cmd *Command) RunWith(args []string, writer io.Writer, httpMethods ...string) error {
 	fds := []uintptr{}
 	if writer == nil {
-		writer = colorable.NewColorable(os.Stdout)
+		writer = colorable.NewColorableStdout()
 		fds = append(fds, os.Stdout.Fd())
 	}
 	clr := color.Color{}

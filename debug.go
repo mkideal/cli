@@ -39,7 +39,7 @@ var gopaths = func() []string {
 
 var debugOut, debugColor = func() (io.Writer, color.Color) {
 	clr := color.Color{}
-	out := colorable.NewColorable(os.Stdout)
+	out := colorable.NewColorableStdout()
 	colorSwitch(&clr, out, os.Stdout.Fd())
 	return out, clr
 }()
@@ -55,7 +55,7 @@ func Debugf(format string, args ...interface{}) {
 
 func Panicf(format string, args ...interface{}) {
 	clr := color.Color{}
-	out := colorable.NewColorable(os.Stderr)
+	out := colorable.NewColorableStderr()
 	colorSwitch(&clr, out, os.Stderr.Fd())
 	buff := bytes.NewBufferString("")
 	buff.WriteString(clr.Red(fmt.Sprintf(format, args...)))
