@@ -579,12 +579,3 @@ func TestErrorMapType(t *testing.T) {
 		t.Errorf("want error, but not")
 	}
 }
-
-func TestDefaultTag(t *testing.T) {
-	type T struct {
-		Int    int         `cli:"i" dft:"1"`
-		String string      `cli:"s" dft:"hello"`
-		Slice  []int       `cli:"slice" dft:"[1,2,3]"`
-		Map    map[int]int `cli:"slice" dft:"{1:1,3:2,2:3}"`
-	}
-}
