@@ -42,6 +42,13 @@ func Tree(cmd *Command, forest ...*CommandTree) *CommandTree {
 	}
 }
 
+// Parse parse args
+func Parse(args []string, argv interface{}) error {
+	clr := color.Color{}
+	fset := parseArgv(args, argv, clr)
+	return fset.err
+}
+
 //------------------
 // Implements parse
 //------------------

@@ -63,7 +63,10 @@ func (fl *flag) init(clr color.Color) error {
 		}
 	}
 	if dft != "" {
-		return fl.set("", dft, clr)
+		zero := reflect.Zero(fl.t.Type)
+		if reflect.DeepEqual(zero.Interface(), fl.v.Interface()) {
+			return fl.set("", dft, clr)
+		}
 	}
 	return nil
 }

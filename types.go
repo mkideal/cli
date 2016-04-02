@@ -5,6 +5,6 @@ type Helper struct {
 }
 
 type Addr struct {
-	Host string `cli:"host" usage:"remote host" dft:"127.0.0.1"`
+	Host string `cli:"host" usage:"remote host"`
 	Port uint16 `cli:"port" usage:"remote port" dft:"8080"`
 }
