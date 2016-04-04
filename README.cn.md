@@ -11,7 +11,8 @@ go get github.com/mkideal/cli
 
 ## 惊鸿一瞥
 
-![screenshot](./screenshot.png)
+![screenshot](http://www.mkideal.com/images/screenshot.png)
+![screenshot2](http://www.mkideal.com/images/screenshot2.png)
 
 ## 有些什么特色呢
 
@@ -27,7 +28,8 @@ go get github.com/mkideal/cli
 * 支持短flag的组合式.`-x -y -z` -> `-xyz`, 不过必须全是bool型的才可以组合
 * 支持长这样的`-Fvalue`的用法,它就等于`-F value`,不过`-F`不能是bool型
 * 可以用 `--` 来隔离flags和arguments
-* 支持使用数组和map了,数组的`-F v1 -F v2`,map的`-F k1=v1 -F k2=v2`
+* 支持使用数组和map了,数组的这样用:`-Fv1 -Fv2`(或`-F v1 -F v2`),map的`-Fk1=v1 -Fk2=v2`(或`-F k1=v1 -F k2=v2`)
+* 使用帮助支持两种显示风格:默认的`左标签右说明`,manual风格的`上标签下说明`
 
 ## 还想做点什么
 * 要有命令补全就好了
@@ -37,7 +39,7 @@ go get github.com/mkideal/cli
 
 ## 快速入门
 
-### 迅速运行下面的代码吧!
+### 迅速运行下面的代码!
 
 ```go
 package main
@@ -113,6 +115,16 @@ Help bool `cli:"!h,help"`
 ### usage
 
 `usage`标签用于描述flag的作用/用法.如果flag被标记为required,那么usage显示文本会自动加上红色的`*`
+
+NOTE: `cli.SetUsageStyle`函数用于设置帮助的显示风格.比如要设置成manual的:
+
+```go
+...
+func main() {
+	cli.SetUsageStyle(cli.ManualStyle)
+	...
+}
+```
 
 ### dft
 
@@ -329,12 +341,6 @@ return ctx.Command().Root().ListenAndServeHTTP(addr)
 * [Tree](./examples/tree/main.go)
 * [HTTP](./examples/http/main.go)
 * [RPC](./examples/rpc/main.go)
-
-## 谁在使用
-
-* [goplus](https://github.com/mkideal/goplus)
-
-如果你也在使用,也将自己的加进上面的列表来!
 
 ## 辅助工具
 

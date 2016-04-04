@@ -13,7 +13,8 @@ go get github.com/mkideal/cli
 
 ## Screenshot
 
-![screenshot](./screenshot.png)
+![screenshot](http://www.mkideal.com/images/screenshot.png)
+![screenshot2](http://www.mkideal.com/images/screenshot2.png)
 
 ## Features
 
