@@ -73,7 +73,7 @@ func parseArgv(args []string, argv interface{}, clr color.Color) *flagSet {
 	}
 }
 
-func usage(v interface{}, clr color.Color) string {
+func usage(v interface{}, clr color.Color, style UsageStyle) string {
 	var (
 		typ     = reflect.TypeOf(v)
 		val     = reflect.ValueOf(v)
@@ -85,7 +85,7 @@ func usage(v interface{}, clr color.Color) string {
 			if flagSet.err != nil {
 				return ""
 			}
-			return flagSlice(flagSet.flags).String(clr)
+			return flagSlice(flagSet.flags).StringWithStyle(clr, style)
 		}
 	}
 	return ""

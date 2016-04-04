@@ -59,8 +59,9 @@ type (
 
 		isServer bool
 
-		locker sync.Mutex // protect following data
-		usage  string
+		locker     sync.Mutex // protect following data
+		usage      string
+		usageStyle UsageStyle
 	}
 
 	CommandTree struct {
@@ -365,18 +366,19 @@ func (cmd *Command) RunWith(args []string, writer io.Writer, httpMethods ...stri
 	return ctx.command.Fn(ctx)
 }
 
-// Usage sets usage and returns it
-func (cmd *Command) Usage(ctxs ...*Context) string {
+func (cmd *Command) Usage(ctx *Context) string {
+	style := GetUsageStyle()
 	clr := color.Color{}
 	clr.Disable()
-	if len(ctxs) > 0 {
-		clr = ctxs[0].color
+	if ctx != nil {
+		clr = ctx.color
 	}
 	// get usage form cache
 	cmd.locker.Lock()
 	tmpUsage := cmd.usage
+	usageStyle := cmd.usageStyle
 	cmd.locker.Unlock()
-	if tmpUsage != "" {
+	if tmpUsage != "" && usageStyle == style {
 		Debugf("get usage of command %s from cache", clr.Bold(cmd.Name))
 		return tmpUsage
 	}
@@ -388,7 +390,7 @@ func (cmd *Command) Usage(ctxs ...*Context) string {
 		fmt.Fprintf(buff, "%s\n\n", cmd.Text)
 	}
 	if cmd.Argv != nil {
-		fmt.Fprintf(buff, "%s:\n%s", clr.Bold("Usage"), usage(cmd.Argv(), clr))
+		fmt.Fprintf(buff, "%s:\n\n%s", clr.Bold("Options"), usage(cmd.Argv(), clr, style))
 	}
 	if cmd.children != nil && len(cmd.children) > 0 {
 		if cmd.Argv != nil {
@@ -399,6 +401,7 @@ func (cmd *Command) Usage(ctxs ...*Context) string {
 	tmpUsage = buff.String()
 	cmd.locker.Lock()
 	cmd.usage = tmpUsage
+	cmd.usageStyle = style
 	cmd.locker.Unlock()
 	return tmpUsage
 }
@@ -459,6 +462,9 @@ func (cmd *Command) SubRoute(router []string) (*Command, int) {
 
 // findChild finds child command by name
 func (cmd *Command) findChild(name string) *Command {
+	if cmd.nochild() {
+		return nil
+	}
 	for _, child := range cmd.children {
 		if child.Name == name {
 			return child

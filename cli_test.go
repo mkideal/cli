@@ -329,7 +329,7 @@ func TestParse(t *testing.T) {
 	if flagSet := parseArgv([]string{}, argT{}, clr); flagSet.err != errNotAPointer {
 		t.Errorf("want %v, got %v", errNotAPointer, flagSet.err)
 	}
-	if usage(argT{}, clr) != "" {
+	if usage(argT{}, clr, NormalStyle) != "" {
 		t.Errorf("want usage empty, but not")
 	}
 
@@ -339,7 +339,7 @@ func TestParse(t *testing.T) {
 	if flagSet := parseArgv([]string{}, ptrInt, clr); flagSet.err != errNotPointToStruct {
 		t.Errorf("want %v, got %v", errNotPointToStruct, flagSet.err)
 	}
-	if usage(ptrInt, clr) != "" {
+	if usage(ptrInt, clr, NormalStyle) != "" {
 		t.Errorf("want usage empty, but not")
 	}
 
@@ -351,7 +351,7 @@ func TestParse(t *testing.T) {
 	if flagSet := parseArgv([]string{}, new(tmpT), clr); flagSet.err == nil {
 		t.Errorf("want error, got nil")
 	}
-	if usage(new(tmpT), clr) != "" {
+	if usage(new(tmpT), clr, NormalStyle) != "" {
 		t.Errorf("want usage empty, but not")
 	}
 
@@ -370,7 +370,7 @@ func TestParse(t *testing.T) {
 
 func TestUsage(t *testing.T) {
 	clr := color.Color{}
-	usage := usage(new(argT), clr)
+	usage := usage(new(argT), clr, NormalStyle)
 	want := fmt.Sprintf(
 		`      -s                             short flag
       -2                             another short flag

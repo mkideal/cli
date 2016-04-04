@@ -285,6 +285,23 @@ func getFloat(s string, clr color.Color) (float64, error) {
 	return f, nil
 }
 
+type UsageStyle int32
+
+const (
+	NormalStyle UsageStyle = iota
+	ManualStyle
+)
+
+var defaultStyle = NormalStyle
+
+func GetUsageStyle() UsageStyle {
+	return defaultStyle
+}
+
+func SetUsageStyle(style UsageStyle) {
+	defaultStyle = style
+}
+
 type flagSlice []*flag
 
 func (fs flagSlice) String(clr color.Color) string {
@@ -375,4 +392,36 @@ func (fs flagSlice) String(clr color.Color) string {
 
 func fillSpaces(s string, spaceSize int) string {
 	return s + strings.Repeat(" ", spaceSize)
+}
+
+func (fs flagSlice) StringWithStyle(clr color.Color, style UsageStyle) string {
+	if style != ManualStyle {
+		return fs.String(clr)
+	}
+
+	buf := bytes.NewBufferString("")
+	linePrefix := "  "
+	for i, fl := range fs {
+		if i != 0 {
+			buf.WriteString("\n")
+		}
+		names := strings.Join(append(fl.tag.shortNames, fl.tag.longNames...), sepName)
+		buf.WriteString(linePrefix)
+		buf.WriteString(clr.Bold(names))
+		if fl.tag.name != "" {
+			buf.WriteString("=" + clr.Bold(fl.tag.name))
+		}
+		if fl.tag.defaultValue != "" {
+			buf.WriteString(clr.Grey(fmt.Sprintf("[=%s]", fl.tag.defaultValue)))
+		}
+		buf.WriteString("\n")
+		buf.WriteString(linePrefix)
+		buf.WriteString("    ")
+		if fl.tag.required {
+			buf.WriteString(clr.Red("*"))
+		}
+		buf.WriteString(fl.tag.usage)
+		buf.WriteString("\n")
+	}
+	return buf.String()
 }

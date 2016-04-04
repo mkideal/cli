@@ -28,7 +28,7 @@ type gogoT struct {
 func gogo(ctx *cli.Context) error {
 	argv := ctx.Argv().(*gogoT)
 	if argv.Help {
-		ctx.String(ctx.Command().Usage())
+		ctx.WriteUsage()
 		return nil
 	}
 	if argv.Version {
@@ -54,6 +54,7 @@ func jsonIndent(i interface{}) string {
 }
 
 func main() {
+	cli.SetUsageStyle(cli.ManualStyle)
 	//NOTE: You can set any writer implements io.Writer
 	// default writer is os.Stdout
 	if err := app.RunWith(os.Args[1:], os.Stderr); err != nil {
