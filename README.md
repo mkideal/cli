@@ -83,6 +83,42 @@ Try
 $> ./hello -a 256
 ```
 
+## clier - command generator
+
+`clier` is command generator write by `cli`. You can use it for fast-creating a new command.
+
+```sh
+Usage: clier [OPTIONS] COMMAND-NAME
+
+Examples:
+	clier hello
+	clier -f -s "balabalabala" hello
+	clier -p balabala hello
+
+Options:
+
+  -h, --help
+      display help
+
+  -F, --file=NAME
+      create source file for new command, default <commandName>.go
+
+  -f, --force[=false]
+      force create file if exists
+
+  -p, --package
+      dest package name, default <basedir FILE>
+
+  -s, --desc
+      command description
+
+  --csr, --can-sub-route[=false]
+      set CanSubRoute attribute for new command
+
+  --argv-type-name
+      argv type, default <commandName>T, e.g. command name is hello, then defaut argv type is helloT
+```
+
 ## Tags
 
 ### cli
@@ -301,3 +337,4 @@ See example [RPC](./examples/rpc/main.go).
 ## External tools
 
 * [goplus](https://github.com/mkideal/goplus) - `generate go application skeleton`
+

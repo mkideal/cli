@@ -82,6 +82,42 @@ $> ./hello -h
 $> ./hello -a 256
 ```
 
+## clier - 命令生成其
+
+`clier` 是一个用`cli`写成命令生成工具,你可以使用它快速创建新的命令.
+
+```sh
+Usage: clier [OPTIONS] COMMAND-NAME
+
+Examples:
+	clier hello
+	clier -f -s "balabalabala" hello
+	clier -p balabala hello
+
+Options:
+
+  -h, --help
+      display help
+
+  -F, --file=NAME
+      create source file for new command, default <commandName>.go
+
+  -f, --force[=false]
+      force create file if exists
+
+  -p, --package
+      dest package name, default <basedir FILE>
+
+  -s, --desc
+      command description
+
+  --csr, --can-sub-route[=false]
+      set CanSubRoute attribute for new command
+
+  --argv-type-name
+      argv type, default <commandName>T, e.g. command name is hello, then defaut argv type is helloT
+```
+
 ## 标签
 
 这个命令行程序工具库的重要特征之一就是使用tag来实现命令行程序的诸多特性.

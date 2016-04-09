@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -15,6 +16,12 @@ import (
 	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
 )
+
+var commandNameRegexp = regexp.MustCompile("a-zA-Z_0-9]+")
+
+func IsValidCommandName(commandName string) bool {
+	return commandNameRegexp.MatchString(commandName)
+}
 
 type (
 	// Context provide running context

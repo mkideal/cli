@@ -18,10 +18,10 @@ type AddrWithShort struct {
 	Port uint16 `cli:"p,port" usage:"specify port" dft:"8080"`
 }
 
-func (addr Addr) String() string {
+func (addr Addr) ToString() string {
 	return fmt.Sprintf("%s:%d", addr.Host, addr.Port)
 }
 
-func (addr AddrWithShort) String() string {
+func (addr AddrWithShort) ToString() string {
 	return fmt.Sprintf("%s:%d", addr.Host, addr.Port)
 }
