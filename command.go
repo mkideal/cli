@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"regexp"
@@ -34,6 +35,9 @@ type (
 		command    *Command
 		writer     io.Writer
 		color      color.Color
+
+		HTTPRequest  *http.Request
+		HTTPResponse http.ResponseWriter
 	}
 
 	// Validator validate flag before running command
@@ -267,11 +271,11 @@ func (cmd *Command) SetIsServer(yes bool) {
 
 // Run runs the command with args
 func (cmd *Command) Run(args []string) error {
-	return cmd.RunWith(args, nil)
+	return cmd.RunWith(args, nil, nil)
 }
 
 // RunWith runs the command with args and writer,httpMethods
-func (cmd *Command) RunWith(args []string, writer io.Writer, httpMethods ...string) error {
+func (cmd *Command) RunWith(args []string, writer io.Writer, resp http.ResponseWriter, httpMethods ...string) error {
 	fds := []uintptr{}
 	if writer == nil {
 		writer = colorable.NewColorableStdout()
@@ -358,6 +362,7 @@ func (cmd *Command) RunWith(args []string, writer io.Writer, httpMethods ...stri
 
 		ctx.command = child
 		ctx.writer = writer
+		ctx.HTTPResponse = resp
 		return nil
 	}()
 
