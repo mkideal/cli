@@ -132,7 +132,7 @@ func (cmd *Command) Serve(listeners ...net.Listener) (err error) {
 // RPC runs the command from remote
 func (cmd *Command) RPC(httpc *http.Client, ctx *Context) error {
 	addr := "http://rpc/" + ctx.Command().pathWithSep("/")
-	method := "GET"
+	method := "POST"
 	if cmd.HTTPMethods != nil && len(cmd.HTTPMethods) > 0 {
 		method = cmd.HTTPMethods[0]
 	}

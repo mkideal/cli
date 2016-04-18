@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"regexp"
 	"sort"
 	"strings"
@@ -595,4 +597,29 @@ func HelpCommand(desc string) *Command {
 		CanSubRoute: true,
 		Fn:          HelpCommandFn,
 	}
+}
+
+func Daemon(ctx *Context, successPrefix string) error {
+	cmd := exec.Command(os.Args[0], ctx.Args()...)
+	serr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	reader := bufio.NewReader(serr)
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
+
+	if strings.HasPrefix(line, successPrefix) {
+		ctx.String(line)
+		cmd.Process.Release()
+	} else {
+		cmd.Process.Kill()
+		return fmt.Errorf(line)
+	}
+	return nil
 }
