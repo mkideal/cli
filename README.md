@@ -329,6 +329,7 @@ See example [RPC](./examples/rpc/main.go).
 * [Tree](./examples/tree/main.go)
 * [HTTP](./examples/http/main.go)
 * [RPC](./examples/rpc/main.go)
+* [daemon](./examples/daemon/main.go)
 
 ## Who use
 
