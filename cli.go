@@ -193,7 +193,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 			} else if l == 2 {
 				flagSet.err = fl.set(arg, strs[1], clr)
 			} else {
-				flagSet.err = fmt.Errorf("too many(%d) value", l, clr.Bold(arg))
+				flagSet.err = fmt.Errorf("too many(%d) value", l)
 			}
 			if flagSet.err != nil {
 				name := clr.Bold(fl.name())

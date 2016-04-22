@@ -285,19 +285,24 @@ func getFloat(s string, clr color.Color) (float64, error) {
 	return f, nil
 }
 
+// UsageStyle is style of usage
 type UsageStyle int32
 
 const (
+	// NormalStyle : left-right
 	NormalStyle UsageStyle = iota
+	// ManualStyle : up-down
 	ManualStyle
 )
 
 var defaultStyle = NormalStyle
 
+// GetUsageStyle gets default style
 func GetUsageStyle() UsageStyle {
 	return defaultStyle
 }
 
+// SetUsageStyle sets default style
 func SetUsageStyle(style UsageStyle) {
 	defaultStyle = style
 }

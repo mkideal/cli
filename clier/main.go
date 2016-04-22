@@ -32,7 +32,7 @@ func (argv *argT) Validate(ctx *cli.Context) error {
 		return fmt.Errorf("command name missing")
 	}
 	if len(args) > 1 {
-		return fmt.Errorf("too many(%d) commands, can only create one command")
+		return fmt.Errorf("too many(%d) commands, can only create one command", len(args))
 	}
 	argv.Name = ctx.FreedomArgs()[0]
 	if cli.IsValidCommandName(argv.Name) {

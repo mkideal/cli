@@ -22,6 +22,7 @@ import (
 
 var commandNameRegexp = regexp.MustCompile("a-zA-Z_0-9]+")
 
+// IsValidCommandName validate name of command
 func IsValidCommandName(commandName string) bool {
 	return commandNameRegexp.MatchString(commandName)
 }
@@ -77,6 +78,7 @@ type (
 		usageStyle UsageStyle
 	}
 
+	// CommandTree represents a tree of commands
 	CommandTree struct {
 		command *Command
 		forest  []*CommandTree
@@ -256,12 +258,12 @@ func (cmd *Command) Parent() *Command {
 	return cmd.parent
 }
 
-// IsServer returns command whther if run as server
+// IsServer returns command whether if run as server
 func (cmd *Command) IsServer() bool {
 	return cmd.isServer
 }
 
-// IsClient returns command whther if run as client
+// IsClient returns command whether if run as client
 func (cmd *Command) IsClient() bool {
 	return !cmd.IsServer()
 }
@@ -380,6 +382,7 @@ func (cmd *Command) RunWith(args []string, writer io.Writer, resp http.ResponseW
 	return ctx.command.Fn(ctx)
 }
 
+// Usage returns the usage string of command
 func (cmd *Command) Usage(ctx *Context) string {
 	style := GetUsageStyle()
 	clr := color.Color{}
@@ -599,6 +602,7 @@ func HelpCommand(desc string) *Command {
 	}
 }
 
+// Daemon startup app as a daemon process, success if result from stderr has prefix successPrefix
 func Daemon(ctx *Context, successPrefix string) error {
 	cmd := exec.Command(os.Args[0], ctx.Args()...)
 	serr, err := cmd.StderrPipe()

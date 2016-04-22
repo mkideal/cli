@@ -44,6 +44,7 @@ var debugOut, debugColor = func() (io.Writer, color.Color) {
 	return out, clr
 }()
 
+// Debugf print debug message with fileline
 func Debugf(format string, args ...interface{}) {
 	if !enableDebug {
 		return
@@ -53,6 +54,7 @@ func Debugf(format string, args ...interface{}) {
 	fmt.Fprintf(debugOut, "[DEBUG]"+debugColor.Bold(fileline)+" "+format+"\n", args...)
 }
 
+// Panicf print error message with call stack and exit with code 999
 func Panicf(format string, args ...interface{}) {
 	clr := color.Color{}
 	out := colorable.NewColorableStderr()
@@ -74,6 +76,7 @@ func Panicf(format string, args ...interface{}) {
 	os.Exit(999)
 }
 
+// TypeName returns type name of object
 func TypeName(i interface{}) string {
 	t := reflect.TypeOf(i)
 	for t.Kind() == reflect.Ptr {
