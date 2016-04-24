@@ -30,6 +30,7 @@ go get github.com/mkideal/cli
 * 可以用 `--` 来隔离flags和arguments
 * 支持使用数组和map了,数组的这样用:`-Fv1 -Fv2`(或`-F v1 -F v2`),map的`-Fk1=v1 -Fk2=v2`(或`-F k1=v1 -F k2=v2`)
 * 使用帮助支持两种显示风格:默认的`左标签右说明`,manual风格的`上标签下说明`
+* 支持钩子
 
 ## 还想做点什么
 * 要有命令补全就好了
