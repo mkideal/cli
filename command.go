@@ -76,6 +76,17 @@ type (
 		locker     sync.Mutex // protect following data
 		usage      string
 		usageStyle UsageStyle
+
+		NoHook bool
+
+		// hooks for current command
+		OnBefore func(*Context) error
+		OnAfter  func(*Context) error
+
+		// hooks for all commands if current command is root command
+		OnRootPrepareError func(error) error
+		OnRootBefore       func(*Context) error
+		OnRootAfter        func(*Context) error
 	}
 
 	// CommandTree represents a tree of commands
@@ -290,88 +301,16 @@ func (cmd *Command) RunWith(args []string, writer io.Writer, resp http.ResponseW
 
 	var ctx *Context
 	var suggestion string
-
-	err := func() error {
-		// split args
-		router := []string{}
-		for _, arg := range args {
-			if strings.HasPrefix(arg, dashOne) {
-				break
-			}
-			router = append(router, arg)
-		}
-		if len(router) == 0 && cmd.Fn == nil {
-			return throwCommandNotFound(clr.Yellow(cmd.Name))
-		}
-		path := strings.Join(router, " ")
-		child, end := cmd.SubRoute(router)
-
-		// if route fail
-		if child == nil || (!child.CanSubRoute && end != len(router)) {
-			suggestions := cmd.Suggestions(path)
-			buff := bytes.NewBufferString("")
-			if suggestions != nil && len(suggestions) > 0 {
-				if len(suggestions) == 1 {
-					fmt.Fprintf(buff, "\nDid you mean %s?", clr.Bold(suggestions[0]))
-				} else {
-					fmt.Fprintf(buff, "\n\nDid you mean one of these?\n")
-					for _, sug := range suggestions {
-						fmt.Fprintf(buff, "    %s\n", sug)
-					}
-				}
-			}
-			suggestion = buff.String()
-			return throwCommandNotFound(clr.Yellow(path))
-		}
-
-		methodAllowed := false
-		if len(httpMethods) == 0 ||
-			child.HTTPMethods == nil ||
-			len(child.HTTPMethods) == 0 {
-			methodAllowed = true
-		} else {
-			method := httpMethods[0]
-			for _, m := range child.HTTPMethods {
-				if method == m {
-					methodAllowed = true
-					break
-				}
-			}
-		}
-		if !methodAllowed {
-			return throwMethodNotAllowed(clr.Yellow(httpMethods[0]))
-		}
-
-		// create argv
-		var argv interface{}
-		if child.Argv != nil {
-			argv = child.Argv()
-		}
-
-		// create Context
-		var tmpErr error
-		ctx, tmpErr = newContext(path, router[:end], args[end:], argv, clr)
-		if tmpErr != nil {
-			return tmpErr
-		}
-
-		// validate argv if argv implements interface Validator
-		if argv != nil && !ctx.flagSet.dontValidate {
-			if validator, ok := argv.(Validator); ok {
-				if err := validator.Validate(ctx); err != nil {
-					return err
-				}
-			}
-		}
-
-		ctx.command = child
-		ctx.writer = writer
-		ctx.HTTPResponse = resp
-		return nil
-	}()
+	ctx, suggestion, err := cmd.prepare(clr, args, writer, resp, httpMethods...)
 
 	if err != nil {
-		return wrapErr(err, suggestion, clr)
+		if cmd.OnRootPrepareError != nil {
+			err = cmd.OnRootPrepareError(err)
+		}
+		if err != nil {
+			return wrapErr(err, suggestion, clr)
+		}
+		return nil
 	}
 
 	if argv := ctx.Argv(); argv != nil {
@@ -379,7 +318,111 @@ func (cmd *Command) RunWith(args []string, writer io.Writer, resp http.ResponseW
 	} else {
 		Debugf("command %s ready exec", ctx.command.Name)
 	}
-	return ctx.command.Fn(ctx)
+
+	if ctx.command.NoHook {
+		return ctx.command.Fn(ctx)
+	}
+
+	funcs := []func(*Context) error{
+		ctx.command.OnBefore,
+		cmd.OnRootBefore,
+		ctx.command.Fn,
+		cmd.OnRootAfter,
+		ctx.command.OnAfter,
+	}
+	for _, f := range funcs {
+		if f != nil {
+			if err := f(ctx); err != nil {
+				if err == ExitError {
+					return nil
+				}
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, resp http.ResponseWriter, httpMethods ...string) (ctx *Context, suggestion string, err error) {
+	// split args
+	router := []string{}
+	for _, arg := range args {
+		if strings.HasPrefix(arg, dashOne) {
+			break
+		}
+		router = append(router, arg)
+	}
+	if len(router) == 0 && cmd.Fn == nil {
+		err = throwCommandNotFound(clr.Yellow(cmd.Name))
+		return
+	}
+	path := strings.Join(router, " ")
+	child, end := cmd.SubRoute(router)
+
+	// if route fail
+	if child == nil || (!child.CanSubRoute && end != len(router)) {
+		suggestions := cmd.Suggestions(path)
+		buff := bytes.NewBufferString("")
+		if suggestions != nil && len(suggestions) > 0 {
+			if len(suggestions) == 1 {
+				fmt.Fprintf(buff, "\nDid you mean %s?", clr.Bold(suggestions[0]))
+			} else {
+				fmt.Fprintf(buff, "\n\nDid you mean one of these?\n")
+				for _, sug := range suggestions {
+					fmt.Fprintf(buff, "    %s\n", sug)
+				}
+			}
+		}
+		suggestion = buff.String()
+		err = throwCommandNotFound(clr.Yellow(path))
+		return
+	}
+
+	methodAllowed := false
+	if len(httpMethods) == 0 ||
+		child.HTTPMethods == nil ||
+		len(child.HTTPMethods) == 0 {
+		methodAllowed = true
+	} else {
+		method := httpMethods[0]
+		for _, m := range child.HTTPMethods {
+			if method == m {
+				methodAllowed = true
+				break
+			}
+		}
+	}
+	if !methodAllowed {
+		err = throwMethodNotAllowed(clr.Yellow(httpMethods[0]))
+		return
+	}
+
+	// create argv
+	var argv interface{}
+	if child.Argv != nil {
+		argv = child.Argv()
+	}
+
+	// create Context
+	ctx, err = newContext(path, router[:end], args[end:], argv, clr)
+	if err != nil {
+		return
+	}
+
+	// validate argv if argv implements interface Validator
+	if argv != nil && !ctx.flagSet.dontValidate {
+		if validator, ok := argv.(Validator); ok {
+			err = validator.Validate(ctx)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	ctx.command = child
+	ctx.writer = writer
+	ctx.HTTPResponse = resp
+	return
 }
 
 // Usage returns the usage string of command
@@ -598,6 +641,7 @@ func HelpCommand(desc string) *Command {
 		Name:        "help",
 		Desc:        desc,
 		CanSubRoute: true,
+		NoHook:      true,
 		Fn:          HelpCommandFn,
 	}
 }

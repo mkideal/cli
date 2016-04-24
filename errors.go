@@ -15,6 +15,8 @@ var (
 )
 
 type (
+	exitError struct{}
+
 	commandNotFoundError struct {
 		command string
 	}
@@ -32,6 +34,10 @@ type (
 		msg string
 	}
 )
+
+func (e exitError) Error() string { return "exit" }
+
+var ExitError = exitError{}
 
 func throwCommandNotFound(command string) commandNotFoundError {
 	return commandNotFoundError{command: command}
