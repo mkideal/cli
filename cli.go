@@ -244,6 +244,19 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 		continue
 	}
 
+	for _, fl := range flagSet.flags {
+		if fl.tag.isHelp && fl.getBool() {
+			flagSet.dontValidate = true
+			break
+		}
+	}
+	if !flagSet.dontValidate {
+		flagSet.readPrompt(os.Stdout, clr)
+		if flagSet.err != nil {
+			return
+		}
+	}
+
 	buff := bytes.NewBufferString("")
 	for _, fl := range flagSet.flags {
 		if !fl.assigned && fl.tag.required {
@@ -251,12 +264,6 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 				buff.WriteByte('\n')
 			}
 			fmt.Fprintf(buff, "required argument %s missing", clr.Bold(fl.name()))
-		}
-	}
-	for _, fl := range flagSet.flags {
-		if fl.tag.isHelp && fl.getBool() {
-			flagSet.dontValidate = true
-			break
 		}
 	}
 	if buff.Len() > 0 && !flagSet.dontValidate {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"net/url"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Bowery/prompt"
 	"github.com/labstack/gommon/color"
 )
 
@@ -31,6 +33,44 @@ func newFlagSet() *flagSet {
 		flags:   []*flag{},
 		values:  url.Values(make(map[string][]string)),
 		args:    make([]string, 0),
+	}
+}
+
+func (fs *flagSet) readPrompt(w io.Writer, clr color.Color) {
+	for _, fl := range fs.flags {
+		if fl.assigned || fl.tag.prompt == "" {
+			continue
+		}
+		// read ...
+		prefix := fl.tag.prompt + ": "
+		var (
+			data string
+			yes  bool
+		)
+		if fl.tag.isPassword {
+			data, fs.err = prompt.Password(prefix)
+			if fs.err == nil && data != "" {
+				fl.set(data, data, clr)
+			}
+		} else if fl.isBoolean() {
+			yes, fs.err = prompt.Ask(prefix)
+			if fs.err == nil {
+				fl.v.SetBool(yes)
+			}
+		} else if fl.tag.defaultValue != "" {
+			data, fs.err = prompt.BasicDefault(prefix, fl.tag.defaultValue)
+			if fs.err == nil {
+				fl.set(data, data, clr)
+			}
+		} else {
+			data, fs.err = prompt.Basic(prefix, fl.tag.required)
+			if fs.err == nil {
+				fl.set(data, data, clr)
+			}
+		}
+		if fs.err != nil {
+			return
+		}
 	}
 }
 

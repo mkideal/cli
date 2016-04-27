@@ -10,6 +10,8 @@ const (
 	tagUsage  = "usage"
 	tagDefaut = "dft"
 	tagName   = "name"
+	tagPw     = "pw" // password
+	tagPrompt = "prompt"
 
 	dashOne = "-"
 	dashTwo = "--"
@@ -24,6 +26,8 @@ type fieldTag struct {
 	usage        string
 	defaultValue string
 	name         string
+	prompt       string
+	isPassword   bool
 
 	isHelp bool
 }
@@ -34,9 +38,15 @@ func parseTag(fieldName string, tag reflect.StructTag) (*fieldTag, bool) {
 		longNames:  []string{},
 	}
 	cli := tag.Get(tagCli)
+	pw := tag.Get(tagPw)
+	if pw != "" {
+		ftag.isPassword = true
+		cli = pw
+	}
 	ftag.usage = tag.Get(tagUsage)
 	ftag.defaultValue = tag.Get(tagDefaut)
 	ftag.name = tag.Get(tagName)
+	ftag.prompt = tag.Get(tagPrompt)
 
 	cli = strings.TrimSpace(cli)
 	for {

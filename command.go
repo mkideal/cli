@@ -57,6 +57,7 @@ type (
 	// Command is the top-level instance in command-line app
 	Command struct {
 		Name        string      // Command name
+		Aliases     []string    // Command aliases name
 		Desc        string      // Command abstract
 		Text        string      // Command detailed description
 		Fn          CommandFunc // Command handler
@@ -242,6 +243,13 @@ func (cmd *Command) Register(child *Command) *Command {
 	}
 	if cmd.findChild(child.Name) != nil {
 		Panicf("repeat register child `%s` for command `%s`", child.Name, cmd.Name)
+	}
+	if child.Aliases != nil {
+		for _, alias := range child.Aliases {
+			if cmd.findChild(alias) != nil {
+				Panicf("repeat register child `%s` for command `%s`", alias, cmd.Name)
+			}
+		}
 	}
 	cmd.children = append(cmd.children, child)
 	child.parent = cmd
@@ -528,6 +536,13 @@ func (cmd *Command) findChild(name string) *Command {
 	for _, child := range cmd.children {
 		if child.Name == name {
 			return child
+		}
+		if child.Aliases != nil {
+			for _, alias := range child.Aliases {
+				if alias == name {
+					return child
+				}
+			}
 		}
 	}
 	return nil
