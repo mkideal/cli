@@ -573,9 +573,16 @@ func (cmd *Command) ChildrenDescriptions(prefix, indent string) string {
 			length = len(child.Name)
 		}
 	}
-	format := fmt.Sprintf("%s%%-%ds%s%%s\n", prefix, length, indent)
+	format := fmt.Sprintf("%s%%-%ds%s%%s%%s\n", prefix, length, indent)
 	for _, child := range cmd.children {
-		fmt.Fprintf(buff, format, child.Name, child.Desc)
+		aliases := ""
+		if child.Aliases != nil && len(child.Aliases) > 0 {
+			aliasesBuff := bytes.NewBufferString("(aliases ")
+			aliasesBuff.WriteString(strings.Join(child.Aliases, ","))
+			aliasesBuff.WriteString(")")
+			aliases = aliasesBuff.String()
+		}
+		fmt.Fprintf(buff, format, child.Name, child.Desc, aliases)
 	}
 	return buff.String()
 }
