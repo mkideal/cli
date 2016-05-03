@@ -37,6 +37,7 @@ type (
 
 func (e exitError) Error() string { return "exit" }
 
+// ExitError is a special error, should be ignored but return
 var ExitError = exitError{}
 
 func throwCommandNotFound(command string) commandNotFoundError {

@@ -167,8 +167,13 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 			}
 		}
 
+		if arg == dashOne {
+			flagSet.err = fmt.Errorf("unexpected single dash")
+			return
+		}
+
 		// terminate the flag parse while occur `--`
-		if arg == "--" {
+		if arg == dashTwo {
 			flagSet.args = append(flagSet.args, args[i+1:]...)
 			break
 		}
