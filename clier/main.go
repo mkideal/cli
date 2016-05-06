@@ -27,14 +27,14 @@ type argT struct {
 
 func (argv *argT) Validate(ctx *cli.Context) error {
 	yellow := ctx.Color().Yellow
-	args := ctx.FreedomArgs()
+	args := ctx.Args()
 	if len(args) == 0 {
 		return fmt.Errorf("command name missing")
 	}
 	if len(args) > 1 {
 		return fmt.Errorf("too many(%d) commands, can only create one command", len(args))
 	}
-	argv.Name = ctx.FreedomArgs()[0]
+	argv.Name = ctx.Args()[0]
 	if cli.IsValidCommandName(argv.Name) {
 		return fmt.Errorf("invalid command name: %s", yellow(argv.Name))
 	}

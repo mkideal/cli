@@ -68,7 +68,7 @@ The argument is required if ``cli`` tag has prefix ``*``, e.g.
 Required string `cli:"*r"`
 ```
 
-The argument is marked as `force` flag if `cli` tag has prefix `!`, e.g
+The argument is marked as a `force` flag if `cli` tag has prefix `!`, e.g
 
 ```go
 Help bool `cli:"!h,help"`
@@ -92,7 +92,7 @@ GoRoot string `cli:"goroot" usage:"go root dir" dft:"$GOROOT"`
 
 ### name
 
-`name` tag give a name for show.
+`name` tag give a reference name.
 
 ### pw
 
@@ -112,7 +112,7 @@ type the password:
 `prompt` is the prompt string.
 
 
-## Supported types for flag
+## Supported types of flag
 
 * All basic types: int,uint,...,flaot32,float64,string,bool
 * Slice of basic type: []int, []uint, []string,...
@@ -172,6 +172,27 @@ type Command struct {
 	OnRootBefore       func(*Context) error
 	OnRootAfter        func(*Context) error
 	...
+}
+```
+
+### Hooks
+
+*OnRootPrepareError* - Function of root command which should be invoked if occur error while prepare period
+*OnBefore* - Function which should be invoked before `Fn`
+*OnRootBefore* - Function of root command which should be invoked before `Fn`
+*OnRootAfter* - Function of root command which should be invoked after `Fn`
+*OnAfter* - Function which should be invoked after `Fn`
+
+Invoked sequence: OnRootPrepareError => OnBefore => OnRootBefore => Fn => OnRootAfter => OnAfter
+
+Don't invoke any hook function if `NoHook` property of command is true, e.g.
+
+```go
+var helpCmd = &cli.Command{
+	Name: "help",
+	Desc: "balabala...",
+	NoHook: true,
+	Fn: func(ctx *cli.Context) error { ... },
 }
 ```
 
@@ -235,7 +256,7 @@ HTTPRouters []string
 HTTPMethods []string
 ```
 
-Each command have one default router: slashes-separated router path of command. e.g. command
+Each command have one default router: slashes-separated router path of command. e.g.
 `$app sub1 sub11` has default router `/sub1/sub11`. The `HTTPRouters` property will add some new extra routers, it would'nt replace the default router. The `HTTPMethods` is a string array. It will handle any method if `HTTPMethods` is empty.
 
 ```go
@@ -261,6 +282,48 @@ return http.ListenAndServe(addr, ctx.Command().Root())
 ...
 ```
 See example [HTTP](./examples/http/main.go).
+
+## Context
+
+```go
+type Context struct {
+	...
+}
+```
+
+Methods of Context:
+```go
+// Path of "app cmd sub -f arg1 arg2" is "cmd/sub"
+func (ctx *Context) Path() string
+
+// Router of "app cmd sub -f arg1 arg2" is ["cmd" "sub"]
+func (ctx *Context) Router() []string
+
+// NativeArgs of "app cmd sub -f arg1 arg2" is ["-f" "arg1" "arg2"]
+func (ctx *Context) NativeArgs() []string
+
+// Args of "app cmd sub -f arg1 arg2" is ["arg1" "arg2"]
+func (ctx *Context) Args() []string
+
+// Argument object
+func (ctx *Context) Argv() interface{}
+
+// Encode flags to url.Values
+func (ctx *Context) FormValues() url.Values
+
+func (ctx *Context) Command() *Command
+func (ctx *Context) Usage() string
+func (ctx *Context) WriteUsage()
+func (ctx *Context) Writer() io.Writer
+func (ctx *Context) Write(data []byte) (n int, err error)
+func (ctx *Context) Color() *color.Color
+
+func (ctx *Context) String(format string, args ...interface{}) *Context
+func (ctx *Context) JSON(obj interface{}) *Context
+func (ctx *Context) JSONln(obj interface{}) *Context
+func (ctx *Context) JSONIndent(obj interface{}, prefix, indent string) *Context
+func (ctx *Context) JSONIndentln(obj interface{}, prefix, indent string) *Context
+```
 
 ## Examples
 

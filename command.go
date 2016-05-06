@@ -131,15 +131,15 @@ func (ctx *Context) Router() []string {
 	return ctx.router
 }
 
-// Args returns native args
+// NativeArgs returns native args
 // `./app hello world -a --xyz=1` will return ["-a" "--xyz=1"]
-func (ctx *Context) Args() []string {
+func (ctx *Context) NativeArgs() []string {
 	return ctx.nativeArgs
 }
 
-// FreedomArgs return freedom args
+// Args return free args
 // `./app hello world -a=1 abc xyz` will return ["abc" "xyz"]
-func (ctx *Context) FreedomArgs() []string {
+func (ctx *Context) Args() []string {
 	return ctx.flagSet.args
 }
 

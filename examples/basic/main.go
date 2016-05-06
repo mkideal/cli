@@ -55,7 +55,7 @@ func main() {
 		ctx.JSONIndent(argv, "", "    ").String("\n")
 
 		// Get and show native args
-		ctx.JSONln(ctx.Args())
+		ctx.JSONln(ctx.NativeArgs())
 
 		// Show the args as url.Values
 		ctx.JSONIndentln(ctx.FormValues(), "", "    ")
