@@ -1,4 +1,4 @@
-# Command line interface [![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE)
+# Command line interface [![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/mkideal/cli)](https://goreportcard.com/report/github.com/mkideal/cli) [![GoDoc](https://godoc.org/github.com/mkideal/cli?status.svg)](https://godoc.org/github.com/mkideal/cli)
 
 ## Screenshot
 
