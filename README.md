@@ -1,43 +1,8 @@
 # Command line interface [![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE)
 
-## License
-
-[The MIT License (MIT)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE)
-
-## [中文文档](./README.cn.md)
-
-## Install
-```sh
-go get github.com/mkideal/cli
-```
-
 ## Screenshot
 
-![screenshot](http://www.mkideal.com/images/screenshot.png)
 ![screenshot2](http://www.mkideal.com/images/screenshot2.png)
-
-## Features
-
-* Simplest, fast to learn.
-* Safety. Support type check, range check, and custom validate function.
-* Based on golang tag. Support four tags: `cli`,`usage`,`dft`, `name`.
-* Support default value and required declaration.
-* Support multiple flag name for same argument.
-* Support command tree.
-* Support command suggestion
-* Support HTTP router
-* Support struct field
-* Support `-F<value>` flag format
-* Support separated flags and arguments by `--`
-* Distinguish flags and arguments - `app cmd --flag -b=c arg1 arg2` 
-* Support array flag - `-F v1 -F v2` or `-Fv1 -Fv2`
-* Support map flag - `-F k1=v1 -F k2=v2` or `-F<k1=v1> -F<k2=v2>`
-* Support After/Before hooks
-
-## TODOs
-* Support command completion
-* Support Before/After hooks
-* Support expr for `dft` tag
 
 ## Getting started
 
@@ -51,7 +16,7 @@ import (
 )
 
 type argT struct {
-	Help bool   `cli:"h,help" usage:"display help information"`
+	Help bool   `cli:"!h,help" usage:"display help information"`
 	Name string `cli:"name" usage:"your name" dft:"world"`
 	Age  uint8  `cli:"a,age" usage:"your age" dft:"100"`
 }
@@ -84,42 +49,6 @@ Try
 $> ./hello -a 256
 ```
 
-## clier - command generator
-
-`clier` is command generator write by `cli`. You can use it for fast-creating a new command.
-
-```sh
-Usage: clier [OPTIONS] COMMAND-NAME
-
-Examples:
-	clier hello
-	clier -f -s "balabalabala" hello
-	clier -p balabala hello
-
-Options:
-
-  -h, --help
-      display help
-
-  -F, --file=NAME
-      create source file for new command, default <commandName>.go
-
-  -f, --force[=false]
-      force create file if exists
-
-  -p, --package
-      dest package name, default <basedir FILE>
-
-  -s, --desc
-      command description
-
-  --csr, --can-sub-route[=false]
-      set CanSubRoute attribute for new command
-
-  --argv-type-name
-      argv type, default <commandName>T, e.g. command name is hello, then defaut argv type is helloT
-```
-
 ## Tags
 
 ### cli
@@ -127,16 +56,16 @@ Options:
 `cli` tag supports short format and long format, e.g.
 
 ```go
-Help    bool    `cli:"h,help"`
-Version string  `cli:"version"`
-Port    int     `cli:"p"`
-XYZ     bool    `cli:"x,y,z,xyz,XYZ"` 
+Port    int     `cli:"p"`       // -p
+Version string  `cli:"version"` // --version
+Help    bool    `cli:"h,help"`  // -h OR --help
+XYZ     bool    `cli:"x,y,xy"`  // -x OR -y OR --xy
 ```
 
-The argument is required if `cli` tag has prefix `*`, e.g.
+The argument is required if ``cli`` tag has prefix ``*``, e.g.
 
 ```go
-Required string `cli:"*required"`
+Required string `cli:"*r"`
 ```
 
 The argument is marked as `force` flag if `cli` tag has prefix `!`, e.g
@@ -145,14 +74,15 @@ The argument is marked as `force` flag if `cli` tag has prefix `!`, e.g
 Help bool `cli:"!h,help"`
 ```
 
-Don't validate flags if `force` assigned with true.
+Will prevent validating arguments if `force` flag assigned with true.
 
 ### usage
 
-`usage` tag describes the argument. If the argument is required, description has prefix `*` while show usage(`*` is red on unix-like os).
+`usage` tag describes the flag.
 
 ### dft
-`dft` tag specifies argument's default value.You can specify ENV as default value. e.g.
+
+`dft` tag specifies argument's default value. You can specify ENV as default value. e.g.
 
 ```go
 Port   int    `cli:"p,port" usage:"http port" dft:"8080"` 
@@ -161,29 +91,91 @@ GoRoot string `cli:"goroot" usage:"go root dir" dft:"$GOROOT"`
 ```
 
 ### name
+
 `name` tag give a name for show.
+
+### pw
+
+`pw` tag used for typing password. Enter the password in prompt, e.g.
+
+```go
+Password string `pw:"p,password" usage:"type the password" prompt:"type the password"`
+```
+
+```sh
+$> ./app -p
+type the password:
+```
+
+### prompt
+
+`prompt` is the prompt string.
+
+
+## Supported types for flag
+
+* All basic types: int,uint,...,flaot32,float64,string,bool
+* Slice of basic type: []int, []uint, []string,...
+* Map of basic type: map[uint]int, map[string]string,...
+
+```go
+type argT struct {
+	Bool    bool    `cli:"b,bool" usage:"-b OR --bool OR -b=true OR -b false OR --bool false OR --bool=false"`
+	Int     int     `cli:"i,int" usage:"-i6 OR -i=-7 OR -i 8 OR --int=9 OR --int 9"`
+	Uint    uint    `cli:"u,uint" usage:"-u1 OR -u=2 OR -u 3 OR --uint=4 OR --uint 5"`
+	Int8    int8    `cli:"i8" usage:"int8 type"`
+	Uint8   uint8   `cli:"u8" usage:"uint8 type"`
+	Int16   int16   `cli:"i16" usage:"int16 type"`
+	Uint16  uint16  `cli:"u16" usage:"uint16 type"`
+	Int32   int32   `cli:"i32" usage:"int32 type"`
+	Uint32  uint32  `cli:"u32" usage:"uint32 type"`
+	Int64   int64   `cli:"i64" usage:"int64 type"`
+	Uint64  uint64  `cli:"u64" usage:"uint64 type"`
+	Float32 float32 `cli:"f32" usage:"float32 type"`
+	Float64 float64 `cli:"f64" usage:"float64 type"`
+	String  string  `cli:"s,string" usage:"string type"`
+
+	// fold flags for bool
+	BoolX bool `cli:"x" usage:"bool x"`
+	BoolY bool `cli:"y" usage:"bool y"`
+	BoolZ bool `cli:"z" usage:"bool z"`
+	// You can use it like this:
+	// -x OR -xy OR -xyz
+
+	Slice []uint32          `cli:"S,slice" usage:"-S 6 -S 7 -S8 --slice 9 (results: [6 7 8 9])"`
+	Map   map[string]uint16 `cli:"M,map" usage:"-Mx=1 -M y=2 --map z=3 (results:[x:1 y:2 z:3])"`
+}
+```
 
 ## Command
 
-### Command struct
-
 ```go
 type Command struct {
-	Name        string
-	Desc        string
-	Text        string
-	Fn          CommandFunc
-	Argv        ArgvFunc
+	Name        string		// name
+	Aliases     []string    // aliases names
+	Desc        string		// description
+	Text        string		// detail description
+	Fn          CommandFunc // handler
+	Argv        ArgvFunc	// argument factory function
+
+	NoHook      bool
 	CanSubRoute bool
 	HTTPRouters []string
 	HTTPMethods []string
+
+	// hooks for current command
+	OnBefore func(*Context) error
+	OnAfter  func(*Context) error
+
+	// hooks for all commands if current command is root command
+	OnRootPrepareError func(error) error
+	OnRootBefore       func(*Context) error
+	OnRootAfter        func(*Context) error
 	...
 }
 ```
 
 ### Command tree
-
-#### Method 1: Construct command tree
 
 ```go
 // Tree creates a CommandTree
@@ -228,52 +220,6 @@ root := cli.Root(
 )
 ```
 
-#### Method 2: Register child command
-Command registers child command using `Register` method or `RegisterFunc` method.
-
-```go
-func (cmd *Command) Register(*Command) *Command
-func (cmd *Command) RegisterFunc(string, CommandFunc, ArgvFunc) *Command
-```
-
-```sh
-root
-├── sub1
-│   ├── sub11
-│   └── sub12
-└── sub2
-```
-	
-```go
-var root = &cli.Command{}
-
-var sub1 = root.Register(&cli.Command{
-	Name: "sub1",
-	Fn: func(ctx *cli.Context) error {
-		//do something
-	},
-})
-var sub11 = sub1.Register(&cli.Command{
-	Name: "sub11",
-	Fn: func(ctx *cli.Context) error {
-		//do something
-	},
-})
-var sub12 = sub1.Register(&cli.Command{
-	Name: "sub12",
-	Fn: func(ctx *cli.Context) error {
-		//do something
-	},
-})
-
-var sub2 = root.Register(&cli.Command{
-	Name: "sub2",
-	Fn: func(ctx *cli.Context) error {
-		//do something
-	},
-})
-```
-
 ## HTTP router
 
 Context implements ServeHTTP method.
@@ -316,10 +262,6 @@ return http.ListenAndServe(addr, ctx.Command().Root())
 ```
 See example [HTTP](./examples/http/main.go).
 
-## RPC
-
-See example [RPC](./examples/rpc/main.go).
-
 ## Examples
 
 * [Hello](./examples/hello/main.go)
@@ -330,13 +272,8 @@ See example [RPC](./examples/rpc/main.go).
 * [Tree](./examples/tree/main.go)
 * [HTTP](./examples/http/main.go)
 * [RPC](./examples/rpc/main.go)
-* [daemon](./examples/daemon/main.go)
+* [Daemon](./examples/daemon/main.go)
 
-## Who use
-
-* [goplus](https://github.com/mkideal/goplus)
-
-## External tools
-
-* [goplus](https://github.com/mkideal/goplus) - `generate go application skeleton`
-
+## Projects
+* [onepw](https://github.com/mkideal/onepw) - A lightweight tool for managing passwords
+* [rqlite CLI](https://github.com/rqlite/rqlite/tree/master/cmd/rqlite) - A command line tool for connecting to a rqlited node

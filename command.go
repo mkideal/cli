@@ -59,7 +59,7 @@ type (
 		Name        string      // Command name
 		Aliases     []string    // Command aliases name
 		Desc        string      // Command abstract
-		Text        string      // Command detailed description
+		Text        string      // Command detail description
 		Fn          CommandFunc // Command handler
 		Argv        ArgvFunc    // Command argument factory function
 		CanSubRoute bool
