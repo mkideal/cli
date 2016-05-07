@@ -16,6 +16,10 @@ import (
 	"github.com/labstack/gommon/color"
 )
 
+type Decoder interface {
+	Decode(s string) error
+}
+
 type flagSet struct {
 	err    error
 	values url.Values
@@ -232,6 +236,13 @@ func setWithProperType(typ reflect.Type, val reflect.Value, s string, clr color.
 		val.SetMapIndex(mk.Elem(), mv.Elem())
 
 	default:
+		if val.CanInterface() {
+			if i := val.Interface(); i != nil {
+				if decoder, ok := i.(Decoder); ok {
+					return decoder.Decode(s)
+				}
+			}
+		}
 		return fmt.Errorf("unsupported type of field: %s", kind.String())
 	}
 	return nil

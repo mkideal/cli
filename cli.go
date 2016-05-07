@@ -42,7 +42,7 @@ func Tree(cmd *Command, forest ...*CommandTree) *CommandTree {
 	}
 }
 
-// Parse parse args
+// Parse parses args to object argv
 func Parse(args []string, argv interface{}) error {
 	clr := color.Color{}
 	fset := parseArgv(args, argv, clr)
@@ -151,7 +151,7 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 	for i := 0; i < size; i++ {
 		arg := args[i]
 		if !strings.HasPrefix(arg, dashOne) {
-			// append a freedom argument
+			// append a free argument
 			flagSet.args = append(flagSet.args, arg)
 			continue
 		}

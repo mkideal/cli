@@ -69,7 +69,6 @@ var daemon = &cli.Command{
 			ctx.WriteUsage()
 			return nil
 		}
-		cli.EnableDebug()
 		addr := fmt.Sprintf(":%d", argv.Port)
 		ctx.String("http addr: %s\n", addr)
 

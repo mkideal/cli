@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/labstack/gommon/color"
+	"github.com/mkideal/pkg/debug"
 )
 
 // RegisterHTTP init HTTPRouters for command
@@ -77,9 +78,9 @@ func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		args = append(args, key, values[len(values)-1])
 	}
-	Debugf("agent: %s", r.UserAgent())
-	Debugf("path: %s", path)
-	Debugf("args: %q", args)
+	debug.Debugf("agent: %s", r.UserAgent())
+	debug.Debugf("path: %s", path)
+	debug.Debugf("args: %q", args)
 
 	buf := new(bytes.Buffer)
 	statusCode := http.StatusOK
@@ -89,7 +90,6 @@ func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if werr, ok := err.(wrapError); ok {
 			nativeError = werr.err
 		}
-		Debugf("error type: %s", TypeName(nativeError))
 		switch nativeError.(type) {
 		case commandNotFoundError:
 			statusCode = http.StatusNotFound
@@ -101,7 +101,7 @@ func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			statusCode = http.StatusInternalServerError
 		}
 	}
-	Debugf("resp: %s", buf.String())
+	debug.Debugf("resp: %s", buf.String())
 	w.WriteHeader(statusCode)
 	w.Write(buf.Bytes())
 }
@@ -137,7 +137,7 @@ func (cmd *Command) RPC(httpc *http.Client, ctx *Context) error {
 		method = cmd.HTTPMethods[0]
 	}
 	if ctx == nil {
-		Panicf("ctx == nil")
+		debug.Panicf("ctx == nil")
 	}
 	var body io.Reader
 	if values := ctx.FormValues(); values != nil {
