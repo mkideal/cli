@@ -13,7 +13,7 @@ import (
 )
 
 type (
-	// Context provide running context
+	// Context provides running context
 	Context struct {
 		router     []string
 		path       string
@@ -28,7 +28,7 @@ type (
 		HTTPResponse http.ResponseWriter
 	}
 
-	// Validator validate flag before running command
+	// Validator validates flag before running command
 	Validator interface {
 		Validate(*Context) error
 	}

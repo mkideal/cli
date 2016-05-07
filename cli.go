@@ -124,7 +124,16 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 		flagSet.flags = append(flagSet.flags, fl)
 		value := ""
 		if fl.assigned {
-			value = fmt.Sprintf("%v", vfield.Interface())
+			if !vfield.CanInterface() {
+				flagSet.err = fmt.Errorf("field %s cannot interface", tfield.Name)
+				return
+			}
+			intf := vfield.Interface()
+			if encoder, ok := intf.(Encoder); ok {
+				value = encoder.Encode()
+			} else {
+				value = fmt.Sprintf("%v", intf)
+			}
 		}
 
 		names := append(fl.tag.shortNames, fl.tag.longNames...)
@@ -179,9 +188,10 @@ func parse(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet,
 		}
 
 		// split arg by "="(key=value)
-		strs := strings.Split(arg, "=")
-		if strs == nil || len(strs) == 0 {
-			continue
+		strs := []string{arg}
+		index := strings.Index(arg, "=")
+		if index >= 0 {
+			strs = []string{arg[:index], arg[index+1:]}
 		}
 
 		arg = strs[0]

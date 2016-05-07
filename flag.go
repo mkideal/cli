@@ -16,10 +16,6 @@ import (
 	"github.com/labstack/gommon/color"
 )
 
-type Decoder interface {
-	Decode(s string) error
-}
-
 type flagSet struct {
 	err    error
 	values url.Values
@@ -193,7 +189,7 @@ func setWithProperType(typ reflect.Type, val reflect.Value, s string, clr color.
 
 	case reflect.Slice:
 		if isSubField {
-			return fmt.Errorf("unsupported type %s as sub field type", kind.String())
+			return fmt.Errorf("unsupported type %s as sub field", kind.String())
 		}
 		sliceOf := typ.Elem()
 		if val.IsNil() {
@@ -215,7 +211,7 @@ func setWithProperType(typ reflect.Type, val reflect.Value, s string, clr color.
 
 	case reflect.Map:
 		if isSubField {
-			return fmt.Errorf("unsupported type %s as sub field type", kind.String())
+			return fmt.Errorf("unsupported type %s as sub field", kind.String())
 		}
 		ks, vs, err := splitKeyVal(s)
 		if err != nil {
@@ -237,13 +233,16 @@ func setWithProperType(typ reflect.Type, val reflect.Value, s string, clr color.
 
 	default:
 		if val.CanInterface() {
+			if kind != reflect.Ptr && val.CanAddr() {
+				val = val.Addr()
+			}
 			if i := val.Interface(); i != nil {
 				if decoder, ok := i.(Decoder); ok {
 					return decoder.Decode(s)
 				}
 			}
 		}
-		return fmt.Errorf("unsupported type of field: %s", kind.String())
+		return fmt.Errorf("unsupported type: %s", kind.String())
 	}
 	return nil
 }

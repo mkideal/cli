@@ -16,7 +16,7 @@ import (
 	"github.com/mkideal/pkg/debug"
 )
 
-var commandNameRegexp = regexp.MustCompile("a-zA-Z_0-9]+")
+var commandNameRegexp = regexp.MustCompile("a-zA-Z\\-_0-9]+")
 
 // IsValidCommandName validate name of command
 func IsValidCommandName(commandName string) bool {
@@ -81,6 +81,9 @@ func (cmd *Command) Register(child *Command) *Command {
 	}
 	if child.Name == "" {
 		debug.Panicf("command `%s` try register a empty command", cmd.Name)
+	}
+	if !IsValidCommandName(child.Name) {
+		debug.Panicf("illegal command name `%s`", cmd.Name)
 	}
 	if cmd.children == nil {
 		cmd.children = []*Command{}
