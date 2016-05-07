@@ -16,7 +16,7 @@ import (
 	"github.com/mkideal/pkg/debug"
 )
 
-var commandNameRegexp = regexp.MustCompile("a-zA-Z\\-_0-9]+")
+var commandNameRegexp = regexp.MustCompile("[a-zA-Z\\-_0-9]+")
 
 // IsValidCommandName validate name of command
 func IsValidCommandName(commandName string) bool {
@@ -213,10 +213,6 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 		}
 		router = append(router, arg)
 	}
-	if len(router) == 0 && cmd.Fn == nil {
-		err = throwCommandNotFound(clr.Yellow(cmd.Name))
-		return
-	}
 	path := strings.Join(router, " ")
 	child, end := cmd.SubRoute(router)
 
@@ -286,6 +282,11 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 			err = ExitError
 			return
 		}
+	}
+
+	if len(router) == 0 && cmd.Fn == nil {
+		err = throwCommandNotFound(clr.Yellow(cmd.Name))
+		return
 	}
 
 	// validate argv if argv implements interface Validator
