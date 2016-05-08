@@ -12,6 +12,7 @@ const (
 	tagName   = "name"
 	tagPw     = "pw" // password
 	tagPrompt = "prompt"
+	tagParser = "parser"
 
 	dashOne = "-"
 	dashTwo = "--"
@@ -20,14 +21,15 @@ const (
 )
 
 type fieldTag struct {
-	required     bool
-	shortNames   []string
-	longNames    []string
-	usage        string
-	defaultValue string
-	name         string
-	prompt       string
-	isPassword   bool
+	required      bool
+	shortNames    []string
+	longNames     []string
+	usage         string
+	defaultValue  string
+	name          string
+	prompt        string
+	isPassword    bool
+	parserCreator FlagParserCreator
 
 	isHelp bool
 }
@@ -47,6 +49,11 @@ func parseTag(fieldName string, tag reflect.StructTag) (*fieldTag, bool) {
 	ftag.defaultValue = tag.Get(tagDefaut)
 	ftag.name = tag.Get(tagName)
 	ftag.prompt = tag.Get(tagPrompt)
+	if parserName := tag.Get(tagParser); parserName != "" {
+		if parserCreator, ok := parserCreators[parserName]; ok {
+			ftag.parserCreator = parserCreator
+		}
+	}
 
 	cli = strings.TrimSpace(cli)
 	for {

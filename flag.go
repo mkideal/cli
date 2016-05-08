@@ -136,17 +136,26 @@ func (fl *flag) getBool() bool {
 }
 
 func (fl *flag) setDefault(s string, clr color.Color) error {
-	return setWithProperType(fl.t.Type, fl.v, s, clr, false)
+	return setWithProperType(fl, fl.t.Type, fl.v, s, clr, false)
 }
 
 func (fl *flag) set(actual, s string, clr color.Color) error {
 	fl.assigned = true
 	fl.actual = actual
-	return setWithProperType(fl.t.Type, fl.v, s, clr, false)
+	return setWithProperType(fl, fl.t.Type, fl.v, s, clr, false)
 }
 
-func setWithProperType(typ reflect.Type, val reflect.Value, s string, clr color.Color, isSubField bool) error {
+func setWithProperType(fl *flag, typ reflect.Type, val reflect.Value, s string, clr color.Color, isSubField bool) error {
 	kind := typ.Kind()
+
+	// try parser first of all
+	if fl.tag.parserCreator != nil && val.CanInterface() {
+		if kind != reflect.Ptr && val.CanAddr() {
+			val = val.Addr()
+		}
+		return fl.tag.parserCreator(val.Interface()).Parse(s)
+	}
+
 	switch kind {
 	case reflect.Bool:
 		if v, err := getBool(s, clr); err == nil {
@@ -211,7 +220,7 @@ func setWithProperType(typ reflect.Type, val reflect.Value, s string, clr color.
 			}
 			val.Set(slice)
 		}
-		return setWithProperType(sliceOf, val.Index(index), s, clr, true)
+		return setWithProperType(fl, sliceOf, val.Index(index), s, clr, true)
 
 	case reflect.Map:
 		if isSubField {
@@ -227,10 +236,10 @@ func setWithProperType(typ reflect.Type, val reflect.Value, s string, clr color.
 			val.Set(reflect.MakeMap(typ))
 		}
 		mk, mv := reflect.New(kt), reflect.New(vt)
-		if err := setWithProperType(kt, mk.Elem(), ks, clr, true); err != nil {
+		if err := setWithProperType(fl, kt, mk.Elem(), ks, clr, true); err != nil {
 			return err
 		}
-		if err := setWithProperType(vt, mv.Elem(), vs, clr, true); err != nil {
+		if err := setWithProperType(fl, vt, mv.Elem(), vs, clr, true); err != nil {
 			return err
 		}
 		val.SetMapIndex(mk.Elem(), mv.Elem())

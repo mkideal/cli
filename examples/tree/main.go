@@ -23,10 +23,6 @@ func main() {
 		),
 	)
 
-	if err := cli.InstallBashCompletion(root); err != nil {
-		fmt.Println(err)
-	}
-
 	if err := root.Run(os.Args[1:]); err != nil {
 		fmt.Println(err)
 	}

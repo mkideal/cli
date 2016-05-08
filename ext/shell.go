@@ -7,10 +7,12 @@ import (
 	"os"
 	"path/filepath"
 	"text/template"
+
+	"github.com/mkideal/cli"
 )
 
 // InstallBashCompletion install bash_completion
-func InstallBashCompletion(root *Command) error {
+func InstallBashCompletion(root *cli.Command) error {
 	if root.Name == "" {
 		return fmt.Errorf("root command's name is empty")
 	}
@@ -56,7 +58,7 @@ func InstallBashCompletion(root *Command) error {
 	return err
 }
 
-func genBashCompletion(root *Command) (*bytes.Buffer, error) {
+func genBashCompletion(root *cli.Command) (*bytes.Buffer, error) {
 	buff := bytes.NewBufferString("")
 	t, err := template.New("bash_completion").Parse(shellTemplateText)
 	if err != nil {
@@ -68,7 +70,7 @@ func genBashCompletion(root *Command) (*bytes.Buffer, error) {
 	}{Cli: root.Name, CompleteFn: genCompleteFn(root)})
 }
 
-func genCompleteFn(root *Command) string {
+func genCompleteFn(root *cli.Command) string {
 	return "TODO=true"
 }
 

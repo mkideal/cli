@@ -4,6 +4,17 @@
 
 ![screenshot2](http://www.mkideal.com/images/screenshot2.png)
 
+## Key features
+
+* Lightweight and easy to use.
+* Defines flag by tag, e.g. flag name(short or/and long, description, default value, password, prompt and so on).
+* Type safety.
+* Output looks very nice.
+Supports custom Validator.
+* Supports slice and map as a flag.
+* Supports any type as a flag which implements cli.Decoder interface.
+* Suggestions for command.(e.g. `hl` => `help`, "veron" => "version")
+
 ## Getting started
 
 ### Just run it!
@@ -139,6 +150,26 @@ type the password:
 
 `prompt` is the prompt string.
 
+### parser
+
+If `parser` is set, will using specific parser parses flag. Builtin parsers:
+
+* json
+
+You can implements your parser, and register it.
+
+```go
+// FlagParser interface
+type FlagParser interface {
+	Parse(s string) error
+}
+
+// FlagParserCreator
+type FlagParserCreator func(interface{}) FlagParser
+
+// Register parser creator
+func RegisterFlagParser(name string, creator FlagParserCreator)
+```
 
 ### Supported types of flag
 
@@ -187,6 +218,15 @@ func (j *jsonT) Decode(s string) error {
 	return json.Unmarshal([]byte(s), j)
 }
 ```
+
+Some predefine types:
+
+* cli.Helper
+* cli/ext.Time
+* cli/ext.Duration
+* cli/ext.File
+
+**NOTE**: `Parser` vs `Decoder`
 
 ### AutoHelper
 
@@ -436,6 +476,7 @@ func (ctx *Context) JSONIndentln(obj interface{}, prefix, indent string) *Contex
 * [Hello](./examples/hello/main.go)
 * [Screenshot](./examples/screenshot/main.go)
 * [Basic](./examples/basic/main.go)
+* [JSON](./examples/json/main.go)
 * [Simple Command](./examples/simple-command/main.go)
 * [Multi Command](./examples/multi-command)
 * [Tree](./examples/tree/main.go)
