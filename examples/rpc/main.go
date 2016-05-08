@@ -69,14 +69,8 @@ var daemon = &cli.Command{
 	Argv: func() interface{} { return new(daemonT) },
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*daemonT)
-		if argv.Help {
-			ctx.WriteUsage()
-			return nil
-		}
-
-		cli.EnableDebug()
-
 		addr := fmt.Sprintf(":%d", argv.Port)
+
 		r := ctx.Command().Root()
 		if err := r.RegisterHTTP(ctx); err != nil {
 			return err

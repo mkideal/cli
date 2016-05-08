@@ -32,7 +32,7 @@ type argT struct {
 	Float32 float32 `cli:"f32" usage:"type float32"`
 	Float64 float64 `cli:"f64" usage:"type float64"`
 
-	Slice []uint32          `cli:"S,slice" usage:"type slice"`
+	Slice []uint32          `cli:"D,slice" usage:"type slice"`
 	Map   map[string]uint32 `cli:"M,map" usage:"type map"`
 }
 
@@ -51,17 +51,18 @@ func main() {
 		argv := ctx.Argv().(*argT)
 
 		// Show json object
-		ctx.JSON(argv).String("\n")
-		ctx.JSONIndent(argv, "", "    ").String("\n")
+		ctx.JSON(argv)
 
 		// Get and show native args
 		ctx.JSONln(ctx.NativeArgs())
 
 		// Show the args as url.Values
-		ctx.JSONIndentln(ctx.FormValues(), "", "    ")
+		ctx.JSONln(ctx.FormValues())
 
 		// Show usage information
-		ctx.WriteUsage()
+		if argv.Help {
+			ctx.WriteUsage()
+		}
 
 		return nil
 	})

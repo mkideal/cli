@@ -29,13 +29,9 @@ var root = &cli.Command{
 
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
-		if argv.Help {
-			ctx.WriteUsage()
-			return nil
-		}
 		fmt.Fprintf(os.Stderr, "%s: %s, kill me with \"kill %d\"\n", prefix, argv.Echo, os.Getpid())
 
-		<-time.After(time.Minute * 3)
+		<-time.After(time.Second * 30)
 		return nil
 	},
 }
@@ -46,11 +42,6 @@ var daemon = &cli.Command{
 	Argv: func() interface{} { return new(argT) },
 
 	Fn: func(ctx *cli.Context) error {
-		argv := ctx.Argv().(*argT)
-		if argv.Help {
-			ctx.WriteUsage()
-			return nil
-		}
 		return cli.Daemon(ctx, prefix)
 	},
 }

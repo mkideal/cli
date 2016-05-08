@@ -20,17 +20,13 @@ very very good`,
 }
 
 type gogoT struct {
-	Help    bool `cli:"h,help" usage:"display help information"`
+	cli.Helper
 	Version bool `cli:"v,version" usage:"display version"`
 	List    bool `cli:"l,list" usage:"list all sub commands or not" dft:"false"`
 }
 
 func gogo(ctx *cli.Context) error {
 	argv := ctx.Argv().(*gogoT)
-	if argv.Help {
-		ctx.WriteUsage()
-		return nil
-	}
 	if argv.Version {
 		ctx.String(version + "\n")
 		return nil

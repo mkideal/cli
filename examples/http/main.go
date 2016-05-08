@@ -65,10 +65,6 @@ var daemon = &cli.Command{
 	Argv: func() interface{} { return new(daemonT) },
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*daemonT)
-		if argv.Help {
-			ctx.WriteUsage()
-			return nil
-		}
 		addr := fmt.Sprintf(":%d", argv.Port)
 		ctx.String("http addr: %s\n", addr)
 
@@ -120,10 +116,6 @@ var build = &cli.Command{
 	Argv: func() interface{} { return new(buildT) },
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*buildT)
-		if argv.Help {
-			ctx.WriteUsage()
-			return nil
-		}
 		ctx.JSONIndentln(argv, "", "    ")
 		return nil
 	},
@@ -138,10 +130,6 @@ var install = &cli.Command{
 	Argv: func() interface{} { return new(buildT) },
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*buildT)
-		if argv.Help {
-			ctx.WriteUsage()
-			return nil
-		}
 		ctx.JSONIndentln(argv, "", "    ")
 		return nil
 	},

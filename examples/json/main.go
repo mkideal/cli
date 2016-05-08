@@ -36,10 +36,6 @@ func run(ctx *cli.Context, argv *argT) error {
 func main() {
 	cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
-		if argv.Help {
-			ctx.WriteUsage()
-			return nil
-		}
 		return run(ctx, argv)
 	})
 }

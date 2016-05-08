@@ -12,18 +12,13 @@ var _ = app.Register(&cli.Command{
 })
 
 type docT struct {
-	Help   bool   `cli:"h,help" usage:"display help information"`
+	cli.Helper
 	Suffix string `cli:"suffix" usage:"source file suffix" dft:".go,.c,.s"`
 	Out    string `cli:"o,out" usage:"output filename"`
 }
 
 func doc(ctx *cli.Context) error {
 	argv := ctx.Argv().(*docT)
-
-	if argv.Help {
-		ctx.WriteUsage()
-		return nil
-	}
 	ctx.String("%s: %v", ctx.Path(), jsonIndent(argv))
 	return nil
 }

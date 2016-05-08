@@ -12,7 +12,7 @@ var publishCmd = app.Register(&cli.Command{
 })
 
 type publishT struct {
-	Help   bool   `cli:"h,help" usage:"display help information"`
+	cli.Helper
 	Dir    string `cli:"dir" usage:"source code root dir" dft:"./"`
 	Suffix string `cli:"suffix" usage:"source file suffix" dft:".go,.c,.s"`
 	Out    string `cli:"o,out" usage:"output filename"`
@@ -21,11 +21,6 @@ type publishT struct {
 
 func publish(ctx *cli.Context) error {
 	argv := ctx.Argv().(*publishT)
-
-	if argv.Help {
-		ctx.WriteUsage()
-		return nil
-	}
 	if argv.List {
 		ctx.String(ctx.Command().ChildrenDescriptions("", "    "))
 		return nil

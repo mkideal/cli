@@ -57,7 +57,7 @@ func HelpCommand(desc string) *Command {
 
 // Daemon startup app as a daemon process, success if result from stderr has prefix successPrefix
 func Daemon(ctx *Context, successPrefix string) error {
-	cmd := exec.Command(os.Args[0], ctx.Args()...)
+	cmd := exec.Command(os.Args[0], ctx.NativeArgs()...)
 	serr, err := cmd.StderrPipe()
 	if err != nil {
 		return err

@@ -3,57 +3,17 @@
 set -e
 
 CWD=`pwd`
-EXAMPLES="./examples"
+EXAMPLE_DIR="./examples"
+EXAMPLES=`ls $EXAMPLE_DIR`
 
-# example basic
-APP=basic
-cd $EXAMPLES/$APP
-go build -o $APP
-./$APP
-rm $APP
-cd $CWD
-
-# examples hello
-APP=hello
-cd $EXAMPLES/$APP
-go build -o $APP
-./$APP
-rm $APP
-cd $CWD
-
-# examples http
-APP=http
-cd $EXAMPLES/$APP
-go build -o $APP
-./$APP
-rm $APP
-cd $CWD
-
-# examples multi-command
-APP=multi-command
-cd $EXAMPLES/$APP
-go build -o $APP
-./$APP
-rm $APP
-cd $CWD
-
-# examples screenshot
-APP=screenshot
-cd $EXAMPLES/$APP
-go build -o $APP
-rm $APP
-cd $CWD
-
-# examples simplecmd
-APP=simple-command
-cd $EXAMPLES/$APP
-go build -o $APP
-rm $APP
-cd $CWD
-
-# examples tree
-APP=tree
-cd $EXAMPLES/$APP
-go build -o $APP
-rm $APP
-cd $CWD
+for APP in $EXAMPLES
+do
+	cd $EXAMPLE_DIR/$APP
+	SCRIPT="./run.sh"
+	if [ -f "$SCRIPT" ]; then
+		echo ">>>> exmaple: $APP"
+		chmod +x $SCRIPT
+		$SCRIPT
+	fi
+	cd $CWD
+done

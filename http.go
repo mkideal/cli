@@ -136,9 +136,6 @@ func (cmd *Command) RPC(httpc *http.Client, ctx *Context) error {
 	if cmd.HTTPMethods != nil && len(cmd.HTTPMethods) > 0 {
 		method = cmd.HTTPMethods[0]
 	}
-	if ctx == nil {
-		debug.Panicf("ctx == nil")
-	}
 	var body io.Reader
 	if values := ctx.FormValues(); values != nil {
 		body = strings.NewReader(values.Encode())

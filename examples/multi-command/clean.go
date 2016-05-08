@@ -12,17 +12,12 @@ var _ = app.Register(&cli.Command{
 })
 
 type cleanT struct {
-	Help      bool `cli:"h,help" usage:"display help information"`
+	cli.Helper
 	Recursion bool `cli:"R,recursion" usage:"clean recursion or not" dft:"true"`
 }
 
 func clean(ctx *cli.Context) error {
 	argv := ctx.Argv().(*cleanT)
-
-	if argv.Help {
-		ctx.WriteUsage()
-		return nil
-	}
 	ctx.String("%s: %v", ctx.Path(), jsonIndent(argv))
 	return nil
 }
