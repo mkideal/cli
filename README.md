@@ -197,7 +197,8 @@ AutoHelper interface {
 }
 ```
 
-If your `argT` implments AutoHelper, it will show help if argT.AutoHelp return true
+If your `argT` implments AutoHelper, it will show help if argT.AutoHelp return true.
+
 For example:
 
 ```go
@@ -228,7 +229,8 @@ go build -o app
 
 This will print help information.
 
-For convenience, builtin type `cli.Helper` implements cli.AutoHelper
+For convenience, builtin type `cli.Helper` implements cli.AutoHelper.
+
 So, you just need to inherit it!
 
 ```go
@@ -246,7 +248,7 @@ Validator interface {
 }
 ```
 
-See example [Basic](./examples/hello/main.go)
+See example [Basic](./examples/hello/main.go).
 
 ### Context.IsSet
 Determin wether the flag is set
