@@ -45,7 +45,16 @@ Try
 $> ./hello -a 256
 ```
 
-## Tags
+## Argument object of cli
+
+Supported tags in argument object of cli:
+
+* cli
+* pw
+* usage
+* dft
+* name
+* prompt
 
 ### cli
 
@@ -56,21 +65,44 @@ Port    int     `cli:"p"`       // -p
 Version string  `cli:"version"` // --version
 Help    bool    `cli:"h,help"`  // -h OR --help
 XYZ     bool    `cli:"x,y,xy"`  // -x OR -y OR --xy
-```
 
-The argument is required if ``cli`` tag has prefix ``*``, e.g.
-
-```go
 Required string `cli:"*r"`
-```
-
-The argument is marked as a `force` flag if `cli` tag has prefix `!`, e.g
-
-```go
 Help bool `cli:"!h,help"`
 ```
 
+The argument is required if ``cli`` tag has prefix ``*``, e.g.
+The argument is marked as a `force` flag if `cli` tag has prefix `!`, e.g
 Will prevent validating arguments if `force` flag assigned with true.
+
+How to use flag?
+Assume, argT has flags like this:
+
+```go
+type Flag string `cli:"f,flag"`
+type Slice []string `cli:"D,slice"`
+type Map map[string]int `cli:"M,map"`
+```
+
+Now, you can use it:
+```sh
+-f value
+-f=value
+-fvalue ### NOTE: in this case, -f MUST not be a boolean
+--f value
+--f=value
+
+-D1 -D2
+-D 1 -D 2
+-D1 -D2
+-D1 --slice 2
+--slice 1 --slice 2
+
+-Mx=1 -My=2
+-Mx=1 -M y=2
+-M x=1 -M y=2
+-Mx=1 --map y=2
+--map x=1 --mapy=2
+```
 
 ### usage
 
@@ -92,7 +124,7 @@ GoRoot string `cli:"goroot" usage:"go root dir" dft:"$GOROOT"`
 
 ### pw
 
-`pw` tag used for typing password. Enter the password in prompt, e.g.
+`pw` tag like `cli`, but used for typing password and can type the password in prompt, e.g.
 
 ```go
 Password string `pw:"p,password" usage:"type the password" prompt:"type the password"`
@@ -108,11 +140,12 @@ type the password:
 `prompt` is the prompt string.
 
 
-## Supported types of flag
+### Supported types of flag
 
 * All basic types: int,uint,...,flaot32,float64,string,bool
 * Slice of basic type: []int, []uint, []string,...
 * Map of basic type: map[uint]int, map[string]string,...
+* Any type which implment `cli.Decoder`
 
 ```go
 type argT struct {
@@ -140,8 +173,83 @@ type argT struct {
 
 	Slice []uint32          `cli:"S,slice" usage:"-S 6 -S 7 -S8 --slice 9 (results: [6 7 8 9])"`
 	Map   map[string]uint16 `cli:"M,map" usage:"-Mx=1 -M y=2 --map z=3 (results:[x:1 y:2 z:3])"`
+
+	// custom type
+	JSON jsonT `cli:"json" usage:"custom type"`
+}
+
+type jsonT struct {
+	K1 string
+	K2 int
+}
+
+func (j *jsonT) Decode(s string) error {
+	return json.Unmarshal([]byte(s), j)
 }
 ```
+
+### AutoHelper
+
+```go
+// AutoHelper represents interface for showing help information automaticly
+AutoHelper interface {
+	AutoHelp() bool
+}
+```
+
+If your `argT` implments AutoHelper, it will show help if argT.AutoHelp return true
+For example:
+
+```go
+package main
+
+import "github.com/mkideal/cli"
+
+type argT struct {
+	Help bool `cli:"h,help" usage:"show help"`
+}
+
+func (argv *argT) AutoHelp() bool {
+	return argv.Help
+}
+
+func main() {
+	cli.Run(&argT{}, func(ctx *cli.Context) error {
+		return nil
+	})
+}
+```
+
+Build and run:
+```sh
+go build -o app
+./app -h
+```
+
+This will print help information.
+
+For convenience, builtin type `cli.Helper` implements cli.AutoHelper
+So, you just need to inherit it!
+
+```go
+type argT struct {
+	cli.Helper
+}
+```
+
+### Validator - custom validating argument
+
+```go
+// Validator validates flag before running command
+Validator interface {
+	Validate(*Context) error
+}
+```
+
+See example [Basic](./examples/hello/main.go)
+
+### Context.IsSet
+Determin wether the flag is set
 
 ## Command
 

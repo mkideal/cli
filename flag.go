@@ -105,7 +105,7 @@ func (fl *flag) init(clr color.Color) error {
 	if dft != "" {
 		zero := reflect.Zero(fl.t.Type)
 		if reflect.DeepEqual(zero.Interface(), fl.v.Interface()) {
-			return fl.set("", dft, clr)
+			return fl.setDefault(dft, clr)
 		}
 	}
 	return nil
@@ -133,6 +133,10 @@ func (fl *flag) getBool() bool {
 		return false
 	}
 	return fl.v.Bool()
+}
+
+func (fl *flag) setDefault(s string, clr color.Color) error {
+	return setWithProperType(fl.t.Type, fl.v, s, clr, false)
 }
 
 func (fl *flag) set(actual, s string, clr color.Color) error {

@@ -68,3 +68,38 @@ func TestCommandTree(t *testing.T) {
 		t.Errorf("ChildrenDescriptions want `%s`, got `%s`", listWant, listGot)
 	}
 }
+
+func TestIsSet(t *testing.T) {
+	type argT struct {
+		V string `cli:"v,v2" dft:"default"`
+	}
+	app := &Command{
+		Argv: func() interface{} { return new(argT) },
+	}
+	fn := func(index int, isSet bool, flags []string) CommandFunc {
+		return func(ctx *Context) error {
+			if ctx.IsSet(flags[0], flags[1:]...) != isSet {
+				t.Errorf("%dth: want %v, but got %v", index, isSet, !isSet)
+			}
+			return nil
+		}
+	}
+	for i, tt := range []struct {
+		args  []string
+		flags []string
+		isSet bool
+	}{
+		{[]string{"-v", "1"}, []string{"-v"}, true},
+		{[]string{"-v", "1"}, []string{"-v", "--v2"}, true},
+		{[]string{"-v", "1"}, []string{"--v2"}, true},
+		{[]string{"-v", "1"}, []string{"--v3"}, false},
+		{[]string{"--v2", "1"}, []string{"--v2"}, true},
+	} {
+		app.Fn = fn(i, tt.isSet, tt.flags)
+		if err := app.Run(tt.args); err != nil {
+			t.Errorf("error: %v", err)
+			t.Fail()
+			return
+		}
+	}
+}

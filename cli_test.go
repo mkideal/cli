@@ -517,10 +517,6 @@ func TestSliceAndMap(t *testing.T) {
 			}},
 		},
 		{
-			args:  []string{"-m=2=s"},
-			isErr: true,
-		},
-		{
 			args:  []string{"-m"},
 			isErr: true,
 		},
@@ -533,7 +529,7 @@ func TestSliceAndMap(t *testing.T) {
 		flagSet := parseArgv(tab.args, v, clr)
 		if tab.isErr {
 			if flagSet.err == nil {
-				t.Errorf("want error, but not")
+				t.Errorf("want error, but not. tab=%v", tab)
 			}
 			continue
 		}

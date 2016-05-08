@@ -92,12 +92,17 @@ func (ctx *Context) Argv() interface{} {
 }
 
 // IsSet determins wether `flag` be set
-func (ctx *Context) IsSet(flag string) bool {
+func (ctx *Context) IsSet(flag string, aliasFlags ...string) bool {
 	fl, ok := ctx.flagSet.flagMap[flag]
-	if !ok {
-		return false
+	if ok {
+		return fl.assigned
 	}
-	return fl.actual != ""
+	for _, alias := range aliasFlags {
+		if fl, ok := ctx.flagSet.flagMap[alias]; ok {
+			return fl.assigned
+		}
+	}
+	return false
 }
 
 // FormValues returns parsed args as url.Values
