@@ -101,7 +101,7 @@ Now, you can use it:
 -Mx=1 -M y=2
 -M x=1 -M y=2
 -Mx=1 --map y=2
---map x=1 --mapy=2
+--map x=1 --map y=2
 ```
 
 ### usage
