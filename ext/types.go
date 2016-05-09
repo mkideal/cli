@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/now"
@@ -30,7 +33,6 @@ func init() {
 }
 
 func (t *Time) Decode(s string) error {
-	now.TimeFormats
 	v, err := now.Parse(s)
 	if err != nil {
 		return err
@@ -52,6 +54,7 @@ func (d *Duration) Decode(s string) error {
 		return err
 	}
 	*d = Duration(v)
+	return nil
 }
 
 func (d Duration) Encode() string {
@@ -92,4 +95,41 @@ func (rf *File) Decode(s string) error {
 
 func (rf File) Encode() string {
 	return rf.filename
+}
+
+// PidFile
+type PidFile struct {
+	filename string
+}
+
+func (pid PidFile) String() string {
+	return pid.filename
+}
+
+func (pid *PidFile) Decode(s string) error {
+	pid.filename = s
+	dir, _ := filepath.Split(pid.filename)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	if content, err := ioutil.ReadFile(pid.filename); err == nil {
+		pidStr := strings.TrimSpace(string(content))
+		if pidStr == "" {
+			return nil
+		}
+		if _, err := os.Stat(filepath.Join("/proc", pidStr)); err == nil {
+			return fmt.Errorf("pid file found, ensoure %s is not running", os.Args[0])
+		}
+	}
+	if err := ioutil.WriteFile(pid.filename, []byte(fmt.Sprintf("%d", os.Getpid())), 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pid PidFile) Remove() error {
+	if pid.filename != "" {
+		return os.Remove(pid.filename)
+	}
+	return nil
 }
