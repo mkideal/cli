@@ -1,4 +1,4 @@
-package cli
+package ext
 
 import (
 	"fmt"
@@ -12,53 +12,64 @@ import (
 )
 
 // Time wrap time.Time
-type Time time.Time
+type Time struct {
+	time.Time
+}
 
-func init() {
-	now.TimeFormats = append(now.TimeFormats, time.ANSIC)
-	now.TimeFormats = append(now.TimeFormats, time.UnixDate)
-	now.TimeFormats = append(now.TimeFormats, time.RubyDate)
-	now.TimeFormats = append(now.TimeFormats, time.RFC822)
-	now.TimeFormats = append(now.TimeFormats, time.RFC822Z)
-	now.TimeFormats = append(now.TimeFormats, time.RFC850)
-	now.TimeFormats = append(now.TimeFormats, time.RFC1123)
-	now.TimeFormats = append(now.TimeFormats, time.RFC1123Z)
-	now.TimeFormats = append(now.TimeFormats, time.RFC3339)
-	now.TimeFormats = append(now.TimeFormats, time.RFC3339Nano)
-	now.TimeFormats = append(now.TimeFormats, time.Kitchen)
-	now.TimeFormats = append(now.TimeFormats, time.Stamp)
-	now.TimeFormats = append(now.TimeFormats, time.StampMilli)
-	now.TimeFormats = append(now.TimeFormats, time.StampMicro)
-	now.TimeFormats = append(now.TimeFormats, time.StampNano)
+var timeFormats = []string{
+	time.ANSIC,
+	time.UnixDate,
+	time.RubyDate,
+	time.RFC822,
+	time.RFC822Z,
+	time.RFC850,
+	time.RFC1123,
+	time.RFC1123Z,
+	time.RFC3339,
+	time.RFC3339Nano,
+	time.Kitchen,
+	time.Stamp,
+	time.StampMilli,
+	time.StampMicro,
+	time.StampNano,
 }
 
 func (t *Time) Decode(s string) error {
+	for _, format := range timeFormats {
+		v, err := time.Parse(format, s)
+		if err == nil {
+			t.Time = v
+			return nil
+		}
+	}
 	v, err := now.Parse(s)
 	if err != nil {
 		return err
 	}
-	*t = Time(v)
+	t.Time = v
 	return nil
 }
 
 func (t Time) Encode() string {
-	return time.Time(t).Format(time.RFC3339Nano)
+	return t.Format(time.RFC3339Nano)
 }
 
 // Duration wrap time.Duration
-type Duration time.Duration
+type Duration struct {
+	time.Duration
+}
 
 func (d *Duration) Decode(s string) error {
 	v, err := time.ParseDuration(s)
 	if err != nil {
 		return err
 	}
-	*d = Duration(v)
+	d.Duration = v
 	return nil
 }
 
 func (d Duration) Encode() string {
-	return time.Duration(d).String()
+	return d.Duration.String()
 }
 
 // File reads data from file or stdin(if filename is empty)
@@ -67,15 +78,15 @@ type File struct {
 	data     []byte
 }
 
-func (rf File) Data() []byte {
-	return rf.data
+func (f File) Data() []byte {
+	return f.data
 }
 
-func (rf File) String() string {
-	return string(rf.data)
+func (f File) String() string {
+	return string(f.data)
 }
 
-func (rf *File) Decode(s string) error {
+func (f *File) Decode(s string) error {
 	var (
 		data []byte
 		err  error
@@ -88,13 +99,13 @@ func (rf *File) Decode(s string) error {
 	if err != nil {
 		return err
 	}
-	rf.data = data
-	rf.filename = s
+	f.data = data
+	f.filename = s
 	return nil
 }
 
-func (rf File) Encode() string {
-	return rf.filename
+func (f File) Encode() string {
+	return f.filename
 }
 
 // PidFile
