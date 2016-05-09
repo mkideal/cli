@@ -108,9 +108,13 @@ func (pid PidFile) String() string {
 
 func (pid *PidFile) Decode(s string) error {
 	pid.filename = s
+	return nil
+}
+
+func (pid *PidFile) New() error {
 	dir, _ := filepath.Split(pid.filename)
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		return err
+		return fmt.Errorf("PidFile: %v", err)
 	}
 	if content, err := ioutil.ReadFile(pid.filename); err == nil {
 		pidStr := strings.TrimSpace(string(content))
