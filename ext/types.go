@@ -14,6 +14,7 @@ import (
 // Time wrap time.Time
 type Time struct {
 	time.Time
+	isSet bool
 }
 
 var timeFormats = []string{
@@ -35,10 +36,15 @@ var timeFormats = []string{
 }
 
 func (t *Time) Decode(s string) error {
+	if s == "" {
+		t.Time = time.Now()
+		return nil
+	}
 	for _, format := range timeFormats {
 		v, err := time.Parse(format, s)
 		if err == nil {
 			t.Time = v
+			t.isSet = true
 			return nil
 		}
 	}
@@ -47,11 +53,16 @@ func (t *Time) Decode(s string) error {
 		return err
 	}
 	t.Time = v
+	t.isSet = true
 	return nil
 }
 
 func (t Time) Encode() string {
 	return t.Format(time.RFC3339Nano)
+}
+
+func (t Time) IsSet() bool {
+	return t.isSet
 }
 
 // Duration wrap time.Duration

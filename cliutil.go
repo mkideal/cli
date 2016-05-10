@@ -80,3 +80,7 @@ func Daemon(ctx *Context, successPrefix string) error {
 	}
 	return nil
 }
+
+func DaemonResponse(resp string) {
+	fmt.Fprintln(os.Stderr, resp)
+}

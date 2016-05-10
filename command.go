@@ -40,8 +40,9 @@ type (
 		Argv    ArgvFunc    // Command argument factory function
 
 		CanSubRoute bool
-		NoHook      bool
 		NeedArgs    bool
+		NoHook      bool
+		NoHTTP      bool
 
 		HTTPRouters []string
 		HTTPMethods []string
