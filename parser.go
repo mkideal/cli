@@ -11,7 +11,7 @@ type FlagParser interface {
 }
 
 // FlagParserCreator represents factory function of FlagParser
-type FlagParserCreator func(interface{}) FlagParser
+type FlagParserCreator func(ptr interface{}) FlagParser
 
 var parserCreators = map[string]FlagParserCreator{}
 
@@ -30,24 +30,24 @@ func init() {
 
 // JSON parser
 type JSONParser struct {
-	i interface{}
+	ptr interface{}
 }
 
-func newJSONParser(i interface{}) FlagParser {
-	return &JSONParser{i}
+func newJSONParser(ptr interface{}) FlagParser {
+	return &JSONParser{ptr}
 }
 
 func (p JSONParser) Parse(s string) error {
-	return json.Unmarshal([]byte(s), p.i)
+	return json.Unmarshal([]byte(s), p.ptr)
 }
 
 // JSON file parser
 type JSONFileParser struct {
-	i interface{}
+	ptr interface{}
 }
 
-func newJSONFileParser(i interface{}) FlagParser {
-	return &JSONFileParser{i}
+func newJSONFileParser(ptr interface{}) FlagParser {
+	return &JSONFileParser{ptr}
 }
 
 func (p JSONFileParser) Parse(s string) error {
@@ -55,5 +55,5 @@ func (p JSONFileParser) Parse(s string) error {
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(data, p.i)
+	return json.Unmarshal(data, p.ptr)
 }

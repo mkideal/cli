@@ -21,10 +21,16 @@ const (
 )
 
 type tagProperty struct {
-	required     bool
-	isForce      bool
-	shortNames   []string
-	longNames    []string
+	// is a required flag?(if `cli` or `pw` tag has prefix `*`)
+	required bool
+
+	// is a force flag?(if `cli` or `pw` tag has prefix `!`)
+	isForce bool
+
+	// flag names
+	shortNames []string
+	longNames  []string
+
 	usage        string
 	defaultValue string
 	name         string
@@ -35,33 +41,33 @@ type tagProperty struct {
 }
 
 func parseTag(fieldName string, tag reflect.StructTag) (*tagProperty, bool) {
-	ftag := &tagProperty{
+	p := &tagProperty{
 		shortNames: []string{},
 		longNames:  []string{},
 	}
 	cli := tag.Get(tagCli)
 	pw := tag.Get(tagPw)
 	if pw != "" {
-		ftag.isPassword = true
+		p.isPassword = true
 		cli = pw
 	}
-	ftag.usage = tag.Get(tagUsage)
-	ftag.defaultValue = tag.Get(tagDefaut)
-	ftag.name = tag.Get(tagName)
-	ftag.prompt = tag.Get(tagPrompt)
+	p.usage = tag.Get(tagUsage)
+	p.defaultValue = tag.Get(tagDefaut)
+	p.name = tag.Get(tagName)
+	p.prompt = tag.Get(tagPrompt)
 	if parserName := tag.Get(tagParser); parserName != "" {
 		if parserCreator, ok := parserCreators[parserName]; ok {
-			ftag.parserCreator = parserCreator
+			p.parserCreator = parserCreator
 		}
 	}
 
 	cli = strings.TrimSpace(cli)
 	for {
 		if strings.HasPrefix(cli, "*") {
-			ftag.required = true
+			p.required = true
 			cli = strings.TrimSpace(strings.TrimPrefix(cli, "*"))
 		} else if strings.HasPrefix(cli, "!") {
-			ftag.isForce = true
+			p.isForce = true
 			cli = strings.TrimSpace(strings.TrimPrefix(cli, "!"))
 		} else {
 			break
@@ -77,14 +83,14 @@ func parseTag(fieldName string, tag reflect.StructTag) (*tagProperty, bool) {
 		if len(name) == 0 {
 			continue
 		} else if len(name) == 1 {
-			ftag.shortNames = append(ftag.shortNames, dashOne+name)
+			p.shortNames = append(p.shortNames, dashOne+name)
 		} else {
-			ftag.longNames = append(ftag.longNames, dashTwo+name)
+			p.longNames = append(p.longNames, dashTwo+name)
 		}
 		isEmpty = false
 	}
 	if isEmpty {
-		ftag.longNames = append(ftag.longNames, dashTwo+fieldName)
+		p.longNames = append(p.longNames, dashTwo+fieldName)
 	}
-	return ftag, isEmpty
+	return p, isEmpty
 }

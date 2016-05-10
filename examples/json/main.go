@@ -31,7 +31,7 @@ type json2T struct {
 type argT struct {
 	cli.Helper
 	JSON  jsonT  `cli:"json" usage:"json argument"`
-	JSON2 json2T `cli:"jsonfile" usage:"json argument" parser:"jsonfile" dft:"1.txt"`
+	JSON2 json2T `cli:"jsonfile" usage:"json argument" parser:"jsonfile" dft:"1.json"`
 }
 
 func run(ctx *cli.Context, argv *argT) error {
