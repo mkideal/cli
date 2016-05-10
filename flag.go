@@ -14,6 +14,7 @@ import (
 
 	"github.com/Bowery/prompt"
 	"github.com/labstack/gommon/color"
+	"github.com/mkideal/pkg/expr"
 )
 
 type flagSet struct {
@@ -113,12 +114,20 @@ func newFlag(field reflect.StructField, value reflect.Value, tag *tagProperty, c
 }
 
 func (fl *flag) init(clr color.Color, dontSetValue bool) error {
-	dft := fl.tag.defaultValue
-	//TODO: parse expression for defaultValue
-	if strings.HasPrefix(dft, "$") {
-		dft = dft[1:]
-		if !strings.HasPrefix(dft, "$") {
-			dft = os.Getenv(dft)
+	isNumber := fl.isInteger() || fl.isFloat()
+	dft, err := parseExpression(fl.tag.defaultValue, isNumber)
+	if err != nil {
+		return err
+	}
+	if isNumber {
+		v, err := expr.Eval(dft, nil, nil)
+		if err != nil {
+			return err
+		}
+		if fl.isInteger() {
+			dft = fmt.Sprintf("%d", int64(v))
+		} else if fl.isFloat() {
+			dft = fmt.Sprintf("%f", float64(v))
 		}
 	}
 	if !dontSetValue && dft != "" {
@@ -128,6 +137,68 @@ func (fl *flag) init(clr color.Color, dontSetValue bool) error {
 		}
 	}
 	return nil
+}
+
+func isWordByte(b byte) bool {
+	return (b >= 'a' && b <= 'z') ||
+		(b >= 'A' && b <= 'Z') ||
+		(b >= '0' && b <= '9') ||
+		b == '_'
+}
+
+func parseExpression(s string, isNumber bool) (string, error) {
+	src := []byte(s)
+	var expr bytes.Buffer
+
+	escaping := false
+	const escapeByte = '$'
+	var envvar bytes.Buffer
+	writeEnv := func(envName string) error {
+		if envName == "" {
+			return fmt.Errorf("unexpected end after %v", escapeByte)
+		}
+		env := os.Getenv(envName)
+		if env == "" && isNumber {
+			env = "0"
+		}
+		expr.WriteString(env)
+		return nil
+	}
+	for i, b := range src {
+		if b == escapeByte {
+			if escaping && envvar.Len() == 0 {
+				expr.WriteByte(b)
+				escaping = false
+			} else {
+				escaping = true
+				if i+1 == len(src) {
+					return "", fmt.Errorf("unexpected end after %v", escapeByte)
+				}
+				envvar.Reset()
+			}
+			continue
+		}
+		if escaping {
+			if isWordByte(b) {
+				envvar.WriteByte(b)
+				if i+1 == len(src) {
+					if err := writeEnv(envvar.String()); err != nil {
+						return "", err
+					}
+				}
+			} else {
+				if err := writeEnv(envvar.String()); err != nil {
+					return "", err
+				}
+				expr.WriteByte(b)
+				envvar.Reset()
+				escaping = false
+			}
+		} else {
+			expr.WriteByte(b)
+		}
+	}
+	return expr.String(), nil
 }
 
 func (fl *flag) name() string {
