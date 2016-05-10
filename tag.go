@@ -20,22 +20,22 @@ const (
 	sepName = ", "
 )
 
-type fieldTag struct {
-	required      bool
-	shortNames    []string
-	longNames     []string
-	usage         string
-	defaultValue  string
-	name          string
-	prompt        string
-	isPassword    bool
-	parserCreator FlagParserCreator
+type tagProperty struct {
+	required     bool
+	isForce      bool
+	shortNames   []string
+	longNames    []string
+	usage        string
+	defaultValue string
+	name         string
+	prompt       string
+	isPassword   bool
 
-	isHelp bool
+	parserCreator FlagParserCreator
 }
 
-func parseTag(fieldName string, tag reflect.StructTag) (*fieldTag, bool) {
-	ftag := &fieldTag{
+func parseTag(fieldName string, tag reflect.StructTag) (*tagProperty, bool) {
+	ftag := &tagProperty{
 		shortNames: []string{},
 		longNames:  []string{},
 	}
@@ -61,7 +61,7 @@ func parseTag(fieldName string, tag reflect.StructTag) (*fieldTag, bool) {
 			ftag.required = true
 			cli = strings.TrimSpace(strings.TrimPrefix(cli, "*"))
 		} else if strings.HasPrefix(cli, "!") {
-			ftag.isHelp = true
+			ftag.isForce = true
 			cli = strings.TrimSpace(strings.TrimPrefix(cli, "!"))
 		} else {
 			break

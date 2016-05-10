@@ -94,6 +94,9 @@ func (f File) Data() []byte {
 }
 
 func (f File) String() string {
+	if f.data == nil {
+		return ""
+	}
 	return string(f.data)
 }
 

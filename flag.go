@@ -38,7 +38,7 @@ func newFlagSet() *flagSet {
 
 func (fs *flagSet) readPrompt(w io.Writer, clr color.Color) {
 	for _, fl := range fs.flags {
-		if fl.assigned || fl.tag.prompt == "" {
+		if fl.isAssigned || fl.tag.prompt == "" {
 			continue
 		}
 		// read ...
@@ -55,7 +55,7 @@ func (fs *flagSet) readPrompt(w io.Writer, clr color.Color) {
 		} else if fl.isBoolean() {
 			yes, fs.err = prompt.Ask(prefix)
 			if fs.err == nil {
-				fl.v.SetBool(yes)
+				fl.value.SetBool(yes)
 			}
 		} else if fl.tag.defaultValue != "" {
 			data, fs.err = prompt.BasicDefault(prefix, fl.tag.defaultValue)
@@ -75,36 +75,55 @@ func (fs *flagSet) readPrompt(w io.Writer, clr color.Color) {
 }
 
 type flag struct {
-	t reflect.StructField
-	v reflect.Value
+	field reflect.StructField
+	value reflect.Value
 
-	assigned bool
-	tag      fieldTag
+	// isAssigned indicates wether the flag is set(contains default value)
+	isAssigned bool
 
-	actual string
+	// isAssigned indicates wether the flag is set
+	isSet bool
+
+	// tag properties
+	tag tagProperty
+
+	// actual flag name
+	actualFlagName string
+
+	isNeedDelaySet bool
+
+	// last value for need delay set
+	// flag maybe assigned too many, like:
+	// -f xx -f yy -f zz
+	// `zz` is the last value
+	lastValue string
 }
 
-func newFlag(t reflect.StructField, v reflect.Value, tag *fieldTag, clr color.Color) (fl *flag, err error) {
-	fl = &flag{t: t, v: v}
-	if !fl.v.CanSet() {
-		return nil, fmt.Errorf("field %s can not set", clr.Bold(fl.t.Name))
+func newFlag(field reflect.StructField, value reflect.Value, tag *tagProperty, clr color.Color, dontSetValue bool) (fl *flag, err error) {
+	fl = &flag{field: field, value: value}
+	if !fl.value.CanSet() {
+		return nil, fmt.Errorf("field %s can not set", clr.Bold(fl.field.Name))
 	}
 	fl.tag = *tag
-	err = fl.init(clr)
+	fl.isNeedDelaySet = fl.tag.parserCreator != nil ||
+		(fl.field.Type.Kind() != reflect.Slice &&
+			fl.field.Type.Kind() != reflect.Map)
+	err = fl.init(clr, dontSetValue)
 	return
 }
 
-func (fl *flag) init(clr color.Color) error {
+func (fl *flag) init(clr color.Color, dontSetValue bool) error {
 	dft := fl.tag.defaultValue
+	//TODO: parse expression for defaultValue
 	if strings.HasPrefix(dft, "$") {
 		dft = dft[1:]
 		if !strings.HasPrefix(dft, "$") {
 			dft = os.Getenv(dft)
 		}
 	}
-	if dft != "" {
-		zero := reflect.Zero(fl.t.Type)
-		if reflect.DeepEqual(zero.Interface(), fl.v.Interface()) {
+	if !dontSetValue && dft != "" {
+		zero := reflect.Zero(fl.field.Type)
+		if reflect.DeepEqual(zero.Interface(), fl.value.Interface()) {
 			return fl.setDefault(dft, clr)
 		}
 	}
@@ -112,8 +131,8 @@ func (fl *flag) init(clr color.Color) error {
 }
 
 func (fl *flag) name() string {
-	if fl.actual != "" {
-		return fl.actual
+	if fl.actualFlagName != "" {
+		return fl.actualFlagName
 	}
 	if len(fl.tag.longNames) > 0 {
 		return fl.tag.longNames[0]
@@ -125,24 +144,60 @@ func (fl *flag) name() string {
 }
 
 func (fl *flag) isBoolean() bool {
-	return fl.t.Type.Kind() == reflect.Bool
+	return fl.field.Type.Kind() == reflect.Bool
+}
+
+func (fl *flag) isInteger() bool {
+	switch fl.field.Type.Kind() {
+	case reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64,
+		reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64:
+		return true
+	}
+	return false
+}
+
+func (fl *flag) isFloat() bool {
+	kind := fl.field.Type.Kind()
+	return kind == reflect.Float32 || kind == reflect.Float64
+}
+
+func (fl *flag) isString() bool {
+	return fl.field.Type.Kind() == reflect.String
 }
 
 func (fl *flag) getBool() bool {
 	if !fl.isBoolean() {
 		return false
 	}
-	return fl.v.Bool()
+	return fl.value.Bool()
 }
 
 func (fl *flag) setDefault(s string, clr color.Color) error {
-	return setWithProperType(fl, fl.t.Type, fl.v, s, clr, false)
+	fl.isAssigned = true
+	if fl.isNeedDelaySet {
+		fl.lastValue = s
+		return nil
+	}
+	return setWithProperType(fl, fl.field.Type, fl.value, s, clr, false)
 }
 
-func (fl *flag) set(actual, s string, clr color.Color) error {
-	fl.assigned = true
-	fl.actual = actual
-	return setWithProperType(fl, fl.t.Type, fl.v, s, clr, false)
+func (fl *flag) set(actualFlagName, s string, clr color.Color) error {
+	fl.isSet = true
+	fl.isAssigned = true
+	fl.actualFlagName = actualFlagName
+	if fl.isNeedDelaySet {
+		fl.lastValue = s
+		return nil
+	}
+	return setWithProperType(fl, fl.field.Type, fl.value, s, clr, false)
 }
 
 func setWithProperType(fl *flag, typ reflect.Type, val reflect.Value, s string, clr color.Color, isSubField bool) error {
@@ -226,29 +281,30 @@ func setWithProperType(fl *flag, typ reflect.Type, val reflect.Value, s string, 
 		if isSubField {
 			return fmt.Errorf("unsupported type %s as sub field", kind.String())
 		}
-		ks, vs, err := splitKeyVal(s)
+		keyString, valString, err := splitKeyVal(s)
 		if err != nil {
 			return err
 		}
-		kt := typ.Key()
-		vt := typ.Elem()
+		keyType := typ.Key()
+		valType := typ.Elem()
 		if val.IsNil() {
 			val.Set(reflect.MakeMap(typ))
 		}
-		mk, mv := reflect.New(kt), reflect.New(vt)
-		if err := setWithProperType(fl, kt, mk.Elem(), ks, clr, true); err != nil {
+		k, v := reflect.New(keyType), reflect.New(valType)
+		if err := setWithProperType(fl, keyType, k.Elem(), keyString, clr, true); err != nil {
 			return err
 		}
-		if err := setWithProperType(fl, vt, mv.Elem(), vs, clr, true); err != nil {
+		if err := setWithProperType(fl, valType, v.Elem(), valString, clr, true); err != nil {
 			return err
 		}
-		val.SetMapIndex(mk.Elem(), mv.Elem())
+		val.SetMapIndex(k.Elem(), v.Elem())
 
 	default:
 		if val.CanInterface() {
 			if kind != reflect.Ptr && val.CanAddr() {
 				val = val.Addr()
 			}
+			// try Decoder
 			if i := val.Interface(); i != nil {
 				if decoder, ok := i.(Decoder); ok {
 					return decoder.Decode(s)

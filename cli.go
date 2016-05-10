@@ -82,7 +82,7 @@ func usage(v interface{}, clr color.Color, style UsageStyle) string {
 	if typ.Kind() == reflect.Ptr &&
 		reflect.Indirect(val).Type().Kind() == reflect.Struct {
 		// initialize flagSet
-		initFlagSet(typ, val, flagSet, clr)
+		initFlagSet(typ, val, flagSet, clr, true)
 		if flagSet.err != nil {
 			return ""
 		}
@@ -91,7 +91,7 @@ func usage(v interface{}, clr color.Color, style UsageStyle) string {
 	return ""
 }
 
-func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr color.Color) {
+func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr color.Color, dontSetValue bool) {
 	var (
 		typElem  = typ.Elem()
 		valElem  = val.Elem()
@@ -113,13 +113,13 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 				subType  = reflect.TypeOf(subObj)
 				subValue = reflect.ValueOf(subObj)
 			)
-			initFlagSet(subType, subValue, flagSet, clr)
+			initFlagSet(subType, subValue, flagSet, clr, dontSetValue)
 			if flagSet.err != nil {
 				return
 			}
 			continue
 		}
-		fl, err := newFlag(typField, valField, tag, clr)
+		fl, err := newFlag(typField, valField, tag, clr, dontSetValue)
 		if flagSet.err = err; err != nil {
 			return
 		}
@@ -131,7 +131,7 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 
 		// encode flag value
 		value := ""
-		if fl.assigned {
+		if fl.isAssigned {
 			if !valField.CanInterface() {
 				flagSet.err = fmt.Errorf("field %s cannot interface", typField.Name)
 				return
@@ -151,7 +151,10 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 				return
 			}
 			flagSet.flagMap[name] = fl
-			if fl.assigned && i == 0 {
+			if dontSetValue {
+				continue
+			}
+			if fl.isAssigned && i == 0 {
 				flagSet.values[name] = []string{value}
 			}
 		}
@@ -159,7 +162,7 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 }
 
 func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet, clr color.Color) {
-	initFlagSet(typ, val, flagSet, clr)
+	initFlagSet(typ, val, flagSet, clr, false)
 	if flagSet.err != nil {
 		return
 	}
@@ -239,21 +242,31 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 	}
 
 	for _, fl := range flagSet.flags {
-		if fl.tag.isHelp && fl.getBool() {
+		if fl.isNeedDelaySet && fl.isAssigned {
+			err := setWithProperType(fl, fl.field.Type, fl.value, fl.lastValue, clr, false)
+			if flagSet.err == nil && err != nil {
+				flagSet.err = err
+			}
+		}
+		if fl.tag.isForce && fl.getBool() {
 			flagSet.dontValidate = true
-			break
 		}
 	}
 	if !flagSet.dontValidate {
+		if flagSet.err != nil {
+			return
+		}
 		flagSet.readPrompt(os.Stdout, clr)
 		if flagSet.err != nil {
 			return
 		}
+	} else {
+		flagSet.err = nil
 	}
 
 	buff := bytes.NewBufferString("")
 	for _, fl := range flagSet.flags {
-		if !fl.assigned && fl.tag.required {
+		if !fl.isAssigned && fl.tag.required {
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')
 			}
@@ -270,7 +283,7 @@ func parseToFoundFlag(flagSet *flagSet, fl *flag, strs []string, arg, next strin
 	l := len(strs)
 	if l == 1 {
 		if fl.isBoolean() {
-			fl.v.SetBool(true)
+			fl.value.SetBool(true)
 		} else {
 			retOffset = offset
 			flagSet.err = fl.set(arg, next, clr)
@@ -285,7 +298,7 @@ func parseToFoundFlag(flagSet *flagSet, fl *flag, strs []string, arg, next strin
 		flagSet.err = fmt.Errorf("argument %s invalid: %v", name, flagSet.err)
 		return retOffset
 	}
-	flagSet.values[arg] = []string{fmt.Sprintf("%v", fl.v.Interface())}
+	flagSet.values[arg] = []string{fmt.Sprintf("%v", fl.value.Interface())}
 	return retOffset
 }
 
@@ -305,7 +318,7 @@ func parseFlagCharByChar(flagSet *flagSet, arg string, clr color.Color) {
 			return
 		}
 
-		fl.v.SetBool(true)
+		fl.value.SetBool(true)
 		flagSet.values[tmp] = []string{"true"}
 	}
 }

@@ -95,11 +95,11 @@ func (ctx *Context) Argv() interface{} {
 func (ctx *Context) IsSet(flag string, aliasFlags ...string) bool {
 	fl, ok := ctx.flagSet.flagMap[flag]
 	if ok {
-		return fl.assigned
+		return fl.isAssigned
 	}
 	for _, alias := range aliasFlags {
 		if fl, ok := ctx.flagSet.flagMap[alias]; ok {
-			return fl.assigned
+			return fl.isAssigned
 		}
 	}
 	return false
