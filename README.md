@@ -12,8 +12,10 @@
 * Output looks very nice.
 Supports custom Validator.
 * Supports slice and map as a flag.
-* Supports any type as a flag which implements cli.Decoder interface.
-* Suggestions for command.(e.g. `hl` => `help`, "veron" => "version")
+* Supports any type as a flag field which implements cli.Decoder interface.
+* Supports any type as a flag field which use FlagParser.
+* Suggestions for command.(e.g. `hl` => `help`, "veron" => "version").
+* Supports default value for flag, even expression about env variable(e.g. `dft:"$HOME/dev"`).
 
 ## Getting started
 
@@ -66,6 +68,7 @@ Supported tags in argument object of cli:
 * dft
 * name
 * prompt
+* parser
 
 ### cli
 
@@ -82,7 +85,7 @@ Help bool `cli:"!h,help"`
 ```
 
 The argument is required if ``cli`` tag has prefix ``*``, e.g.
-The argument is marked as a `force` flag if `cli` tag has prefix `!`, e.g
+The argument is marked as a `force` flag if `cli` tag has prefix `!`.
 Will prevent validating arguments if `force` flag assigned with true.
 
 How to use flag?
@@ -121,12 +124,14 @@ Now, you can use it:
 
 ### dft
 
-`dft` tag specifies argument's default value. You can specify ENV as default value. e.g.
+`dft` tag specifies argument's default value. You can use a env variable as default value, even expression. e.g.
 
 ```go
 Port   int    `cli:"p,port" usage:"http port" dft:"8080"` 
-Home   string `cli:"home" usage:"home dir" dft:"$HOME"`
 GoRoot string `cli:"goroot" usage:"go root dir" dft:"$GOROOT"`
+Home   string `cli:"home" usage:"home dir" dft:"$HOME"`
+Devdir string `cli:"dev" usage:"dev dir" dft:"$HOME/dev"`
+Port   int    `cli:"p,port" usage:"port" dft:"$HTTP_PORT+1000"`
 ```
 
 ### name
@@ -135,7 +140,7 @@ GoRoot string `cli:"goroot" usage:"go root dir" dft:"$GOROOT"`
 
 ### pw
 
-`pw` tag like `cli`, but used for typing password and can type the password in prompt, e.g.
+`pw` tag like `cli`, but used for typing password. You can type the password in prompt, e.g.
 
 ```go
 Password string `pw:"p,password" usage:"type the password" prompt:"type the password"`
@@ -152,9 +157,10 @@ type the password:
 
 ### parser
 
-If `parser` is set, will using specific parser parses flag. Builtin parsers:
+If `parser` is set, will using specific parser parses flag. Here are some Builtin parsers:
 
 * json
+* jsonfile
 
 You can implements your parser, and register it.
 
@@ -171,12 +177,15 @@ type FlagParserCreator func(interface{}) FlagParser
 func RegisterFlagParser(name string, creator FlagParserCreator)
 ```
 
+See example [JSON](./examples/json/main.go)
+
 ### Supported types of flag
 
 * All basic types: int,uint,...,flaot32,float64,string,bool
 * Slice of basic type: []int, []uint, []string,...
 * Map of basic type: map[uint]int, map[string]string,...
-* Any type which implment `cli.Decoder`
+* Any type which implments `cli.Decoder`
+* Any type which use correct parser
 
 ```go
 type argT struct {
@@ -206,7 +215,8 @@ type argT struct {
 	Map   map[string]uint16 `cli:"M,map" usage:"-Mx=1 -M y=2 --map z=3 (results:[x:1 y:2 z:3])"`
 
 	// custom type
-	JSON jsonT `cli:"json" usage:"custom type"`
+	JSON jsonT `cli:"json" usage:"custom type which implements Decoder"`
+	Config Config `cli:"config" usage:"custom type which use parser" parser:"jsonfile"`
 }
 
 type jsonT struct {
@@ -216,6 +226,10 @@ type jsonT struct {
 
 func (j *jsonT) Decode(s string) error {
 	return json.Unmarshal([]byte(s), j)
+}
+
+type Config struct {
+	//...
 }
 ```
 
@@ -323,11 +337,11 @@ type Command struct {
 
 ### Hooks
 
-*OnRootPrepareError* - Function of root command which should be invoked if occur error while prepare period
-*OnBefore* - Function which should be invoked before `Fn`
-*OnRootBefore* - Function of root command which should be invoked before `Fn`
-*OnRootAfter* - Function of root command which should be invoked after `Fn`
-*OnAfter* - Function which should be invoked after `Fn`
+* *OnRootPrepareError* - Function of root command which should be invoked if occur error while prepare period
+* *OnBefore* - Function which should be invoked before `Fn`
+* *OnRootBefore* - Function of root command which should be invoked before `Fn`
+* *OnRootAfter* - Function of root command which should be invoked after `Fn`
+* *OnAfter* - Function which should be invoked after `Fn`
 
 Invoked sequence: OnRootPrepareError => OnBefore => OnRootBefore => Fn => OnRootAfter => OnAfter
 
@@ -483,6 +497,7 @@ func (ctx *Context) JSONIndentln(obj interface{}, prefix, indent string) *Contex
 * [HTTP](./examples/http/main.go)
 * [RPC](./examples/rpc/main.go)
 * [Daemon](./examples/daemon/main.go)
+* [JSON](./examples/json/main.go)
 
 ## Projects
 * [onepw](https://github.com/mkideal/onepw) - A lightweight tool for managing passwords

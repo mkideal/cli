@@ -29,7 +29,7 @@ func TestParseExpression(t *testing.T) {
 		got, err := parseExpression(tt.s, tt.isNumber)
 		if tt.hasErr {
 			if err == nil {
-				t.Errorf("%dth: want error, but not", i)
+				t.Errorf("%dth: error wanted, but not", i)
 			}
 			continue
 		}
