@@ -23,13 +23,20 @@ func (j *jsonT) Encode() string {
 	}
 }
 
+type json2T struct {
+	Int    int
+	String string
+}
+
 type argT struct {
 	cli.Helper
-	JSON jsonT `cli:"json" usage:"json argument"`
+	JSON  jsonT  `cli:"json" usage:"json argument"`
+	JSON2 json2T `cli:"jsonfile" usage:"json argument" parser:"jsonfile" dft:"1.txt"`
 }
 
 func run(ctx *cli.Context, argv *argT) error {
 	ctx.JSONIndentln(argv.JSON, "", "    ")
+	ctx.JSONIndentln(argv.JSON2, "", "    ")
 	return nil
 }
 
