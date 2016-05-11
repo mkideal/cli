@@ -7,10 +7,10 @@
 ## Key features
 
 * Lightweight and easy to use.
-* Defines flag by tag, e.g. flag name(short or/and long, description, default value, password, prompt and so on).
+* Defines flag by tag, e.g. flag name(short or/and long), description, default value, password, prompt and so on.
 * Type safety.
 * Output looks very nice.
-Supports custom Validator.
+* Supports custom Validator.
 * Supports slice and map as a flag.
 * Supports any type as a flag field which implements cli.Decoder interface.
 * Supports any type as a flag field which use FlagParser.
@@ -92,9 +92,11 @@ How to use flag?
 Assume, argT has flags like this:
 
 ```go
-type Flag string `cli:"f,flag"`
-type Slice []string `cli:"D,slice"`
-type Map map[string]int `cli:"M,map"`
+type argT {
+	Flag  string         `cli:"f,flag"`
+	Slice []string       `cli:"D,slice"`
+	Map   map[string]int `cli:"M,map"`
+}
 ```
 
 Now, you can use it:
@@ -102,8 +104,8 @@ Now, you can use it:
 -f value
 -f=value
 -fvalue ### NOTE: in this case, -f MUST not be a boolean
---f value
---f=value
+--flag value
+--flag=value
 
 -D1 -D2
 -D 1 -D 2
@@ -131,7 +133,7 @@ Port   int    `cli:"p,port" usage:"http port" dft:"8080"`
 GoRoot string `cli:"goroot" usage:"go root dir" dft:"$GOROOT"`
 Home   string `cli:"home" usage:"home dir" dft:"$HOME"`
 Devdir string `cli:"dev" usage:"dev dir" dft:"$HOME/dev"`
-Port   int    `cli:"p,port" usage:"port" dft:"$HTTP_PORT+1000"`
+Port   int    `cli:"p,port" usage:"listening port" dft:"$HTTP_PORT+1000"`
 ```
 
 ### name
@@ -239,6 +241,7 @@ Some predefine types:
 * cli/ext.Time
 * cli/ext.Duration
 * cli/ext.File
+* cli/ext.PidFile
 
 **NOTE**: `Parser` vs `Decoder`
 
@@ -297,7 +300,7 @@ type argT struct {
 
 ```go
 // Validator validates flag before running command
-Validator interface {
+type Validator interface {
 	Validate(*Context) error
 }
 ```
