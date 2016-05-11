@@ -120,6 +120,10 @@ Now, you can use it:
 --map x=1 --map y=2
 ```
 
+### pw
+
+`pw` tag similar to `cli` but used for typing password. You can type the password in prompt, e.g.
+
 ### usage
 
 `usage` tag describes the flag.
@@ -139,10 +143,6 @@ Port   int    `cli:"p,port" usage:"listening port" dft:"$HTTP_PORT+1000"`
 ### name
 
 `name` tag give a reference name.
-
-### pw
-
-`pw` tag like `cli`, but used for typing password. You can type the password in prompt, e.g.
 
 ```go
 Password string `pw:"p,password" usage:"type the password" prompt:"type the password"`

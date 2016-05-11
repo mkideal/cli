@@ -241,17 +241,22 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 		continue
 	}
 
+	// read `force` flags
 	for _, fl := range flagSet.flags {
-		if fl.isNeedDelaySet && fl.isAssigned {
-			err := setWithProperType(fl, fl.field.Type, fl.value, fl.lastValue, clr, false)
-			if flagSet.err == nil && err != nil {
-				flagSet.err = err
+		if fl.tag.isForce {
+			if fl.isNeedDelaySet && fl.isAssigned {
+				err := setWithProperType(fl, fl.field.Type, fl.value, fl.lastValue, clr, false)
+				if flagSet.err == nil && err != nil {
+					flagSet.err = err
+				}
+			}
+			if fl.getBool() {
+				flagSet.dontValidate = true
 			}
 		}
-		if fl.tag.isForce && fl.getBool() {
-			flagSet.dontValidate = true
-		}
 	}
+
+	// read prompt flags
 	if !flagSet.dontValidate {
 		if flagSet.err != nil {
 			return
@@ -262,6 +267,15 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 		}
 	} else {
 		flagSet.err = nil
+	}
+	// handle delay set
+	for _, fl := range flagSet.flags {
+		if fl.isNeedDelaySet && fl.isAssigned {
+			err := setWithProperType(fl, fl.field.Type, fl.value, fl.lastValue, clr, false)
+			if flagSet.err == nil && err != nil {
+				flagSet.err = err
+			}
+		}
 	}
 
 	buff := bytes.NewBufferString("")
