@@ -6,26 +6,8 @@ import (
 	"github.com/mkideal/cli"
 )
 
-// This is a HelloWorld example
-func Example_hello() {
-	type argT struct {
-		cli.Helper
-		Name string `cli:"name" usage:"tell me your name" dft:"world"`
-		Age  uint8  `cli:"a,age" usage:"tell me your age" dft:"100"`
-	}
-
-	args := []string{"clitest", "--name=Cliper"}
-	cli.RunWithArgs(&argT{}, args, func(ctx *cli.Context) error {
-		argv := ctx.Argv().(*argT)
-		ctx.String("Hello, %s! Your age is %d?\n", argv.Name, argv.Age)
-		return nil
-	})
-	// Output:
-	// Hello, Cliper! Your age is 100?
-}
-
 // This example demonstrates how to use short and long format flag
-func ExampleParse_short_and_long_flag_name() {
+func ExampleParse_shortAndLongFlagName() {
 	// argument object
 	type argT struct {
 		Port int `cli:"p,port" usage:"listening port"`
@@ -53,7 +35,7 @@ func ExampleParse_short_and_long_flag_name() {
 }
 
 // This example demonstrates how to use default value
-func ExampleParse_default_value() {
+func ExampleParse_defaultValue() {
 	type argT1 struct {
 		Port int `cli:"p,port" usage:"listening port" dft:"8080"`
 	}
@@ -94,7 +76,7 @@ func ExampleParse_default_value() {
 }
 
 // This example demonstrates to use Slice and Map
-func ExampleParse_slice_and_map() {
+func ExampleParse_sliceAndMap() {
 	type argT1 struct {
 		Slice []uint32 `cli:"U,u32-slice" usage:"uint32 slice"`
 	}
