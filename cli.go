@@ -290,8 +290,10 @@ func parseToFoundFlag(flagSet *flagSet, fl *flag, strs []string, arg, next strin
 	retOffset := 0
 	l := len(strs)
 	if l == 1 {
-		flagSet.err = fl.set(arg, next, clr)
-		if !fl.isBoolean() {
+		if fl.isBoolean() {
+			flagSet.err = fl.set(arg, "true", clr)
+		} else {
+			flagSet.err = fl.set(arg, next, clr)
 			retOffset = offset
 		}
 	} else if l == 2 {
