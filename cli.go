@@ -12,17 +12,22 @@ import (
 
 // Run runs a single command app
 func Run(argv interface{}, fn CommandFunc, descs ...string) {
+	RunWithArgs(argv, os.Args, fn, descs...)
+}
+
+// RunWithArgs runs a single command app with args
+func RunWithArgs(argv interface{}, args []string, fn CommandFunc, descs ...string) {
 	desc := ""
 	if len(descs) > 0 {
 		desc = strings.Join(descs, "\n")
 	}
 	err := (&Command{
-		Name:        os.Args[0],
+		Name:        args[0],
 		Desc:        desc,
 		Argv:        func() interface{} { return argv },
 		CanSubRoute: true,
 		Fn:          fn,
-	}).Run(os.Args[1:])
+	}).Run(args[1:])
 	if err != nil {
 		fmt.Println(err)
 	}
