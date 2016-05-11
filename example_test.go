@@ -6,8 +6,8 @@ import (
 	"github.com/mkideal/cli"
 )
 
-// This example show how to use short and long format flag
-func ExampleShortAndLongFlagName() {
+// This example demonstrates how to use short and long format flag
+func ExampleParse_short_and_long_flag_name() {
 	// argument object
 	type argT struct {
 		Port int `cli:"p,port" usage:"listening port"`
@@ -34,8 +34,8 @@ func ExampleShortAndLongFlagName() {
 	// port=8084
 }
 
-// This example show how to use default value
-func ExampleDefaultValue() {
+// This example demonstrates how to use default value
+func ExampleParse_default_value() {
 	type argT1 struct {
 		Port int `cli:"p,port" usage:"listening port" dft:"8080"`
 	}
@@ -75,8 +75,8 @@ func ExampleDefaultValue() {
 	// argv=&{/dev}
 }
 
-// This example show to use Slice and Map
-func ExampleSliceAndMap() {
+// This example demonstrates to use Slice and Map
+func ExampleParse_slice_and_map() {
 	type argT1 struct {
 		Slice []uint32 `cli:"U,u32-slice" usage:"uint32 slice"`
 	}
@@ -107,7 +107,7 @@ func ExampleSliceAndMap() {
 		{new(argT3), []string{"app", "-B", "true", "-B", "false"}},
 		{new(argT3), []string{"app", "--bool-slice", "true", "--bool-slice", "false"}},
 
-		{new(argT4), []string{
+		{new(argT4), []string{"app",
 			"-Ax=1",
 			"-B", "1=2",
 			"-C1=a",
@@ -129,5 +129,5 @@ func ExampleSliceAndMap() {
 	// argv=&{[true false]}
 	// argv=&{[true false]}
 	// argv=&{[true false]}
-	// argv=&{map[] map[1:2] map[1:a] map[x:true]}
+	// argv=&{map[x:1] map[1:2] map[1:a] map[x:true]}
 }
