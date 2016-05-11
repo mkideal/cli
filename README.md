@@ -237,11 +237,11 @@ type Config struct {
 
 Some predefine types:
 
-* cli.Helper
-* cli/ext.Time
-* cli/ext.Duration
-* cli/ext.File
-* cli/ext.PidFile
+* [cli.Helper](https://github.com/mkideal/cli/blob/master/builtin.go#L8)
+* [cli/ext.Time](https://github.com/mkideal/cli/blob/master/ext/types.go#L15)
+* [cli/ext.Duration](https://github.com/mkideal/cli/blob/master/ext/types.go#L69)
+* [cli/ext.File](https://github.com/mkideal/cli/blob/master/ext/types.go#L87)
+* [cli/ext.PidFile](https://github.com/mkideal/cli/blob/master/ext/types.go#L126)
 
 **NOTE**: `Parser` vs `Decoder`
 
