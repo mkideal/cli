@@ -290,11 +290,9 @@ func parseToFoundFlag(flagSet *flagSet, fl *flag, strs []string, arg, next strin
 	retOffset := 0
 	l := len(strs)
 	if l == 1 {
-		if fl.isBoolean() {
-			fl.value.SetBool(true)
-		} else {
+		flagSet.err = fl.set(arg, next, clr)
+		if !fl.isBoolean() {
 			retOffset = offset
-			flagSet.err = fl.set(arg, next, clr)
 		}
 	} else if l == 2 {
 		flagSet.err = fl.set(arg, strs[1], clr)
@@ -326,7 +324,7 @@ func parseFlagCharByChar(flagSet *flagSet, arg string, clr color.Color) {
 			return
 		}
 
-		fl.value.SetBool(true)
+		fl.set(tmp, "true", clr)
 		flagSet.values[tmp] = []string{"true"}
 	}
 }
