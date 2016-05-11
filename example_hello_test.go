@@ -14,7 +14,7 @@ type helloT struct {
 func Example_hello() {
 	args := []string{"app", "--name=Cliper"}
 	cli.RunWithArgs(new(helloT), args, func(ctx *cli.Context) error {
-		argv := ctx.Argv().(*argT)
+		argv := ctx.Argv().(*helloT)
 		ctx.String("Hello, %s! Your age is %d?\n", argv.Name, argv.Age)
 		return nil
 	})
