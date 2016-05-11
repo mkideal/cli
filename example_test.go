@@ -7,7 +7,7 @@ import (
 )
 
 // This example show how to use short and long format flag
-func Example_ShortAndLongFlagName() {
+func ExampleShortAndLongFlagName() {
 	// argument object
 	type argT struct {
 		Port int `cli:"p,port" usage:"listening port"`
@@ -35,7 +35,7 @@ func Example_ShortAndLongFlagName() {
 }
 
 // This example show how to use default value
-func Example_DefaultValue() {
+func ExampleDefaultValue() {
 	type argT1 struct {
 		Port int `cli:"p,port" usage:"listening port" dft:"8080"`
 	}
@@ -76,7 +76,7 @@ func Example_DefaultValue() {
 }
 
 // This example show to use Slice and Map
-func Example_SliceAndMap() {
+func ExampleSliceAndMap() {
 	type argT1 struct {
 		Slice []uint32 `cli:"U,u32-slice" usage:"uint32 slice"`
 	}
