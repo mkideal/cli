@@ -25,7 +25,7 @@ type flagSet struct {
 	flagMap map[string]*flag
 	flags   []*flag
 
-	dontValidate bool
+	hasForce bool
 }
 
 func newFlagSet() *flagSet {
@@ -130,7 +130,7 @@ func (fl *flag) init(clr color.Color, dontSetValue bool) error {
 			dft = fmt.Sprintf("%f", float64(v))
 		}
 	}
-	if !dontSetValue && dft != "" {
+	if !dontSetValue && fl.tag.defaultValue != "" {
 		zero := reflect.Zero(fl.field.Type)
 		if reflect.DeepEqual(zero.Interface(), fl.value.Interface()) {
 			return fl.setDefault(dft, clr)

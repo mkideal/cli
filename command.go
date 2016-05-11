@@ -291,7 +291,7 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 	}
 
 	// validate argv if argv implements interface Validator
-	if argv != nil && !ctx.flagSet.dontValidate {
+	if argv != nil && !ctx.flagSet.hasForce {
 		if validator, ok := argv.(Validator); ok {
 			err = validator.Validate(ctx)
 			if err != nil {

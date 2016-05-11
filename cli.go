@@ -246,23 +246,21 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 		continue
 	}
 
-	// read `force` flags
+	// read delay flags
 	for _, fl := range flagSet.flags {
-		if fl.tag.isForce {
-			if fl.isNeedDelaySet && fl.isAssigned {
-				err := setWithProperType(fl, fl.field.Type, fl.value, fl.lastValue, clr, false)
-				if flagSet.err == nil && err != nil {
-					flagSet.err = err
-				}
+		if fl.isNeedDelaySet && fl.isAssigned {
+			err := setWithProperType(fl, fl.field.Type, fl.value, fl.lastValue, clr, false)
+			if flagSet.err == nil && err != nil {
+				flagSet.err = err
 			}
-			if fl.getBool() {
-				flagSet.dontValidate = true
-			}
+		}
+		if fl.tag.isForce && fl.getBool() {
+			flagSet.hasForce = true
 		}
 	}
 
 	// read prompt flags
-	if !flagSet.dontValidate {
+	if !flagSet.hasForce {
 		if flagSet.err != nil {
 			return
 		}
@@ -272,15 +270,6 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 		}
 	} else {
 		flagSet.err = nil
-	}
-	// handle delay set
-	for _, fl := range flagSet.flags {
-		if fl.isNeedDelaySet && fl.isAssigned {
-			err := setWithProperType(fl, fl.field.Type, fl.value, fl.lastValue, clr, false)
-			if flagSet.err == nil && err != nil {
-				flagSet.err = err
-			}
-		}
 	}
 
 	buff := bytes.NewBufferString("")
@@ -292,7 +281,7 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 			fmt.Fprintf(buff, "required argument %s missing", clr.Bold(fl.name()))
 		}
 	}
-	if buff.Len() > 0 && !flagSet.dontValidate {
+	if buff.Len() > 0 && !flagSet.hasForce {
 		flagSet.err = fmt.Errorf(buff.String())
 	}
 }
