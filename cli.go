@@ -12,17 +12,22 @@ import (
 
 // Run runs a single command app
 func Run(argv interface{}, fn CommandFunc, descs ...string) {
+	RunWithArgs(argv, os.Args, fn, descs...)
+}
+
+// RunWithArgs runs a single command app with args
+func RunWithArgs(argv interface{}, args []string, fn CommandFunc, descs ...string) {
 	desc := ""
 	if len(descs) > 0 {
 		desc = strings.Join(descs, "\n")
 	}
 	err := (&Command{
-		Name:        os.Args[0],
+		Name:        args[0],
 		Desc:        desc,
 		Argv:        func() interface{} { return argv },
 		CanSubRoute: true,
 		Fn:          fn,
-	}).Run(os.Args[1:])
+	}).Run(args[1:])
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -241,6 +246,7 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 		continue
 	}
 
+	// read delay flags
 	for _, fl := range flagSet.flags {
 		if fl.isNeedDelaySet && fl.isAssigned {
 			err := setWithProperType(fl, fl.field.Type, fl.value, fl.lastValue, clr, false)
@@ -249,10 +255,12 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 			}
 		}
 		if fl.tag.isForce && fl.getBool() {
-			flagSet.dontValidate = true
+			flagSet.hasForce = true
 		}
 	}
-	if !flagSet.dontValidate {
+
+	// read prompt flags
+	if !flagSet.hasForce {
 		if flagSet.err != nil {
 			return
 		}
@@ -273,7 +281,7 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 			fmt.Fprintf(buff, "required argument %s missing", clr.Bold(fl.name()))
 		}
 	}
-	if buff.Len() > 0 && !flagSet.dontValidate {
+	if buff.Len() > 0 && !flagSet.hasForce {
 		flagSet.err = fmt.Errorf(buff.String())
 	}
 }
@@ -283,10 +291,10 @@ func parseToFoundFlag(flagSet *flagSet, fl *flag, strs []string, arg, next strin
 	l := len(strs)
 	if l == 1 {
 		if fl.isBoolean() {
-			fl.value.SetBool(true)
+			flagSet.err = fl.set(arg, "true", clr)
 		} else {
-			retOffset = offset
 			flagSet.err = fl.set(arg, next, clr)
+			retOffset = offset
 		}
 	} else if l == 2 {
 		flagSet.err = fl.set(arg, strs[1], clr)
@@ -318,7 +326,7 @@ func parseFlagCharByChar(flagSet *flagSet, arg string, clr color.Color) {
 			return
 		}
 
-		fl.value.SetBool(true)
+		fl.set(tmp, "true", clr)
 		flagSet.values[tmp] = []string{"true"}
 	}
 }
