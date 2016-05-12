@@ -15,7 +15,7 @@ func Run(argv interface{}, fn CommandFunc, descs ...string) {
 	RunWithArgs(argv, os.Args, fn, descs...)
 }
 
-// RunWithArgs runs a single command app with args
+// RunWithArgs is similar to Run, but with args instead of os.Args
 func RunWithArgs(argv interface{}, args []string, fn CommandFunc, descs ...string) {
 	desc := ""
 	if len(descs) > 0 {
