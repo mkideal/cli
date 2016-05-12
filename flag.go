@@ -51,22 +51,22 @@ func (fs *flagSet) readPrompt(w io.Writer, clr color.Color) {
 		if fl.tag.isPassword {
 			data, fs.err = prompt.Password(prefix)
 			if fs.err == nil && data != "" {
-				fl.set(data, data, clr)
+				fl.setWithNoDelay(data, data, clr)
 			}
 		} else if fl.isBoolean() {
 			yes, fs.err = prompt.Ask(prefix)
 			if fs.err == nil {
-				fl.value.SetBool(yes)
+				fl.setWithNoDelay(data, fmt.Sprintf("%v", yes), clr)
 			}
 		} else if fl.tag.defaultValue != "" {
 			data, fs.err = prompt.BasicDefault(prefix, fl.tag.defaultValue)
 			if fs.err == nil {
-				fl.set(data, data, clr)
+				fl.setWithNoDelay(data, data, clr)
 			}
 		} else {
 			data, fs.err = prompt.Basic(prefix, fl.tag.required)
 			if fs.err == nil {
-				fl.set(data, data, clr)
+				fl.setWithNoDelay(data, data, clr)
 			}
 		}
 		if fs.err != nil {
@@ -268,6 +268,13 @@ func (fl *flag) set(actualFlagName, s string, clr color.Color) error {
 		fl.lastValue = s
 		return nil
 	}
+	return setWithProperType(fl, fl.field.Type, fl.value, s, clr, false)
+}
+
+func (fl *flag) setWithNoDelay(actualFlagName, s string, clr color.Color) error {
+	fl.isSet = true
+	fl.isAssigned = true
+	fl.actualFlagName = actualFlagName
 	return setWithProperType(fl, fl.field.Type, fl.value, s, clr, false)
 }
 
