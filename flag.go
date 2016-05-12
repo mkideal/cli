@@ -130,7 +130,7 @@ func (fl *flag) init(clr color.Color, dontSetValue bool) error {
 			dft = fmt.Sprintf("%f", float64(v))
 		}
 	}
-	if !dontSetValue && fl.tag.defaultValue != "" {
+	if !dontSetValue && fl.tag.defaultValue != "" && dft != "" {
 		zero := reflect.Zero(fl.field.Type)
 		if reflect.DeepEqual(zero.Interface(), fl.value.Interface()) {
 			return fl.setDefault(dft, clr)
