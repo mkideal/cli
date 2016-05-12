@@ -58,6 +58,10 @@ Try
 $> ./hello -a 256
 ```
 
+## API documentation
+
+See [**godoc**](https://godoc.org/github.com/mkideal/cli)
+
 ## Argument object of cli
 
 Supported tags in argument object of cli:
