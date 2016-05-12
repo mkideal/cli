@@ -43,7 +43,7 @@ type config3 struct {
 }
 
 // This example demonstrates how to use custom parser
-func Example_customParser() {
+func ExampleRegisterFlagParser() {
 	// register parser factory function
 	cli.RegisterFlagParser("myparser", newMyParser)
 

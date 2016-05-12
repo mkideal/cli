@@ -18,7 +18,7 @@ type config2 struct {
 }
 
 // This example demonstrates how to use builtin praser(json,jsonfile)
-func Example_parser() {
+func ExampleFlagParser() {
 	type argT struct {
 		Cfg1 config1 `cli:"cfg1" parser:"json"`
 		Cfg2 config2 `cli:"cfg2" parser:"jsonfile"`
