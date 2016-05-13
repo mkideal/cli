@@ -91,15 +91,15 @@ func (ctx *Context) Argv() interface{} {
 	return ctx.argv
 }
 
-// IsSet determins wether `flag` be set
+// IsSet determins wether `flag` is set
 func (ctx *Context) IsSet(flag string, aliasFlags ...string) bool {
 	fl, ok := ctx.flagSet.flagMap[flag]
 	if ok {
-		return fl.isAssigned
+		return fl.isSet
 	}
 	for _, alias := range aliasFlags {
 		if fl, ok := ctx.flagSet.flagMap[alias]; ok {
-			return fl.isAssigned
+			return fl.isSet
 		}
 	}
 	return false
