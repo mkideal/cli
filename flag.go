@@ -446,7 +446,7 @@ func getBool(s string, clr color.Color) (bool, error) {
 	}
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		return false, fmt.Errorf("`%s` couldn't convert to a %s value", s, clr.Bold("bool"))
+		return false, fmt.Errorf("`%s` couldn't converted to a %s value", s, clr.Bold("bool"))
 	}
 	return i != 0, nil
 }
@@ -454,7 +454,7 @@ func getBool(s string, clr color.Color) (bool, error) {
 func getInt(s string, clr color.Color) (int64, error) {
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, clr.Bold("int"))
+		return 0, fmt.Errorf("`%s` couldn't converted to an %s value", s, clr.Bold("int"))
 	}
 	return i, nil
 }
@@ -462,7 +462,7 @@ func getInt(s string, clr color.Color) (int64, error) {
 func getUint(s string, clr color.Color) (uint64, error) {
 	i, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to an %s value", s, clr.Bold("uint"))
+		return 0, fmt.Errorf("`%s` couldn't converted to an %s value", s, clr.Bold("uint"))
 	}
 	return i, nil
 }
@@ -470,7 +470,7 @@ func getUint(s string, clr color.Color) (uint64, error) {
 func getFloat(s string, clr color.Color) (float64, error) {
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		return 0, fmt.Errorf("`%s` couldn't convert to a %s value", s, clr.Bold("float"))
+		return 0, fmt.Errorf("`%s` couldn't converted to a %s value", s, clr.Bold("float"))
 	}
 	return f, nil
 }

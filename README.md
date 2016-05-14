@@ -19,7 +19,7 @@
 
 ## Getting started
 
-### Just run it!
+### Simple example
 
 ```go
 package main
