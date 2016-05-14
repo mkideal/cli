@@ -51,22 +51,22 @@ func (fs *flagSet) readPrompt(w io.Writer, clr color.Color) {
 		if fl.tag.isPassword {
 			data, fs.err = prompt.Password(prefix)
 			if fs.err == nil && data != "" {
-				fl.set(data, data, clr)
+				fl.setWithNoDelay(data, data, clr)
 			}
 		} else if fl.isBoolean() {
 			yes, fs.err = prompt.Ask(prefix)
 			if fs.err == nil {
-				fl.value.SetBool(yes)
+				fl.setWithNoDelay(data, fmt.Sprintf("%v", yes), clr)
 			}
 		} else if fl.tag.defaultValue != "" {
 			data, fs.err = prompt.BasicDefault(prefix, fl.tag.defaultValue)
 			if fs.err == nil {
-				fl.set(data, data, clr)
+				fl.setWithNoDelay(data, data, clr)
 			}
 		} else {
 			data, fs.err = prompt.Basic(prefix, fl.tag.required)
 			if fs.err == nil {
-				fl.set(data, data, clr)
+				fl.setWithNoDelay(data, data, clr)
 			}
 		}
 		if fs.err != nil {
@@ -94,8 +94,8 @@ type flag struct {
 	isNeedDelaySet bool
 
 	// last value for need delay set
-	// flag maybe assigned too many, like:
-	// -f xx -f yy -f zz
+	// flag maybe assigned too many times, like:
+	//	-f xx -f yy -f zz
 	// `zz` is the last value
 	lastValue string
 }
@@ -107,8 +107,7 @@ func newFlag(field reflect.StructField, value reflect.Value, tag *tagProperty, c
 	}
 	fl.tag = *tag
 	fl.isNeedDelaySet = fl.tag.parserCreator != nil ||
-		(fl.field.Type.Kind() != reflect.Slice &&
-			fl.field.Type.Kind() != reflect.Map)
+		(fl.field.Type.Kind() != reflect.Slice && fl.field.Type.Kind() != reflect.Map)
 	err = fl.init(clr, dontSetValue)
 	return
 }
@@ -130,7 +129,7 @@ func (fl *flag) init(clr color.Color, dontSetValue bool) error {
 			dft = fmt.Sprintf("%f", float64(v))
 		}
 	}
-	if !dontSetValue && fl.tag.defaultValue != "" {
+	if !dontSetValue && fl.tag.defaultValue != "" && dft != "" {
 		zero := reflect.Zero(fl.field.Type)
 		if reflect.DeepEqual(zero.Interface(), fl.value.Interface()) {
 			return fl.setDefault(dft, clr)
@@ -147,12 +146,13 @@ func isWordByte(b byte) bool {
 }
 
 func parseExpression(s string, isNumber bool) (string, error) {
-	src := []byte(s)
-	var expr bytes.Buffer
-
-	escaping := false
 	const escapeByte = '$'
-	var envvar bytes.Buffer
+	var (
+		src       = []byte(s)
+		escaping  = false
+		exprBuf   bytes.Buffer
+		envvarBuf bytes.Buffer
+	)
 	writeEnv := func(envName string) error {
 		if envName == "" {
 			return fmt.Errorf("unexpected end after %v", escapeByte)
@@ -161,44 +161,44 @@ func parseExpression(s string, isNumber bool) (string, error) {
 		if env == "" && isNumber {
 			env = "0"
 		}
-		expr.WriteString(env)
+		exprBuf.WriteString(env)
 		return nil
 	}
 	for i, b := range src {
 		if b == escapeByte {
-			if escaping && envvar.Len() == 0 {
-				expr.WriteByte(b)
+			if escaping && envvarBuf.Len() == 0 {
+				exprBuf.WriteByte(b)
 				escaping = false
 			} else {
 				escaping = true
 				if i+1 == len(src) {
 					return "", fmt.Errorf("unexpected end after %v", escapeByte)
 				}
-				envvar.Reset()
+				envvarBuf.Reset()
 			}
 			continue
 		}
 		if escaping {
 			if isWordByte(b) {
-				envvar.WriteByte(b)
+				envvarBuf.WriteByte(b)
 				if i+1 == len(src) {
-					if err := writeEnv(envvar.String()); err != nil {
+					if err := writeEnv(envvarBuf.String()); err != nil {
 						return "", err
 					}
 				}
 			} else {
-				if err := writeEnv(envvar.String()); err != nil {
+				if err := writeEnv(envvarBuf.String()); err != nil {
 					return "", err
 				}
-				expr.WriteByte(b)
-				envvar.Reset()
+				exprBuf.WriteByte(b)
+				envvarBuf.Reset()
 				escaping = false
 			}
 		} else {
-			expr.WriteByte(b)
+			exprBuf.WriteByte(b)
 		}
 	}
-	return expr.String(), nil
+	return exprBuf.String(), nil
 }
 
 func (fl *flag) name() string {
@@ -268,6 +268,13 @@ func (fl *flag) set(actualFlagName, s string, clr color.Color) error {
 		fl.lastValue = s
 		return nil
 	}
+	return setWithProperType(fl, fl.field.Type, fl.value, s, clr, false)
+}
+
+func (fl *flag) setWithNoDelay(actualFlagName, s string, clr color.Color) error {
+	fl.isSet = true
+	fl.isAssigned = true
+	fl.actualFlagName = actualFlagName
 	return setWithProperType(fl, fl.field.Type, fl.value, s, clr, false)
 }
 
@@ -438,6 +445,7 @@ func minmaxFloatCheck(kind reflect.Kind, v float64) bool {
 }
 
 func getBool(s string, clr color.Color) (bool, error) {
+	s = strings.ToLower(s)
 	if s == "true" || s == "yes" || s == "y" || s == "" {
 		return true, nil
 	}

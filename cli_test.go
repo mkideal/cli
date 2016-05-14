@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -577,28 +576,30 @@ func TestErrorMapType(t *testing.T) {
 	}
 }
 
-type customT struct {
-	K1 string
-	K2 int
-}
-
-func (t *customT) Decode(s string) error {
-	return json.Unmarshal([]byte(s), t)
-}
-
-func TestCustomType(t *testing.T) {
+func TestIsSet(t *testing.T) {
 	type argT struct {
-		D customT `cli:"d"`
+		A int `cli:"a,aa" dft:"1"`
+		B int `cli:"b"`
 	}
-	v := new(argT)
-	clr := color.Color{}
-	flagSet := parseArgv([]string{`-d`, `{"k1": "string", "k2": 2}`}, v, clr)
-	if flagSet.err != nil {
-		t.Errorf("error: %v", flagSet.err)
-		return
-	}
-	want := customT{K1: "string", K2: 2}
-	if v.D != want {
-		t.Errorf("want %v, got %v", want, v.D)
+	for _, tt := range []struct {
+		args   []string
+		isSetA bool
+		isSetB bool
+	}{
+		{[]string{"app", "-a=1", "-b=1"}, true, true},
+		{[]string{"app", "--aa=1", "-b=1"}, true, true},
+		{[]string{"app", "-a=1"}, true, false},
+		{[]string{"app", "-b=1"}, false, true},
+		{[]string{"app"}, false, false},
+	} {
+		RunWithArgs(new(argT), tt.args, func(ctx *Context) error {
+			if got := ctx.IsSet("-a"); got != tt.isSetA {
+				t.Errorf("IsSet(-a) want %v, got %v", tt.isSetA, got)
+			}
+			if got := ctx.IsSet("-b"); got != tt.isSetB {
+				t.Errorf("IsSet(-b) want %v, got %v", tt.isSetB, got)
+			}
+			return nil
+		})
 	}
 }
