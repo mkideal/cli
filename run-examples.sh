@@ -3,7 +3,7 @@
 set -e
 
 CWD=`pwd`
-EXAMPLE_DIR="./examples"
+EXAMPLE_DIR="./_examples"
 EXAMPLES=`ls $EXAMPLE_DIR`
 
 for APP in $EXAMPLES

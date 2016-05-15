@@ -33,7 +33,7 @@ type (
 		Validate(*Context) error
 	}
 
-	// AutoHelper represents interface for showing help information automaticly
+	// AutoHelper represents interface for showing help information automatically
 	AutoHelper interface {
 		AutoHelp() bool
 	}
@@ -91,7 +91,7 @@ func (ctx *Context) Argv() interface{} {
 	return ctx.argv
 }
 
-// IsSet determins wether `flag` is set
+// IsSet determins whether `flag` is set
 func (ctx *Context) IsSet(flag string, aliasFlags ...string) bool {
 	fl, ok := ctx.flagSet.flagMap[flag]
 	if ok {

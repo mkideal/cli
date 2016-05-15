@@ -69,20 +69,20 @@ func ExampleFile() {
 }
 
 // This example demonstrates usage of PidFile decoder
-func ExamplePidFile() {
-	type argT struct {
-		Pid ext.PidFile `cli:"pid"`
-	}
-
-	args := []string{"app", "--pid=test.pid"}
-	cli.RunWithArgs(new(argT), args, func(ctx *cli.Context) error {
-		argv := ctx.Argv().(*argT)
-
-		if err := argv.Pid.New(); err != nil {
-			return err
-		}
-		defer argv.Pid.Remove()
-
-		return nil
-	})
-}
+//func ExamplePidFile() {
+//	type argT struct {
+//		Pid ext.PidFile `cli:"pid"`
+//	}
+//
+//	args := []string{"app", "--pid=test.pid"}
+//	cli.RunWithArgs(new(argT), args, func(ctx *cli.Context) error {
+//		argv := ctx.Argv().(*argT)
+//
+//		if err := argv.Pid.New(); err != nil {
+//			return err
+//		}
+//		defer argv.Pid.Remove()
+//
+//		return nil
+//	})
+//}

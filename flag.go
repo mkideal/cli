@@ -79,10 +79,10 @@ type flag struct {
 	field reflect.StructField
 	value reflect.Value
 
-	// isAssigned indicates wether the flag is set(contains default value)
+	// isAssigned indicates whether the flag is set(contains default value)
 	isAssigned bool
 
-	// isAssigned indicates wether the flag is set
+	// isAssigned indicates whether the flag is set
 	isSet bool
 
 	// tag properties

@@ -19,8 +19,6 @@
 
 ## Getting started
 
-### Simple example
-
 ```go
 package main
 
@@ -62,128 +60,47 @@ $> ./hello -a 256
 
 See [**godoc**](https://godoc.org/github.com/mkideal/cli)
 
+## Examples
+
+See [**_examples**](https://github.com/mkideal/cli/tree/master/_examples), example_*test.go files or site below:
+
+* [Example 1: Hello world](http://www.mkideal.com/golang/cli-examples.html#example-1-hello)
+* [Example 2: How to use **flag**](http://www.mkideal.com/golang/cli-examples.html#example-2-flag)
+* [Example 3: How to use **required** flag](http://www.mkideal.com/golang/cli-examples.html#example-3-required-flag)
+* [Example 4: How to use **default** flag](http://www.mkideal.com/golang/cli-examples.html#example-4-default-flag)
+* [Example 5: How to use **slice**](http://www.mkideal.com/golang/cli-examples.html#example-5-slice)
+* [Example 6: How to use **map**](http://www.mkideal.com/golang/cli-examples.html#example-6-map)
+* [Example 7: Usage of **force** flag](http://www.mkideal.com/golang/cli-examples.html#example-7-force-flag)
+* [Example 8: Usage of **child command**](http://www.mkideal.com/golang/cli-examples.html#example-8-child-command)
+* [Example 9: **Auto help**](http://www.mkideal.com/golang/cli-examples.html#example-9-auto-help)
+* [Example 10: Usage of **Validator**](http://www.mkideal.com/golang/cli-examples.html#example-10-usage-of-validator)
+* [Example 11: **Prompt** and **Password**](http://www.mkideal.com/golang/cli-examples.html#example-11-prompt-and-password)
+* [Example 12: How to use **Decoder**](http://www.mkideal.com/golang/cli-examples.html#example-12-decoder)
+* [Example 13: Builtin Decoder: **PidFile**](http://www.mkideal.com/golang/cli-examples.html#example-13-pid-file)
+* [Example 14: Builtin Decoder: **Time** and **Duration**](http://www.mkideal.com/golang/cli-examples.html#example-14-time-and-duration)
+* [Example 15: Builtin Decoder: **File**](http://www.mkideal.com/golang/cli-examples.html#example-15-file)
+* [Example 16: **Parser**](http://www.mkideal.com/golang/cli-examples.html#example-16-parser)
+* [Example 17: Builtin Parser: **JSONFileParser**](http://www.mkideal.com/golang/cli-examples.html#example-17-json-file)
+* [Example 18: How to use **custom parser**](http://www.mkideal.com/golang/cli-examples.html#example-18-custom-parser)
+* [Example 19: How to use **Hooks**](http://www.mkideal.com/golang/cli-examples.html#example-19-hooks)
+* [Example 20: How to use **Daemon**](http://www.mkideal.com/golang/cli-examples.html#example-20-daemon)
+
+## Projects which use CLI
+
+* [onepw](https://github.com/mkideal/onepw) - A lightweight tool for managing passwords
+* [rqlite CLI](https://github.com/rqlite/rqlite/tree/master/cmd/rqlite) - A command line tool for connecting to a rqlited node
+
 ## Argument object of cli
 
 Supported tags in argument object of cli:
 
-* cli
-* pw
-* usage
-* dft
-* name
-* prompt
-* parser
-
-### cli
-
-`cli` tag supports short format and long format, e.g.
-
-```go
-Port    int     `cli:"p"`       // -p
-Version string  `cli:"version"` // --version
-Help    bool    `cli:"h,help"`  // -h OR --help
-XYZ     bool    `cli:"x,y,xy"`  // -x OR -y OR --xy
-
-Required string `cli:"*r"`
-Help bool `cli:"!h,help"`
-```
-
-The argument is required if ``cli`` tag has prefix ``*``, e.g.
-The argument is marked as a `force` flag if `cli` tag has prefix `!`.
-Will prevent validating arguments if `force` flag assigned with true.
-
-How to use flag?
-Assume, argT has flags like this:
-
-```go
-type argT {
-	Flag  string         `cli:"f,flag"`
-	Slice []string       `cli:"D,slice"`
-	Map   map[string]int `cli:"M,map"`
-}
-```
-
-Now, you can use it:
-```sh
--f value
--f=value
--fvalue ### NOTE: in this case, -f MUST not be a boolean
---flag value
---flag=value
-
--D1 -D2
--D 1 -D 2
--D1 -D2
--D1 --slice 2
---slice 1 --slice 2
-
--Mx=1 -My=2
--Mx=1 -M y=2
--M x=1 -M y=2
--Mx=1 --map y=2
---map x=1 --map y=2
-```
-
-### pw
-
-`pw` tag similar to `cli` but used for typing password. You can type the password in prompt, e.g.
-
-### usage
-
-`usage` tag describes the flag.
-
-### dft
-
-`dft` tag specifies argument's default value. You can use a env variable as default value, even expression. e.g.
-
-```go
-Port   int    `cli:"p,port" usage:"http port" dft:"8080"` 
-GoRoot string `cli:"goroot" usage:"go root dir" dft:"$GOROOT"`
-Home   string `cli:"home" usage:"home dir" dft:"$HOME"`
-Devdir string `cli:"dev" usage:"dev dir" dft:"$HOME/dev"`
-Port   int    `cli:"p,port" usage:"listening port" dft:"$HTTP_PORT+1000"`
-```
-
-### name
-
-`name` tag give a reference name.
-
-```go
-Password string `pw:"p,password" usage:"type the password" prompt:"type the password"`
-```
-
-```sh
-$> ./app -p
-type the password:
-```
-
-### prompt
-
-`prompt` is the prompt string.
-
-### parser
-
-If `parser` is set, will using specific parser parses flag. Here are some Builtin parsers:
-
-* json
-* jsonfile
-
-You can implements your parser, and register it.
-
-```go
-// FlagParser interface
-type FlagParser interface {
-	Parse(s string) error
-}
-
-// FlagParserCreator
-type FlagParserCreator func(interface{}) FlagParser
-
-// Register parser creator
-func RegisterFlagParser(name string, creator FlagParserCreator)
-```
-
-See example [JSON](./examples/json/main.go)
+* cli - supports short format and long format, e,g, `-p`, `--port`
+* pw - similar to `cli`, but used to input password
+* usage - description of flag
+* dft - default value, supports constant value, env variable, and even expression
+* name - placeholder for flag
+* prompt - prompt string
+* parser - builtin parsers: `json`, `jsonfile`, supports custom parsers.
 
 ### Supported types of flag
 
@@ -191,63 +108,7 @@ See example [JSON](./examples/json/main.go)
 * Slice of basic type: []int, []uint, []string,...
 * Map of basic type: map[uint]int, map[string]string,...
 * Any type which implments `cli.Decoder`
-* Any type which use correct parser
-
-```go
-type argT struct {
-	Bool    bool    `cli:"b,bool" usage:"-b OR --bool OR -b=true OR -b false OR --bool false OR --bool=false"`
-	Int     int     `cli:"i,int" usage:"-i6 OR -i=-7 OR -i 8 OR --int=9 OR --int 9"`
-	Uint    uint    `cli:"u,uint" usage:"-u1 OR -u=2 OR -u 3 OR --uint=4 OR --uint 5"`
-	Int8    int8    `cli:"i8" usage:"int8 type"`
-	Uint8   uint8   `cli:"u8" usage:"uint8 type"`
-	Int16   int16   `cli:"i16" usage:"int16 type"`
-	Uint16  uint16  `cli:"u16" usage:"uint16 type"`
-	Int32   int32   `cli:"i32" usage:"int32 type"`
-	Uint32  uint32  `cli:"u32" usage:"uint32 type"`
-	Int64   int64   `cli:"i64" usage:"int64 type"`
-	Uint64  uint64  `cli:"u64" usage:"uint64 type"`
-	Float32 float32 `cli:"f32" usage:"float32 type"`
-	Float64 float64 `cli:"f64" usage:"float64 type"`
-	String  string  `cli:"s,string" usage:"string type"`
-
-	// fold flags for bool
-	BoolX bool `cli:"x" usage:"bool x"`
-	BoolY bool `cli:"y" usage:"bool y"`
-	BoolZ bool `cli:"z" usage:"bool z"`
-	// You can use it like this:
-	// -x OR -xy OR -xyz
-
-	Slice []uint32          `cli:"S,slice" usage:"-S 6 -S 7 -S8 --slice 9 (results: [6 7 8 9])"`
-	Map   map[string]uint16 `cli:"M,map" usage:"-Mx=1 -M y=2 --map z=3 (results:[x:1 y:2 z:3])"`
-
-	// custom type
-	JSON jsonT `cli:"json" usage:"custom type which implements Decoder"`
-	Config Config `cli:"config" usage:"custom type which use parser" parser:"jsonfile"`
-}
-
-type jsonT struct {
-	K1 string
-	K2 int
-}
-
-func (j *jsonT) Decode(s string) error {
-	return json.Unmarshal([]byte(s), j)
-}
-
-type Config struct {
-	//...
-}
-```
-
-Some predefine types:
-
-* [cli.Helper](https://github.com/mkideal/cli/blob/master/builtin.go#L8)
-* [cli/ext.Time](https://github.com/mkideal/cli/blob/master/ext/types.go#L15)
-* [cli/ext.Duration](https://github.com/mkideal/cli/blob/master/ext/types.go#L69)
-* [cli/ext.File](https://github.com/mkideal/cli/blob/master/ext/types.go#L87)
-* [cli/ext.PidFile](https://github.com/mkideal/cli/blob/master/ext/types.go#L126)
-
-**NOTE**: `Parser` vs `Decoder`
+* Any type which use correct parser(`json`,`jsonfile`, or your registered parser)
 
 ### AutoHelper
 
@@ -300,7 +161,7 @@ type argT struct {
 }
 ```
 
-### Validator - custom validating argument
+### Validator - validate argument
 
 ```go
 // Validator validates flag before running command
@@ -309,38 +170,8 @@ type Validator interface {
 }
 ```
 
-See example [Basic](./examples/hello/main.go).
-
 ### Context.IsSet
-Determin wether the flag is set
-
-## Command
-
-```go
-type Command struct {
-	Name        string		// name
-	Aliases     []string    // aliases names
-	Desc        string		// description
-	Text        string		// detail description
-	Fn          CommandFunc // handler
-	Argv        ArgvFunc	// argument factory function
-
-	NoHook      bool
-	CanSubRoute bool
-	HTTPRouters []string
-	HTTPMethods []string
-
-	// hooks for current command
-	OnBefore func(*Context) error
-	OnAfter  func(*Context) error
-
-	// hooks for all commands if current command is root command
-	OnRootPrepareError func(error) error
-	OnRootBefore       func(*Context) error
-	OnRootAfter        func(*Context) error
-	...
-}
-```
+Determin whether the flag is set
 
 ### Hooks
 
@@ -448,64 +279,3 @@ if err := ctx.Command().Root().RegisterHTTP(ctx); err != nil {
 return http.ListenAndServe(addr, ctx.Command().Root())
 ...
 ```
-See example [HTTP](./examples/http/main.go).
-
-## Context
-
-```go
-type Context struct {
-	...
-}
-```
-
-Methods of Context:
-```go
-// Path of "app cmd sub -f arg1 arg2" is "cmd/sub"
-func (ctx *Context) Path() string
-
-// Router of "app cmd sub -f arg1 arg2" is ["cmd" "sub"]
-func (ctx *Context) Router() []string
-
-// NativeArgs of "app cmd sub -f arg1 arg2" is ["-f" "arg1" "arg2"]
-func (ctx *Context) NativeArgs() []string
-
-// Args of "app cmd sub -f arg1 arg2" is ["arg1" "arg2"]
-func (ctx *Context) Args() []string
-
-// Argument object
-func (ctx *Context) Argv() interface{}
-
-// Encode flags to url.Values
-func (ctx *Context) FormValues() url.Values
-
-func (ctx *Context) Command() *Command
-func (ctx *Context) Usage() string
-func (ctx *Context) WriteUsage()
-func (ctx *Context) Writer() io.Writer
-func (ctx *Context) Write(data []byte) (n int, err error)
-func (ctx *Context) Color() *color.Color
-
-func (ctx *Context) String(format string, args ...interface{}) *Context
-func (ctx *Context) JSON(obj interface{}) *Context
-func (ctx *Context) JSONln(obj interface{}) *Context
-func (ctx *Context) JSONIndent(obj interface{}, prefix, indent string) *Context
-func (ctx *Context) JSONIndentln(obj interface{}, prefix, indent string) *Context
-```
-
-## Examples
-
-* [Hello](./examples/hello/main.go)
-* [Screenshot](./examples/screenshot/main.go)
-* [Basic](./examples/basic/main.go)
-* [JSON](./examples/json/main.go)
-* [Simple Command](./examples/simple-command/main.go)
-* [Multi Command](./examples/multi-command)
-* [Tree](./examples/tree/main.go)
-* [HTTP](./examples/http/main.go)
-* [RPC](./examples/rpc/main.go)
-* [Daemon](./examples/daemon/main.go)
-* [JSON](./examples/json/main.go)
-
-## Projects
-* [onepw](https://github.com/mkideal/onepw) - A lightweight tool for managing passwords
-* [rqlite CLI](https://github.com/rqlite/rqlite/tree/master/cmd/rqlite) - A command line tool for connecting to a rqlited node

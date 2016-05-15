@@ -6,7 +6,7 @@ import (
 
 type argT struct {
 	cli.Helper
-	Username string `cli:"u,username" usage:"github account" prompt:"type github's account"`
+	Username string `cli:"u,username" usage:"github account" prompt:"type github account"`
 	Password string `pw:"p,password" usage:"password of github account" prompt:"type the password"`
 }
 

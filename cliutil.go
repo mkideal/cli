@@ -76,6 +76,7 @@ func Daemon(ctx *Context, successPrefix string) error {
 		cmd.Process.Release()
 	} else {
 		cmd.Process.Kill()
+		line = strings.TrimSuffix(line, "\n")
 		return fmt.Errorf(line)
 	}
 	return nil
