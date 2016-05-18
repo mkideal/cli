@@ -69,24 +69,24 @@ func (fs *flagSet) readPrompt(w io.Writer, clr color.Color) {
 	}
 }
 
-func (fs *flagSet) readEditor(clr color.Color) error {
+func (fs *flagSet) readEditor(clr color.Color) {
 	editor, editorErr := getEditor()
 	for _, fl := range fs.flagSlice {
 		if fl.isAssigned || !fl.tag.isEdit {
 			continue
 		}
 		if editorErr != nil {
-			return editorErr
+			fs.err = editorErr
+			return
 		}
 		data, err := LaunchEditor(editor)
 		if fs.err = err; err != nil {
-			return err
+			return
 		}
 		if fs.err = fl.setWithNoDelay("", string(data), clr); fs.err != nil {
-			return fs.err
+			return
 		}
 	}
-	return nil
 }
 
 // UsageStyle is style of usage

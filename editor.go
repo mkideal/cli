@@ -39,7 +39,9 @@ func launchEditorWithFilename(editor, filename string) (content []byte, err erro
 	defer os.Remove(filename)
 	err = cmd.Run()
 	if err != nil {
-		return
+		if _, isExitError := err.(*exec.ExitError); !isExitError {
+			return
+		}
 	}
 	content, err = ioutil.ReadFile(filename)
 	if err != nil {
