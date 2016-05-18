@@ -36,11 +36,11 @@ func launchEditorWithFilename(editor, filename string) (content []byte, err erro
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	defer os.Remove(filename)
 	err = cmd.Run()
 	if err != nil {
 		return
 	}
-	defer os.Remove(filename)
 	content, err = ioutil.ReadFile(filename)
 	if err != nil {
 		return []byte{}, nil
