@@ -20,7 +20,7 @@ func getEditor() (string, error) {
 	return exec.LookPath(DefaultEditor)
 }
 
-func launchEditor(editor string) (content []byte, err error) {
+func LaunchEditor(editor string) (content []byte, err error) {
 	buf := make([]byte, 16)
 	_, err = rand.Read(buf)
 	if err != nil {

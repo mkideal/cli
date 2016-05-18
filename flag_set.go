@@ -78,7 +78,7 @@ func (fs *flagSet) readEditor(clr color.Color) error {
 		if editorErr != nil {
 			return editorErr
 		}
-		data, err := launchEditor(editor)
+		data, err := LaunchEditor(editor)
 		if fs.err = err; err != nil {
 			return err
 		}
