@@ -16,6 +16,7 @@
 * Supports any type as a flag field which use FlagParser.
 * Suggestions for command.(e.g. `hl` => `help`, "veron" => "version").
 * Supports default value for flag, even expression about env variable(e.g. `dft:"$HOME/dev"`).
+* Supports editor like `git commit` command.(See example [21](http://www.mkideal.com/golang/cli-examples.html#example-21-editor) and [22](http://www.mkideal.com/golang/cli-examples.html#example-22-custom-editor))
 
 ## Getting started
 
@@ -84,6 +85,8 @@ See [**_examples**](https://github.com/mkideal/cli/tree/master/_examples), examp
 * [Example 18: How to use **custom parser**](http://www.mkideal.com/golang/cli-examples.html#example-18-custom-parser)
 * [Example 19: How to use **Hooks**](http://www.mkideal.com/golang/cli-examples.html#example-19-hooks)
 * [Example 20: How to use **Daemon**](http://www.mkideal.com/golang/cli-examples.html#example-20-daemon)
+* [Example 21: How to use **Editor**](http://www.mkideal.com/golang/cli-examples.html#example-21-editor)
+* [Example 22: Custom **Editor**](http://www.mkideal.com/golang/cli-examples.html#example-22-custom-editor)
 
 ## Projects which use CLI
 
