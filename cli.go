@@ -91,7 +91,7 @@ func usage(v interface{}, clr color.Color, style UsageStyle) string {
 		if flagSet.err != nil {
 			return ""
 		}
-		return flagSlice(flagSet.flags).StringWithStyle(clr, style)
+		return flagSlice(flagSet.flagSlice).StringWithStyle(clr, style)
 	}
 	return ""
 }
@@ -132,7 +132,7 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 		if fl == nil {
 			continue
 		}
-		flagSet.flags = append(flagSet.flags, fl)
+		flagSet.flagSlice = append(flagSet.flagSlice, fl)
 
 		// encode flag value
 		value := ""
@@ -247,7 +247,7 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 	}
 
 	// read delay flags
-	for _, fl := range flagSet.flags {
+	for _, fl := range flagSet.flagSlice {
 		if fl.isNeedDelaySet && fl.isAssigned {
 			err := setWithProperType(fl, fl.field.Type, fl.value, fl.lastValue, clr, false)
 			if flagSet.err == nil && err != nil {
@@ -268,12 +268,16 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 		if flagSet.err != nil {
 			return
 		}
+		flagSet.readEditor(clr)
+		if flagSet.err != nil {
+			return
+		}
 	} else {
 		flagSet.err = nil
 	}
 
 	buff := bytes.NewBufferString("")
-	for _, fl := range flagSet.flags {
+	for _, fl := range flagSet.flagSlice {
 		if !fl.isAssigned && fl.tag.required {
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')

@@ -6,11 +6,13 @@ import (
 )
 
 const (
-	tagCli    = "cli"
+	tagCli  = "cli"
+	tagPw   = "pw" // password
+	tagEdit = "edit"
+
 	tagUsage  = "usage"
 	tagDefaut = "dft"
 	tagName   = "name"
-	tagPw     = "pw" // password
 	tagPrompt = "prompt"
 	tagParser = "parser"
 
@@ -36,6 +38,7 @@ type tagProperty struct {
 	name         string
 	prompt       string
 	isPassword   bool
+	isEdit       bool
 
 	parserCreator FlagParserCreator
 }
@@ -45,11 +48,23 @@ func parseTag(fieldName string, tag reflect.StructTag) (*tagProperty, bool) {
 		shortNames: []string{},
 		longNames:  []string{},
 	}
+	cliLikeTagCount := 0
 	cli := tag.Get(tagCli)
-	pw := tag.Get(tagPw)
-	if pw != "" {
+	if cli != "" {
+		cliLikeTagCount++
+	}
+	if pw := tag.Get(tagPw); pw != "" {
 		p.isPassword = true
 		cli = pw
+		cliLikeTagCount++
+	}
+	if edit := tag.Get(tagEdit); edit != "" {
+		p.isEdit = true
+		cli = edit
+		cliLikeTagCount++
+	}
+	if cliLikeTagCount > 1 {
+		return nil, false
 	}
 	p.usage = tag.Get(tagUsage)
 	p.defaultValue = tag.Get(tagDefaut)

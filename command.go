@@ -18,7 +18,7 @@ import (
 
 var commandNameRegexp = regexp.MustCompile("[a-zA-Z\\-_0-9]+")
 
-// IsValidCommandName validate name of command
+// IsValidCommandName validates name of command
 func IsValidCommandName(commandName string) bool {
 	return commandNameRegexp.MatchString(commandName)
 }
