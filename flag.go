@@ -298,7 +298,7 @@ func setWithProperType(fl *flag, typ reflect.Type, val reflect.Value, s string, 
 		if isSubField {
 			return fmt.Errorf("unsupported type %s as sub field", kind.String())
 		}
-		keyString, valString, err := splitKeyVal(s)
+		keyString, valString, err := splitKeyVal(s, fl.tag.sep)
 		if err != nil {
 			return err
 		}
@@ -333,12 +333,12 @@ func setWithProperType(fl *flag, typ reflect.Type, val reflect.Value, s string, 
 	return nil
 }
 
-func splitKeyVal(s string) (key, val string, err error) {
+func splitKeyVal(s, sep string) (key, val string, err error) {
 	if s == "" {
 		err = fmt.Errorf("empty key,val pair")
 		return
 	}
-	index := strings.Index(s, "=")
+	index := strings.Index(s, sep)
 	if index == -1 {
 		return s, "", nil
 	}

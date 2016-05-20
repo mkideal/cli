@@ -15,6 +15,7 @@ const (
 	tagName   = "name"
 	tagPrompt = "prompt"
 	tagParser = "parser"
+	tagSep    = "sep" // used to seperate key/value pair of map, default is `=`
 
 	dashOne = "-"
 	dashTwo = "--"
@@ -39,6 +40,9 @@ type tagProperty struct {
 	prompt       string
 	isPassword   bool
 	isEdit       bool
+	editFile     string
+
+	sep string
 
 	parserCreator FlagParserCreator
 }
@@ -49,31 +53,60 @@ func parseTag(fieldName string, tag reflect.StructTag) (*tagProperty, bool) {
 		longNames:  []string{},
 	}
 	cliLikeTagCount := 0
+
+	// `cli` TAG
 	cli := tag.Get(tagCli)
 	if cli != "" {
 		cliLikeTagCount++
 	}
+
+	// `pw` TAG
 	if pw := tag.Get(tagPw); pw != "" {
 		p.isPassword = true
 		cli = pw
 		cliLikeTagCount++
 	}
+
+	// `edit` TAG
 	if edit := tag.Get(tagEdit); edit != "" {
+		// specific filename for editor
+		sepIndex := strings.Index(edit, ":")
+		if sepIndex > 0 {
+			p.editFile = edit[:sepIndex]
+			edit = edit[sepIndex+1:]
+		}
 		p.isEdit = true
 		cli = edit
 		cliLikeTagCount++
 	}
+
 	if cliLikeTagCount > 1 {
 		return nil, false
 	}
+
+	// `usage` TAG
 	p.usage = tag.Get(tagUsage)
+
+	// `dft` TAG
 	p.defaultValue = tag.Get(tagDefaut)
+
+	// `name` TAG
 	p.name = tag.Get(tagName)
+
+	// `prompt` TAG
 	p.prompt = tag.Get(tagPrompt)
+
+	// `parser` TAG
 	if parserName := tag.Get(tagParser); parserName != "" {
 		if parserCreator, ok := parserCreators[parserName]; ok {
 			p.parserCreator = parserCreator
 		}
+	}
+
+	// `sep` TAG
+	p.sep = "="
+	if sep := tag.Get(tagSep); sep != "" {
+		p.sep = sep
 	}
 
 	cli = strings.TrimSpace(cli)

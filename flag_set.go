@@ -79,7 +79,11 @@ func (fs *flagSet) readEditor(clr color.Color) {
 			fs.err = editorErr
 			return
 		}
-		data, err := LaunchEditor(editor)
+		filename := fl.tag.editFile
+		if filename == "" {
+			filename = randomFilename()
+		}
+		data, err := launchEditorWithFilename(editor, filename)
 		if fs.err = err; err != nil {
 			return
 		}

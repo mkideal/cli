@@ -20,15 +20,16 @@ func getEditor() (string, error) {
 	return exec.LookPath(DefaultEditor)
 }
 
-func LaunchEditor(editor string) (content []byte, err error) {
+func randomFilename() string {
 	buf := make([]byte, 16)
-	_, err = rand.Read(buf)
-	if err != nil {
-		return
+	if _, err := rand.Read(buf); err != nil {
+		return "CLI_EDIT_FILE"
 	}
-	filename := fmt.Sprintf(".%x", buf)
+	return fmt.Sprintf(".%x", buf)
+}
 
-	return launchEditorWithFilename(editor, filename)
+func LaunchEditor(editor string) (content []byte, err error) {
+	return launchEditorWithFilename(editor, randomFilename())
 }
 
 func launchEditorWithFilename(editor, filename string) (content []byte, err error) {
