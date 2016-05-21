@@ -1,13 +1,15 @@
 CHANGELOG
 =========
 
-# v0.0.1 (2016-05-12 08:55)
+# v0.0.1 (2016-05-21)
 
-# Long long ago...
+Initializes the repository, and implements many important features.
 
-Initialize the repository, implements many important features.
-
-* Add: Prasing flags base on tag of golang.
+* Add: Prases flags base on golang tag.
+* Add: Supports almost all basic types, slice and map as a flag.
 * Add: Fuzzy matching for suggestion.
 * Add: Supports command tree.
-* Add: Pretty output for usage of command
+* Add: Pretty output for usage of command.
+* Add: Supports any type which implement `cli.Decoder` as a flag.
+* Add: Parser for flag.
+* Add: Supports editor like `git commit`.
