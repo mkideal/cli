@@ -18,7 +18,7 @@ var parserCreators = map[string]FlagParserCreator{}
 // RegisterFlagParser registers FlagParserCreator by name
 func RegisterFlagParser(name string, creator FlagParserCreator) {
 	if _, ok := parserCreators[name]; ok {
-		panic("RegisterFlagParser has registered " + name)
+		panic("RegisterFlagParser has registered: " + name)
 	}
 	parserCreators[name] = creator
 }

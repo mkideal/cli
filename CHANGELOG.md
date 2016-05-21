@@ -13,3 +13,4 @@ Initializes the repository, and implements many important features.
 * Add: Supports any type which implement `cli.Decoder` as a flag.
 * Add: Parser for flag.
 * Add: Supports editor like `git commit`.
+* Add: Rich examples to help other quick start.

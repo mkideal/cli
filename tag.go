@@ -21,34 +21,38 @@ const (
 	dashTwo = "--"
 
 	sepName = ", "
+
+	defaultSepForKeyValueOfMap = "="
 )
 
 type tagProperty struct {
-	// is a required flag?(if `cli` or `pw` tag has prefix `*`)
-	required bool
+	// is a required flag?
+	isRequired bool `cli:"*x" pw:"*y" edit:"*z"`
 
-	// is a force flag?(if `cli` or `pw` tag has prefix `!`)
-	isForce bool
+	// is a force flag?
+	isForce bool `cli:"!x" pw:"!y" edit:"!z"`
+
+	// is a password flag?
+	isPassword bool `pw:"xxx"`
+
+	// is a edit flag?
+	isEdit   bool   `edit:"xxx"`
+	editFile string `edit:"FILE:xxx"`
+
+	usage         string            `usage:"usage string"`
+	dft           string            `dft:"default value or expression"`
+	name          string            `name:"tag reference name"`
+	prompt        string            `prompt:"prompt string"`
+	sep           string            `sep:"string for seperate kay/value pair of map"`
+	parserCreator FlagParserCreator `parser:"parser for flag"`
 
 	// flag names
 	shortNames []string
 	longNames  []string
-
-	usage        string
-	defaultValue string
-	name         string
-	prompt       string
-	isPassword   bool
-	isEdit       bool
-	editFile     string
-
-	sep string
-
-	parserCreator FlagParserCreator
 }
 
-func parseTag(fieldName string, tag reflect.StructTag) (*tagProperty, bool) {
-	p := &tagProperty{
+func parseTag(fieldName string, tag reflect.StructTag) (p *tagProperty, isEmpty bool, err error) {
+	p = &tagProperty{
 		shortNames: []string{},
 		longNames:  []string{},
 	}
@@ -81,14 +85,15 @@ func parseTag(fieldName string, tag reflect.StructTag) (*tagProperty, bool) {
 	}
 
 	if cliLikeTagCount > 1 {
-		return nil, false
+		err = errCliTagTooMany
+		return
 	}
 
 	// `usage` TAG
 	p.usage = tag.Get(tagUsage)
 
 	// `dft` TAG
-	p.defaultValue = tag.Get(tagDefaut)
+	p.dft = tag.Get(tagDefaut)
 
 	// `name` TAG
 	p.name = tag.Get(tagName)
@@ -104,7 +109,7 @@ func parseTag(fieldName string, tag reflect.StructTag) (*tagProperty, bool) {
 	}
 
 	// `sep` TAG
-	p.sep = "="
+	p.sep = defaultSepForKeyValueOfMap
 	if sep := tag.Get(tagSep); sep != "" {
 		p.sep = sep
 	}
@@ -112,7 +117,7 @@ func parseTag(fieldName string, tag reflect.StructTag) (*tagProperty, bool) {
 	cli = strings.TrimSpace(cli)
 	for {
 		if strings.HasPrefix(cli, "*") {
-			p.required = true
+			p.isRequired = true
 			cli = strings.TrimSpace(strings.TrimPrefix(cli, "*"))
 		} else if strings.HasPrefix(cli, "!") {
 			p.isForce = true
@@ -123,10 +128,10 @@ func parseTag(fieldName string, tag reflect.StructTag) (*tagProperty, bool) {
 	}
 
 	names := strings.Split(cli, ",")
-	isEmpty := true
+	isEmpty = true
 	for _, name := range names {
 		if name = strings.TrimSpace(name); name == dashOne {
-			return nil, false
+			return nil, false, nil
 		}
 		if len(name) == 0 {
 			continue
@@ -140,5 +145,5 @@ func parseTag(fieldName string, tag reflect.StructTag) (*tagProperty, bool) {
 	if isEmpty {
 		p.longNames = append(p.longNames, dashTwo+fieldName)
 	}
-	return p, isEmpty
+	return
 }

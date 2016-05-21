@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	errNotPointToStruct = errors.New("argv does not indirect a struct")
-	errNotAPointer      = errors.New("argv is not a pointer")
-	errCliTagTooMany    = errors.New("cli tag too many")
+	errNotAPointerToStruct = errors.New("not a pointer to struct")
+	errNotAPointer         = errors.New("argv is not a pointer")
+	errCliTagTooMany       = errors.New("cli tag too many")
 )
 
 type (

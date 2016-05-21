@@ -33,7 +33,7 @@ func RunWithArgs(argv interface{}, args []string, fn CommandFunc, descs ...strin
 	}
 }
 
-// Root registers forest for root and return root
+// Root registers forest for root and returns root
 func Root(root *Command, forest ...*CommandTree) *Command {
 	root.RegisterTree(forest...)
 	return root
@@ -67,7 +67,7 @@ func parseArgv(args []string, argv interface{}, clr color.Color) *flagSet {
 	switch typ.Kind() {
 	case reflect.Ptr:
 		if reflect.Indirect(val).Type().Kind() != reflect.Struct {
-			flagSet.err = errNotPointToStruct
+			flagSet.err = errNotAPointerToStruct
 			return flagSet
 		}
 		parseWithTypeValue(args, typ, val, flagSet, clr)
@@ -104,13 +104,18 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 	)
 	for i := 0; i < numField; i++ {
 		var (
-			typField     = typElem.Field(i)
-			valField     = valElem.Field(i)
-			tag, isEmpty = parseTag(typField.Name, typField.Tag)
+			typField          = typElem.Field(i)
+			valField          = valElem.Field(i)
+			tag, isEmpty, err = parseTag(typField.Name, typField.Tag)
 		)
+		if err != nil {
+			flagSet.err = err
+			return
+		}
 		if tag == nil {
 			continue
 		}
+
 		// if `cli` tag is empty and the field is a struct
 		if isEmpty && valField.Kind() == reflect.Struct {
 			var (
@@ -152,7 +157,7 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 		names := append(fl.tag.shortNames, fl.tag.longNames...)
 		for i, name := range names {
 			if _, ok := flagSet.flagMap[name]; ok {
-				flagSet.err = fmt.Errorf("flag %s repeat", clr.Bold(name))
+				flagSet.err = fmt.Errorf("flag %s repeated", clr.Bold(name))
 				return
 			}
 			flagSet.flagMap[name] = fl
@@ -278,7 +283,7 @@ func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flag
 
 	buff := bytes.NewBufferString("")
 	for _, fl := range flagSet.flagSlice {
-		if !fl.isAssigned && fl.tag.required {
+		if !fl.isAssigned && fl.tag.isRequired {
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')
 			}

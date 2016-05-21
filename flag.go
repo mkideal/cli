@@ -53,7 +53,7 @@ func newFlag(field reflect.StructField, value reflect.Value, tag *tagProperty, c
 
 func (fl *flag) init(clr color.Color, dontSetValue bool) error {
 	isNumber := fl.isInteger() || fl.isFloat()
-	dft, err := parseExpression(fl.tag.defaultValue, isNumber)
+	dft, err := parseExpression(fl.tag.dft, isNumber)
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func (fl *flag) init(clr color.Color, dontSetValue bool) error {
 			dft = fmt.Sprintf("%f", float64(v))
 		}
 	}
-	if !dontSetValue && fl.tag.defaultValue != "" && dft != "" {
+	if !dontSetValue && fl.tag.dft != "" && dft != "" {
 		zero := reflect.Zero(fl.field.Type)
 		if reflect.DeepEqual(zero.Interface(), fl.value.Interface()) {
 			return fl.setDefault(dft, clr)

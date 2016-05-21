@@ -336,8 +336,8 @@ func TestParse(t *testing.T) {
 	//Case parse pointer, but not indirect a struct
 	tmp := 0
 	ptrInt := &tmp
-	if flagSet := parseArgv([]string{}, ptrInt, clr); flagSet.err != errNotPointToStruct {
-		t.Errorf("want %v, got %v", errNotPointToStruct, flagSet.err)
+	if flagSet := parseArgv([]string{}, ptrInt, clr); flagSet.err != errNotAPointerToStruct {
+		t.Errorf("want %v, got %v", errNotAPointerToStruct, flagSet.err)
 	}
 	if usage(ptrInt, clr, NormalStyle) != "" {
 		t.Errorf("want usage empty, but not")
