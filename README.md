@@ -13,7 +13,7 @@
 * Supports custom Validator.
 * Supports slice and map as a flag.
 * Supports any type as a flag field which implements cli.Decoder interface.
-* Supports any type as a flag field which use FlagParser.
+* Supports any type as a flag field which uses FlagParser.
 * Suggestions for command.(e.g. `hl` => `help`, "veron" => "version").
 * Supports default value for flag, even expression about env variable(e.g. `dft:"$HOME/dev"`).
 * Supports editor like `git commit` command.(See example [21](http://www.mkideal.com/golang/cli-examples.html#example-21-editor) and [22](http://www.mkideal.com/golang/cli-examples.html#example-22-custom-editor))
@@ -63,7 +63,7 @@ See [**godoc**](https://godoc.org/github.com/mkideal/cli)
 
 ## Examples
 
-See [**_examples**](https://github.com/mkideal/cli/tree/master/_examples), example_*test.go files or site below:
+See [**_examples**](https://github.com/mkideal/cli/tree/master/_examples), example_*test.go files or sites listed below:
 
 * [Example 1: Hello world](http://www.mkideal.com/golang/cli-examples.html#example-1-hello)
 * [Example 2: How to use **flag**](http://www.mkideal.com/golang/cli-examples.html#example-2-flag)
@@ -88,7 +88,7 @@ See [**_examples**](https://github.com/mkideal/cli/tree/master/_examples), examp
 * [Example 21: How to use **Editor**](http://www.mkideal.com/golang/cli-examples.html#example-21-editor)
 * [Example 22: Custom **Editor**](http://www.mkideal.com/golang/cli-examples.html#example-22-custom-editor)
 
-## Projects which use CLI
+## Projects which uses CLI
 
 * [onepw](https://github.com/mkideal/onepw) - A lightweight tool for managing passwords
 * [rqlite CLI](https://github.com/rqlite/rqlite/tree/master/cmd/rqlite) - A command line tool for connecting to a rqlited node
@@ -99,19 +99,21 @@ Supported tags in argument object of cli:
 
 * cli - supports short format and long format, e,g, `-p`, `--port`
 * pw - similar to `cli`, but used to input password
+* edit - input from editor(like `git commit`)
 * usage - description of flag
 * dft - default value, supports constant value, env variable, and even expression
-* name - placeholder for flag
 * prompt - prompt string
 * parser - builtin parsers: `json`, `jsonfile`, supports custom parsers.
+* name - placeholder for flag
+* sep - string for seperate key/value pair of map(default `=`).
 
 ### Supported types of flag
 
-* All basic types: int,uint,...,flaot32,float64,string,bool
+* All basic types: int,uint,...,float32,float64,string,bool
 * Slice of basic type: []int, []uint, []string,...
 * Map of basic type: map[uint]int, map[string]string,...
 * Any type which implments `cli.Decoder`
-* Any type which use correct parser(`json`,`jsonfile`, or your registered parser)
+* Any type which uses correct parser(`json`,`jsonfile`, or your registered parser)
 
 ### AutoHelper
 
