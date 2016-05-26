@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/jinzhu/now"
 )
 
 // Time wrap time.Time
@@ -34,28 +32,44 @@ var timeFormats = []string{
 	time.StampMilli,
 	time.StampMicro,
 	time.StampNano,
+	"2006-01-02",
+	"2006/01/02",
+	"2006:01:02",
+	"15:04:05",
+	"2006-01-02 15:04:05",
+	"2006/01/02 15:04:05",
+	"2006:01:02 15:04:05",
+	"15:04:05 2006-01-02",
+	"15:04:05 2006/01/02",
+	"15:04:05 2006:01:02",
 }
 
 func (t *Time) Decode(s string) error {
+	now := time.Now()
 	if s == "" {
-		t.Time = time.Now()
+		t.Time = now
 		return nil
 	}
 	for _, format := range timeFormats {
 		v, err := time.Parse(format, s)
 		if err == nil {
+			newYear, newMonth, newDay := v.Year(), v.Month(), v.Day()
+			reset := false
+			if newYear == 0 {
+				reset = true
+				newYear = now.Year()
+				newMonth = now.Month()
+				newDay = now.Day()
+			}
+			if reset {
+				v = time.Date(newYear, newMonth, newDay, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), v.Location())
+			}
 			t.Time = v
 			t.isSet = true
 			return nil
 		}
 	}
-	v, err := now.Parse(s)
-	if err != nil {
-		return err
-	}
-	t.Time = v
-	t.isSet = true
-	return nil
+	return fmt.Errorf("unsupported time format")
 }
 
 func (t Time) Encode() string {
@@ -72,6 +86,10 @@ type Duration struct {
 }
 
 func (d *Duration) Decode(s string) error {
+	if i, err := strconv.ParseUint(s, 10, 64); err == nil {
+		d.Duration = time.Duration(i) * time.Second
+		return nil
+	}
 	v, err := time.ParseDuration(s)
 	if err != nil {
 		return err

@@ -54,10 +54,6 @@ func Parse(args []string, argv interface{}) error {
 	return fset.err
 }
 
-//------------------
-// Implements parse
-//------------------
-
 func parseArgv(args []string, argv interface{}, clr color.Color) *flagSet {
 	var (
 		typ     = reflect.TypeOf(argv)
