@@ -32,12 +32,13 @@ type (
 
 	// Command is the top-level instance in command-line app
 	Command struct {
-		Name    string      // Command name
-		Aliases []string    // Command aliases name
-		Desc    string      // Command abstract
-		Text    string      // Command detail description
-		Fn      CommandFunc // Command handler
-		Argv    ArgvFunc    // Command argument factory function
+		Name    string        // Command name
+		Aliases []string      // Command aliases name
+		Desc    string        // Command abstract
+		Text    string        // Command detail description
+		UsageFn func() string // Custom usage function
+		Fn      CommandFunc   // Command handler
+		Argv    ArgvFunc      // Command argument factory function
 
 		CanSubRoute bool
 		NeedArgs    bool
@@ -305,12 +306,18 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 
 // Usage returns the usage string of command
 func (cmd *Command) Usage(ctx *Context) string {
-	style := GetUsageStyle()
-	clr := color.Color{}
-	clr.Disable()
-	if ctx != nil {
-		clr = ctx.color
+	if cmd.UsageFn != nil {
+		return cmd.UsageFn()
 	}
+	return cmd.defaultUsageFn(ctx)
+}
+
+func (cmd *Command) defaultUsageFn(ctx *Context) string {
+	var (
+		style = GetUsageStyle()
+		clr   = *(ctx.Color())
+	)
+
 	// get usage form cache
 	cmd.locker.Lock()
 	tmpUsage := cmd.usage
@@ -320,6 +327,7 @@ func (cmd *Command) Usage(ctx *Context) string {
 		debug.Debugf("get usage of command %s from cache", clr.Bold(cmd.Name))
 		return tmpUsage
 	}
+
 	buff := bytes.NewBufferString("")
 	if cmd.Desc != "" {
 		fmt.Fprintf(buff, "%s\n\n", cmd.Desc)
