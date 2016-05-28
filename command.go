@@ -277,6 +277,7 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 	}
 
 	// create Context
+	path = child.Path()
 	ctx, err = newContext(path, router[:end], args[end:], argv, clr)
 	if err != nil {
 		return
