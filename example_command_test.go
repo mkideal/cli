@@ -22,7 +22,7 @@ func ExampleCommand() {
 		CanSubRoute: true,
 		NoHook:      true,
 		NoHTTP:      true,
-		NeedArgs:    true,
+		NumArg:      cli.ExactN(1),
 		HTTPRouters: []string{"/v1/child", "/v2/child"},
 		HTTPMethods: []string{"GET", "POST"},
 

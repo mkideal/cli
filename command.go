@@ -30,20 +30,34 @@ type (
 	// ArgvFunc ...
 	ArgvFunc func() interface{}
 
+	// NumArgFunc represents function type which used to check num of args
+	NumArgFunc func(n int) bool
+
+	// UsageFunc represents custom function of usage
+	UsageFunc func() string
+)
+
+func ExactN(num int) NumArgFunc  { return func(n int) bool { return n == num } }
+func AtLeast(num int) NumArgFunc { return func(n int) bool { return n >= num } }
+func AtMost(num int) NumArgFunc  { return func(n int) bool { return n <= num } }
+
+type (
 	// Command is the top-level instance in command-line app
 	Command struct {
-		Name    string        // Command name
-		Aliases []string      // Command aliases name
-		Desc    string        // Command abstract
-		Text    string        // Command detail description
-		UsageFn func() string // Custom usage function
-		Fn      CommandFunc   // Command handler
-		Argv    ArgvFunc      // Command argument factory function
+		Name    string   // Command name
+		Aliases []string // Command aliases name
+		Desc    string   // Command abstract
+		Text    string   // Command detail description
 
 		CanSubRoute bool
-		NeedArgs    bool
 		NoHook      bool
 		NoHTTP      bool
+
+		// functions
+		Fn      CommandFunc // Command handler
+		UsageFn UsageFunc   // Custom usage function
+		Argv    ArgvFunc    // Command argument factory function
+		NumArg  NumArgFunc  // Check len(ctx.Args())
 
 		HTTPRouters []string
 		HTTPMethods []string
@@ -219,7 +233,7 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 	child, end := cmd.SubRoute(router)
 
 	// if route fail
-	if child == nil || (!child.CanSubRoute && end != len(router)) {
+	if !child.CanSubRoute && end != len(router) {
 		suggestions := cmd.Suggestions(path)
 		buff := bytes.NewBufferString("")
 		if suggestions != nil && len(suggestions) > 0 {
@@ -271,12 +285,6 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 	ctx.writer = writer
 	ctx.HTTPResponse = resp
 
-	if len(ctx.NativeArgs()) == 0 && ctx.command.NeedArgs {
-		ctx.WriteUsage()
-		err = ExitError
-		return
-	}
-
 	// auto help
 	if argv != nil {
 		if helper, ok := argv.(AutoHelper); ok && helper.AutoHelp() {
@@ -291,14 +299,23 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 		return
 	}
 
-	// validate argv if argv implements interface Validator
-	if argv != nil && !ctx.flagSet.hasForce {
-		if validator, ok := argv.(Validator); ok {
-			err = validator.Validate(ctx)
-			if err != nil {
-				return
+	if !ctx.flagSet.hasForce {
+		// validate argv if argv implements interface Validator
+		if argv != nil {
+			if validator, ok := argv.(Validator); ok {
+				err = validator.Validate(ctx)
+				if err != nil {
+					return
+				}
 			}
 		}
+		// validate num of Agrs
+		if ctx.command.NumArg != nil && !ctx.command.NumArg(len(ctx.Args())) {
+			ctx.WriteUsage()
+			err = ExitError
+			return
+		}
+
 	}
 
 	return
