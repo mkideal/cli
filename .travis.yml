@@ -6,7 +6,7 @@ go:
 sudo: false
 
 install:
-    - go get -d -v ./...
+    - go get -d -v -u ./...
     - go get github.com/mattn/goveralls
 
 script:
