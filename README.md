@@ -1,4 +1,9 @@
-# Command line interface [![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/mkideal/cli)](https://goreportcard.com/report/github.com/mkideal/cli) [![GoDoc](https://godoc.org/github.com/mkideal/cli?status.svg)](https://godoc.org/github.com/mkideal/cli)
+# Command line interface 
+[![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE)
+[![Travis branch](https://img.shields.io/travis/mkideal/cli/master.svg)](https://travis-ci.org/mkideal/cli)
+[![Coverage Status](https://coveralls.io/repos/github/mkideal/cli/badge.svg?branch=master)](https://coveralls.io/github/mkideal/cli?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mkideal/cli)](https://goreportcard.com/report/github.com/mkideal/cli)
+[![GoDoc](https://godoc.org/github.com/mkideal/cli?status.svg)](https://godoc.org/github.com/mkideal/cli)
 
 ## Screenshot
 
