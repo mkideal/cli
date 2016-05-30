@@ -52,6 +52,7 @@ type (
 		CanSubRoute bool
 		NoHook      bool
 		NoHTTP      bool
+		Global      bool
 
 		// functions
 		Fn      CommandFunc // Command handler
@@ -190,12 +191,6 @@ func (cmd *Command) RunWith(args []string, writer io.Writer, resp http.ResponseW
 		return nil
 	}
 
-	if argv := ctx.Argv(); argv != nil {
-		debug.Debugf("command %s ready exec with argv %v", ctx.command.Name, argv)
-	} else {
-		debug.Debugf("command %s ready exec", ctx.command.Name)
-	}
-
 	if ctx.command.NoHook {
 		return ctx.command.Fn(ctx)
 	}
@@ -218,6 +213,37 @@ func (cmd *Command) RunWith(args []string, writer io.Writer, resp http.ResponseW
 		}
 	}
 	return nil
+}
+
+func isEmptyArgvList(argvList []interface{}) bool {
+	if argvList == nil {
+		return true
+	}
+	for _, argv := range argvList {
+		if argv != nil {
+			return false
+		}
+	}
+	return true
+}
+
+func (cmd *Command) argvList() []interface{} {
+	argvList := make([]interface{}, 0, 1)
+	if cmd.Argv != nil {
+		argvList = append(argvList, cmd.Argv())
+	} else {
+		argvList = append(argvList, nil)
+	}
+	next := cmd.parent
+	for next != nil {
+		if next.Argv != nil && next.Global {
+			argvList = append(argvList, next.Argv())
+		} else {
+			argvList = append(argvList, nil)
+		}
+		next = next.parent
+	}
+	return argvList
 }
 
 func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, resp http.ResponseWriter, httpMethods ...string) (ctx *Context, suggestion string, err error) {
@@ -270,15 +296,12 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 		return
 	}
 
-	// create argv
-	var argv interface{}
-	if child.Argv != nil {
-		argv = child.Argv()
-	}
+	// create argvList
+	argvList := child.argvList()
 
 	// create Context
 	path = child.Path()
-	ctx, err = newContext(path, router[:end], args[end:], argv, clr)
+	ctx, err = newContext(path, router[:end], args[end:], argvList, clr)
 	if err != nil {
 		return
 	}
@@ -287,11 +310,13 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 	ctx.HTTPResponse = resp
 
 	// auto help
-	if argv != nil {
-		if helper, ok := argv.(AutoHelper); ok && helper.AutoHelp() {
-			ctx.WriteUsage()
-			err = ExitError
-			return
+	for _, argv := range argvList {
+		if argv != nil {
+			if helper, ok := argv.(AutoHelper); ok && helper.AutoHelp() {
+				ctx.WriteUsage()
+				err = ExitError
+				return
+			}
 		}
 	}
 
@@ -301,12 +326,14 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 	}
 
 	if !ctx.flagSet.hasForce {
-		// validate argv if argv implements interface Validator
-		if argv != nil {
-			if validator, ok := argv.(Validator); ok {
-				err = validator.Validate(ctx)
-				if err != nil {
-					return
+		for _, argv := range argvList {
+			// validate argv if argv implements interface Validator
+			if argv != nil {
+				if validator, ok := argv.(Validator); ok {
+					err = validator.Validate(ctx)
+					if err != nil {
+						return
+					}
 				}
 			}
 		}
@@ -353,11 +380,13 @@ func (cmd *Command) defaultUsageFn(ctx *Context) string {
 	if cmd.Text != "" {
 		fmt.Fprintf(buff, "%s\n\n", cmd.Text)
 	}
-	if cmd.Argv != nil {
-		fmt.Fprintf(buff, "%s:\n\n%s", clr.Bold("Options"), usage(cmd.Argv(), clr, style))
+	argvList := cmd.argvList()
+	isEmpty := isEmptyArgvList(argvList)
+	if !isEmpty {
+		fmt.Fprintf(buff, "%s:\n\n%s", clr.Bold("Options"), usage(argvList, clr, style))
 	}
 	if cmd.children != nil && len(cmd.children) > 0 {
-		if cmd.Argv != nil {
+		if !isEmpty {
 			buff.WriteByte('\n')
 		}
 		fmt.Fprintf(buff, "%s:\n%v", clr.Bold("Commands"), cmd.ChildrenDescriptions("  ", "   "))

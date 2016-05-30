@@ -55,41 +55,58 @@ func Parse(args []string, argv interface{}) error {
 }
 
 func parseArgv(args []string, argv interface{}, clr color.Color) *flagSet {
-	var (
-		typ     = reflect.TypeOf(argv)
-		val     = reflect.ValueOf(argv)
-		flagSet = newFlagSet()
-	)
-	switch typ.Kind() {
-	case reflect.Ptr:
-		if reflect.Indirect(val).Type().Kind() != reflect.Struct {
-			flagSet.err = errNotAPointerToStruct
-			return flagSet
-		}
-		parseWithTypeValue(args, typ, val, flagSet, clr)
-		return flagSet
-	default:
-		flagSet.err = errNotAPointer
-		return flagSet
-	}
+	return parseArgvList(args, []interface{}{argv}, clr)
 }
 
-func usage(v interface{}, clr color.Color, style UsageStyle) string {
-	var (
-		typ     = reflect.TypeOf(v)
-		val     = reflect.ValueOf(v)
-		flagSet = newFlagSet()
-	)
-	if typ.Kind() == reflect.Ptr &&
-		reflect.Indirect(val).Type().Kind() == reflect.Struct {
-		// initialize flagSet
-		initFlagSet(typ, val, flagSet, clr, true)
-		if flagSet.err != nil {
-			return ""
+func parseArgvList(args []string, argvList []interface{}, clr color.Color) *flagSet {
+	flagSet := newFlagSet()
+	for _, argv := range argvList {
+		if argv == nil {
+			continue
 		}
-		return flagSlice(flagSet.flagSlice).StringWithStyle(clr, style)
+		var (
+			typ = reflect.TypeOf(argv)
+			val = reflect.ValueOf(argv)
+		)
+		switch typ.Kind() {
+		case reflect.Ptr:
+			if reflect.Indirect(val).Type().Kind() != reflect.Struct {
+				flagSet.err = errNotAPointerToStruct
+				return flagSet
+			}
+			initFlagSet(typ, val, flagSet, clr, false)
+			if flagSet.err != nil {
+				return flagSet
+			}
+		default:
+			flagSet.err = errNotAPointer
+			return flagSet
+		}
 	}
-	return ""
+	parseArgsToFlagSet(args, flagSet, clr)
+	return flagSet
+}
+
+func usage(argvList []interface{}, clr color.Color, style UsageStyle) string {
+	flagSet := newFlagSet()
+	buf := bytes.NewBufferString("")
+	for i := len(argvList) - 1; i >= 0; i-- {
+		var (
+			v   = argvList[i]
+			typ = reflect.TypeOf(v)
+			val = reflect.ValueOf(v)
+		)
+		if typ.Kind() == reflect.Ptr &&
+			reflect.Indirect(val).Type().Kind() == reflect.Struct {
+			// initialize flagSet
+			initFlagSet(typ, val, flagSet, clr, true)
+			if flagSet.err != nil {
+				return ""
+			}
+		}
+	}
+	buf.WriteString(flagSlice(flagSet.flagSlice).StringWithStyle(clr, style))
+	return buf.String()
 }
 
 func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr color.Color, dontSetValue bool) {
@@ -167,12 +184,7 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 	}
 }
 
-func parseWithTypeValue(args []string, typ reflect.Type, val reflect.Value, flagSet *flagSet, clr color.Color) {
-	initFlagSet(typ, val, flagSet, clr, false)
-	if flagSet.err != nil {
-		return
-	}
-
+func parseArgsToFlagSet(args []string, flagSet *flagSet, clr color.Color) {
 	size := len(args)
 	for i := 0; i < size; i++ {
 		arg := args[i]

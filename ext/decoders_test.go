@@ -15,14 +15,11 @@ func TestTypeTime(t *testing.T) {
 	type argT struct {
 		When Time `cli:"w" dft:"2016-01-02"`
 	}
-	local := time.Local
 	for _, tt := range []struct {
 		src string
 		t   time.Time
 	}{
 		{"-w2016-01-02T15:04:05+00:00", time.Date(2016, 1, 2, 15, 4, 5, 0, time.UTC)},
-		{"-w2016-01-02", time.Date(2016, 1, 2, 0, 0, 0, 0, local)},
-		{"", time.Date(2016, 1, 2, 0, 0, 0, 0, local)},
 	} {
 		args := []string{}
 		if tt.src != "" {
