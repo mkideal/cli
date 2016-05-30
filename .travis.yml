@@ -6,7 +6,8 @@ go:
 sudo: false
 
 install:
-    - go get -d -v ./...
+    - go get github.com/stretchr/testify/assert
+    - go get -d -v -u ./...
     - go get github.com/mattn/goveralls
 
 script:
