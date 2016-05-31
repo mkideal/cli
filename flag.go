@@ -70,7 +70,7 @@ func (fl *flag) init(clr color.Color, dontSetValue bool) error {
 	}
 	if !dontSetValue && fl.tag.dft != "" && dft != "" {
 		zero := reflect.Zero(fl.field.Type)
-		if reflect.DeepEqual(zero.Interface(), fl.value.Interface()) {
+		if fl.isPtr() || reflect.DeepEqual(zero.Interface(), fl.value.Interface()) {
 			return fl.setDefault(dft, clr)
 		}
 	}
@@ -181,6 +181,10 @@ func (fl *flag) isFloat() bool {
 
 func (fl *flag) isString() bool {
 	return fl.field.Type.Kind() == reflect.String
+}
+
+func (fl *flag) isPtr() bool {
+	return fl.field.Type.Kind() == reflect.Ptr
 }
 
 func (fl *flag) getBool() bool {

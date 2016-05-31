@@ -13,25 +13,33 @@ func main() {
 	}
 }
 
+// root command
 type rootT struct {
 	cli.Helper
-	Hello string `cli:"H" usage:"hello is a global flag"`
-}
-
-type subT struct {
-	World string `cli:"w" usage:"world is a sub flag"`
+	Self *rootT `json:"-" cli:"c,config" usage:"config" parser:"jsonfile" dft:"1.json"`
+	Host string `cli:"H,host" usage:"host addr" dft:"$HOST"`
+	Port int    `cli:"p,port" usage:"listening port"`
 }
 
 var root = &cli.Command{
 	Name:   "app",
 	Desc:   "application",
 	Global: true,
-	Argv:   func() interface{} { return new(rootT) },
+	Argv: func() interface{} {
+		t := new(rootT)
+		t.Self = t
+		return t
+	},
 	Fn: func(ctx *cli.Context) error {
-		ctx.JSONIndentln(ctx.RootArgv(), "", "    ")
-		ctx.JSONIndentln(ctx.Argv(), "", "    ")
+		ctx.JSON(ctx.RootArgv())
+		ctx.JSON(ctx.Argv())
 		return nil
 	},
+}
+
+// sub command
+type subT struct {
+	World string `cli:"w" usage:"world is a sub flag"`
 }
 
 var sub = &cli.Command{
@@ -39,16 +47,17 @@ var sub = &cli.Command{
 	Desc: "subcommand",
 	Argv: func() interface{} { return new(subT) },
 	Fn: func(ctx *cli.Context) error {
-		ctx.JSONIndentln(ctx.RootArgv(), "", "    ")
-		ctx.JSONIndentln(ctx.Argv(), "", "    ")
+		ctx.JSON(ctx.RootArgv())
+		ctx.JSON(ctx.Argv())
+		ctx.String("\n")
 
 		var argv = &subT{}
 		var parentArgv = &rootT{}
 		if err := ctx.GetArgvList(argv, parentArgv); err != nil {
 			return err
 		}
-		ctx.JSONIndentln(parentArgv, "", "    ")
-		ctx.JSONIndentln(argv, "", "    ")
+		ctx.JSON(parentArgv)
+		ctx.JSON(argv)
 		return nil
 	},
 }

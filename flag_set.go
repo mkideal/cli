@@ -176,7 +176,7 @@ func (fs flagSlice) String(clr color.Color) string {
 		}
 		usage := usagePrefix + tag.usage
 
-		spaceSize := lenSep + lenNameAndDefaultAndLong
+		spaceSize := lenNameAndDefaultAndLong
 		spaceSize -= len(nameStr) + len(defaultStr) + len(longStr)
 
 		if defaultStr != "" {
