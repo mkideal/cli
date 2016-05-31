@@ -91,8 +91,11 @@ func usage(argvList []interface{}, clr color.Color, style UsageStyle) string {
 	flagSet := newFlagSet()
 	buf := bytes.NewBufferString("")
 	for i := len(argvList) - 1; i >= 0; i-- {
+		v := argvList[i]
+		if v == nil {
+			continue
+		}
 		var (
-			v   = argvList[i]
 			typ = reflect.TypeOf(v)
 			val = reflect.ValueOf(v)
 		)
