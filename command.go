@@ -389,7 +389,7 @@ func (cmd *Command) defaultUsageFn(ctx *Context) string {
 		if !isEmpty {
 			buff.WriteByte('\n')
 		}
-		fmt.Fprintf(buff, "%s:\n%v", clr.Bold("Commands"), cmd.ChildrenDescriptions("  ", "   "))
+		fmt.Fprintf(buff, "%s:\n\n%v", clr.Bold("Commands"), cmd.ChildrenDescriptions("  ", "   "))
 	}
 	tmpUsage = buff.String()
 	cmd.locker.Lock()
