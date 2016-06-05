@@ -93,6 +93,9 @@ func TestContextMisc(t *testing.T) {
 			assert.Equal(t, ctx.NArg(), 3)
 			assert.Equal(t, ctx.Path(), "parent cmd")
 			assert.Equal(t, ctx.Router(), []string{"parent", "cmd"})
+
+			ctx.writer = nil
+			assert.NotNil(t, ctx.Writer())
 			return nil
 		},
 	}
@@ -113,7 +116,10 @@ func TestContextWriter(t *testing.T) {
 			ctx.JSONIndent(struct{ C string }{"11"}, "", "  ")
 			ctx.JSONIndentln(struct{ D bool }{true}, "", "  ")
 			assert.Equal(t, w, ctx.Writer())
-			return nil
+
+			n, err := ctx.Write([]byte("end"))
+			assert.Equal(t, 3, n)
+			return err
 		},
 	}).RunWith([]string{"a", "b"}, w, nil))
 	assert.Equal(t, w.String(), `String{"A":10}{"B":10}
@@ -122,5 +128,5 @@ func TestContextWriter(t *testing.T) {
 }{
   "D": true
 }
-`)
+end`)
 }

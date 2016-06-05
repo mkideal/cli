@@ -675,7 +675,7 @@ func TestIsSet(t *testing.T) {
 		A int `cli:"a,aa" dft:"1"`
 		B int `cli:"b"`
 	}
-	for _, tt := range []struct {
+	for i, tt := range []struct {
 		args   []string
 		isSetA bool
 		isSetB bool
@@ -687,12 +687,9 @@ func TestIsSet(t *testing.T) {
 		{[]string{"app"}, false, false},
 	} {
 		RunWithArgs(new(argT), tt.args, func(ctx *Context) error {
-			if got := ctx.IsSet("-a"); got != tt.isSetA {
-				t.Errorf("IsSet(-a) want %v, got %v", tt.isSetA, got)
-			}
-			if got := ctx.IsSet("-b"); got != tt.isSetB {
-				t.Errorf("IsSet(-b) want %v, got %v", tt.isSetB, got)
-			}
+			assert.Equal(t, ctx.IsSet("-a"), tt.isSetA, "case %d", i)
+			assert.Equal(t, ctx.IsSet("-a", "--aa"), tt.isSetA, "case %d", i)
+			assert.Equal(t, ctx.IsSet("-b"), tt.isSetB, "case %d", i)
 			return nil
 		})
 	}
