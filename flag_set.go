@@ -101,6 +101,8 @@ const (
 	NormalStyle UsageStyle = iota
 	// ManualStyle : up-down
 	ManualStyle
+	// DenseManualStyle : up-down, too
+	DenseManualStyle
 )
 
 var defaultStyle = NormalStyle
@@ -208,7 +210,7 @@ func fillSpaces(s string, spaceSize int) string {
 }
 
 func (fs flagSlice) StringWithStyle(clr color.Color, style UsageStyle) string {
-	if style != ManualStyle {
+	if style != ManualStyle && style != DenseManualStyle {
 		return fs.String(clr)
 	}
 
@@ -234,7 +236,9 @@ func (fs flagSlice) StringWithStyle(clr color.Color, style UsageStyle) string {
 			buf.WriteString(clr.Red("*"))
 		}
 		buf.WriteString(fl.tag.usage)
-		buf.WriteString("\n")
+		if style != DenseManualStyle {
+			buf.WriteString("\n")
+		}
 	}
 	return buf.String()
 }

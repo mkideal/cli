@@ -408,15 +408,16 @@ func TestParse(t *testing.T) {
 
 func TestUsage(t *testing.T) {
 	clr := color.Color{}
-	usage := usage([]interface{}{new(argT)}, clr, NormalStyle)
+	clr.Disable()
+	got := usage([]interface{}{new(argT)}, clr, NormalStyle)
 	want := fmt.Sprintf(
 		`      -s                           short flag
       -2                           another short flag
       -S, --long                   short and long flags
   -x, -y, --abcd, --omitof         many short and long flags
           --long-flag              long flag
-          --required              %srequired flag, note the *
-          --dft, --default%s   default value
+          --required              *required flag, note the *
+          --dft, --default[=102]   default value
           --UnName                 unname field
           --i8                     type int8
           --u8                     type uint8
@@ -428,10 +429,65 @@ func TestUsage(t *testing.T) {
           --u64                    type uint64
           --f32                    type float32
           --f64                    type float64
-`, clr.Red("*"), clr.Grey("[=102]"))
-	if usage != want {
-		t.Errorf("usage want `%s`, got `%s`", want, usage)
-	}
+`)
+	assert.Equal(t, got, want)
+
+	got = usage([]interface{}{new(argT)}, clr, ManualStyle)
+	want = `  -s
+      short flag
+
+  -2
+      another short flag
+
+  -S, --long
+      short and long flags
+
+  -x, -y, --abcd, --omitof
+      many short and long flags
+
+  --long-flag
+      long flag
+
+  --required
+      *required flag, note the *
+
+  --dft, --default[=102]
+      default value
+
+  --UnName
+      unname field
+
+  --i8
+      type int8
+
+  --u8
+      type uint8
+
+  --i16
+      type int16
+
+  --u16
+      type uint16
+
+  --i32
+      type int32
+
+  --u32
+      type uint32
+
+  --i64
+      type int64
+
+  --u64
+      type uint64
+
+  --f32
+      type float32
+
+  --f64
+      type float64
+`
+	assert.Equal(t, got, want)
 }
 
 func TestStructField(t *testing.T) {
