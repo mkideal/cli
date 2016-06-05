@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -115,6 +116,25 @@ func TestRegisterTree(t *testing.T) {
 	assert.Equal(t, cmd.children[0].children[0].Parent().Name, "sub")
 }
 
+func TestRegisterFunc(t *testing.T) {
+	root := &Command{Name: "root"}
+	out := ""
+	sayHello := func(*Context) error {
+		out = "hello"
+		return nil
+	}
+	argvFn := func() interface{} { return "argv" }
+	root.RegisterFunc("cmd", sayHello, argvFn)
+	require.Len(t, root.children, 1)
+	assert.Equal(t, root.children[0].Name, "cmd")
+
+	assert.Equal(t, out, "")
+	root.children[0].Fn(nil)
+	assert.Equal(t, out, "hello")
+
+	assert.Equal(t, root.children[0].Argv(), "argv")
+}
+
 func TestCommandNotFound(t *testing.T) {
 	root := &Command{Name: "root"}
 	sub := &Command{Name: "sub", Fn: donothing}
@@ -126,14 +146,46 @@ func TestCommandNotFound(t *testing.T) {
 	assert.IsType(t, commandNotFoundError{}, err)
 }
 
+type testValidator struct {
+	Value int `cli:"v" usage:"must be range int [1,10)"`
+}
+
+func (argv *testValidator) Validate(ctx *Context) error {
+	if argv.Value >= 1 && argv.Value < 10 {
+		return nil
+	}
+	return fmt.Errorf("out of range")
+}
+
+func TestValidator(t *testing.T) {
+	getCmd := func() *Command {
+		return &Command{
+			Name: "root",
+			Argv: func() interface{} { return new(testValidator) },
+			Fn: func(ctx *Context) error {
+				argv := ctx.Argv().(*testValidator)
+				assert.True(t, argv.Value >= 1 && argv.Value < 10)
+				return nil
+			},
+		}
+	}
+	assert.Error(t, getCmd().RunWith([]string{"-v=20"}, nil, nil))
+	assert.Nil(t, getCmd().RunWith([]string{"-v=2"}, nil, nil))
+}
+
 //TODO: TestCommandHooks
 
 func TestCommandMisc(t *testing.T) {
 	root := &Command{Name: "root"}
+	root.SetIsServer(true)
 	sub := &Command{Name: "sub", Fn: donothing}
 	sub2 := &Command{Name: "sub2", Fn: donothing}
 	root.Register(sub)
 	sub.Register(sub2)
+
+	assert.True(t, root.IsServer())
+	assert.False(t, root.IsClient())
+
 	assert.Equal(t, sub.Parent().Name, "root")
 	assert.Equal(t, sub.Path(), "sub")
 	assert.Equal(t, sub2.Path(), "sub sub2")
