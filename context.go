@@ -87,6 +87,17 @@ func (ctx *Context) NArg() int {
 	return len(ctx.flagSet.args)
 }
 
+// NOpt returns num of options
+func (ctx *Context) NOpt() int {
+	n := 0
+	for _, fl := range ctx.flagSet.flagSlice {
+		if fl.isSet {
+			n++
+		}
+	}
+	return n
+}
+
 // Argv returns parsed args object
 func (ctx *Context) Argv() interface{} {
 	if ctx.argvList == nil || len(ctx.argvList) == 0 {

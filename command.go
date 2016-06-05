@@ -30,16 +30,16 @@ type (
 	// ArgvFunc ...
 	ArgvFunc func() interface{}
 
-	// NumArgFunc represents function type which used to check num of args
-	NumArgFunc func(n int) bool
+	// NumCheckFunc represents function type which used to check num of args
+	NumCheckFunc func(n int) bool
 
 	// UsageFunc represents custom function of usage
 	UsageFunc func() string
 )
 
-func ExactN(num int) NumArgFunc  { return func(n int) bool { return n == num } }
-func AtLeast(num int) NumArgFunc { return func(n int) bool { return n >= num } }
-func AtMost(num int) NumArgFunc  { return func(n int) bool { return n <= num } }
+func ExactN(num int) NumCheckFunc  { return func(n int) bool { return n == num } }
+func AtLeast(num int) NumCheckFunc { return func(n int) bool { return n >= num } }
+func AtMost(num int) NumCheckFunc  { return func(n int) bool { return n <= num } }
 
 type (
 	// Command is the top-level instance in command-line app
@@ -55,10 +55,11 @@ type (
 		Global      bool
 
 		// functions
-		Fn      CommandFunc // Command handler
-		UsageFn UsageFunc   // Custom usage function
-		Argv    ArgvFunc    // Command argument factory function
-		NumArg  NumArgFunc  // Check len(ctx.Args())
+		Fn        CommandFunc // Command handler
+		UsageFn   UsageFunc   // Custom usage function
+		Argv      ArgvFunc    // Command argument factory function
+		NumArg    NumCheckFunc
+		NumOption NumCheckFunc
 
 		HTTPRouters []string
 		HTTPMethods []string
@@ -334,16 +335,23 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 				}
 			}
 		}
-		// validate num of Agrs
-		if ctx.command.NumArg != nil && !ctx.command.NumArg(len(ctx.Args())) {
+		// validate num of Args and num of Options
+		if !ctx.command.checkNumArg(ctx.NArg()) || !ctx.command.checkNumOption(ctx.NOpt()) {
 			ctx.WriteUsage()
 			err = ExitError
 			return
 		}
-
 	}
 
 	return
+}
+
+func (cmd *Command) checkNumArg(num int) bool {
+	return cmd.NumArg == nil || cmd.NumArg(num)
+}
+
+func (cmd *Command) checkNumOption(num int) bool {
+	return cmd.NumOption == nil || cmd.NumOption(num)
 }
 
 // Usage returns the usage string of command
