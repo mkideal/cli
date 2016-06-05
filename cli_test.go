@@ -8,7 +8,45 @@ import (
 	"testing"
 
 	"github.com/labstack/gommon/color"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+var donothing = func(*Context) error { return nil }
+
+func ExampleRun() {
+	type argT struct {
+		Flag string `cli:"f"`
+	}
+	RunWithArgs(new(argT), []string{"app", "-f=xxx"}, func(ctx *Context) error {
+		argv := ctx.Argv().(*argT)
+		ctx.String("flag: %s\n", argv.Flag)
+		return nil
+	})
+	// Output:
+	// flag: xxx
+}
+
+func TestTree(t *testing.T) {
+	cmd := &Command{Name: "cmd", Fn: donothing}
+	subcmd := &Command{Name: "subcmd", Fn: donothing}
+
+	tree := Tree(cmd, Tree(subcmd))
+	assert.Equal(t, tree.command.Name, "cmd")
+	require.Len(t, tree.forest, 1)
+	assert.Equal(t, tree.forest[0].command.Name, "subcmd")
+	assert.Len(t, tree.forest[0].forest, 0)
+}
+
+func TestRoot(t *testing.T) {
+	donothing := func(*Context) error { return nil }
+	root := Root(&Command{Name: "cmd", Fn: donothing},
+		Tree(&Command{Name: "subcmd", Fn: donothing}),
+	)
+	assert.Equal(t, root.Name, "cmd")
+	require.Len(t, root.children, 1)
+	assert.Equal(t, root.children[0].Name, "subcmd")
+}
 
 type argT struct {
 	Short         bool   `cli:"s" usage:"short flag"`
@@ -372,24 +410,24 @@ func TestUsage(t *testing.T) {
 	clr := color.Color{}
 	usage := usage([]interface{}{new(argT)}, clr, NormalStyle)
 	want := fmt.Sprintf(
-		`      -s                             short flag
-      -2                             another short flag
-      -S, --long                     short and long flags
-  -x, -y, --abcd, --omitof           many short and long flags
-          --long-flag                long flag
-          --required                %srequired flag, note the *
-          --dft, --default%s     default value
-          --UnName                   unname field
-          --i8                       type int8
-          --u8                       type uint8
-          --i16                      type int16
-          --u16                      type uint16
-          --i32                      type int32
-          --u32                      type uint32
-          --i64                      type int64
-          --u64                      type uint64
-          --f32                      type float32
-          --f64                      type float64
+		`      -s                           short flag
+      -2                           another short flag
+      -S, --long                   short and long flags
+  -x, -y, --abcd, --omitof         many short and long flags
+          --long-flag              long flag
+          --required              %srequired flag, note the *
+          --dft, --default%s   default value
+          --UnName                 unname field
+          --i8                     type int8
+          --u8                     type uint8
+          --i16                    type int16
+          --u16                    type uint16
+          --i32                    type int32
+          --u32                    type uint32
+          --i64                    type int64
+          --u64                    type uint64
+          --f32                    type float32
+          --f64                    type float64
 `, clr.Red("*"), clr.Grey("[=102]"))
 	if usage != want {
 		t.Errorf("usage want `%s`, got `%s`", want, usage)

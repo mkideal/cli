@@ -2,7 +2,38 @@ package cli
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func TestValidateCommandName(t *testing.T) {
+	for i, invalidName := range []string{
+		"",
+		"-",
+		"-abc",
+		"~@#$%^&*+/\\<>.,:;'\"",
+		"无效的",
+		"無效的",
+		"недействительный",
+		"無効",
+		"잘못된",
+	} {
+		assert.False(t, IsValidCommandName(invalidName), "%d: %s", i, invalidName)
+	}
+	for _, validName := range []string{
+		"a",
+		"abc",
+		"abc-def",
+		"abc_def",
+		"_abc",
+		"A",
+		"Abc",
+		"aBC",
+	} {
+		assert.True(t, IsValidCommandName(validName))
+	}
+}
 
 func TestCommandTree(t *testing.T) {
 	app := &Command{}
@@ -15,16 +46,11 @@ func TestCommandTree(t *testing.T) {
 	sub1 := app.Register(&Command{
 		Name: "sub1",
 		Fn: func(ctx *Context) error {
-			if ctx.Path() != "sub1" {
-				t.Errorf("path: `%s` vs `%s`", ctx.Path(), "sub1")
-			}
+			assert.Equal(t, ctx.Path(), "sub1")
 			argv := ctx.Argv().(*argT)
-			if argv.Help != true || argv.Version != "v0.0.0" {
-				t.Errorf("argv=%v", *argv)
-			}
-			if ctx.Command().Name != "sub1" {
-				t.Errorf("command name want %s, got %s", "sub1", ctx.Command().Name)
-			}
+			assert.True(t, argv.Help)
+			assert.Equal(t, argv.Version, "v0.0.0")
+			assert.Equal(t, ctx.Command().Name, "sub1")
 			return nil
 		},
 		Desc: "sub1 command describe",
@@ -34,13 +60,10 @@ func TestCommandTree(t *testing.T) {
 	sub1.Register(&Command{
 		Name: "sub11",
 		Fn: func(ctx *Context) error {
-			if ctx.Path() != "sub1 sub11" {
-				t.Errorf("path: `%s` vs `%s`", ctx.Path(), "sub1 sub11")
-			}
+			assert.Equal(t, ctx.Path(), "sub1 sub11")
 			argv := ctx.Argv().(*argT)
-			if argv.Help != false || argv.Version != "v1.0.0" {
-				t.Errorf("argv=%v", *argv)
-			}
+			assert.False(t, argv.Help)
+			assert.Equal(t, argv.Version, "v1.0.0")
 			return nil
 		},
 		Desc: "sub11 desc",
@@ -48,23 +71,92 @@ func TestCommandTree(t *testing.T) {
 		Argv: func() interface{} { return new(argT) },
 	})
 
-	if err := app.Run([]string{
-		"sub1",
-		"-h",
-	}); err != nil {
-		t.Errorf("Run `sub1` error: %v", err)
-	}
+	assert.Nil(t, app.Run([]string{"sub1", "-h"}))
+	assert.Nil(t, app.Run([]string{"sub1", "sub11", "--version=v1.0.0"}))
+	assert.Equal(t, sub1.ChildrenDescriptions("", " "), "sub11 sub11 desc\n")
+}
 
-	if err := app.Run([]string{
-		"sub1",
-		"sub11",
-		"--version=v1.0.0",
-	}); err != nil {
-		t.Errorf("Run `sub1 sub11` error: %v", err)
-	}
+func TestRegisterNilCommand(t *testing.T) {
+	cmd := &Command{Name: "root"}
+	assert.Panics(t, func() { cmd.Register(nil) })
+}
 
-	listWant := "sub11 sub11 desc\n"
-	if listGot := sub1.ChildrenDescriptions("", " "); listGot != listWant {
-		t.Errorf("ChildrenDescriptions want `%s`, got `%s`", listWant, listGot)
+func TestRegisterCommandWithInvalidName(t *testing.T) {
+	cmd := &Command{Name: "root"}
+	assert.Panics(t, func() { cmd.Register(&Command{Name: "-invalid-", Fn: donothing}) })
+}
+
+func TestRegisterCommandWhichHasHadParent(t *testing.T) {
+	cmd := &Command{Name: "root"}
+	child := &Command{
+		Name:   "sub",
+		Fn:     donothing,
+		parent: &Command{Name: "parent"},
 	}
+	assert.Panics(t, func() { cmd.Register(child) })
+}
+
+func TestResgisterRepeatedCommand(t *testing.T) {
+	cmd := &Command{Name: "root"}
+	cmd.Register(&Command{Name: "sub", Fn: donothing})
+	assert.Panics(t, func() { cmd.Register(&Command{Name: "sub", Fn: donothing}) })
+	assert.Panics(t, func() { cmd.Register(&Command{Name: "hello", Aliases: []string{"sub"}, Fn: donothing}) })
+}
+
+func TestRegisterTree(t *testing.T) {
+	cmd := &Command{Name: "root"}
+	tree := Tree(&Command{Name: "sub", Fn: donothing}, Tree(&Command{Name: "sub2", Fn: donothing}))
+	cmd.RegisterTree(tree)
+	require.Len(t, cmd.children, 1)
+	assert.Equal(t, cmd.children[0].Name, "sub")
+	assert.Equal(t, cmd.children[0].Parent().Name, "root")
+	require.Len(t, cmd.children[0].children, 1)
+	assert.Equal(t, cmd.children[0].children[0].Name, "sub2")
+	assert.Equal(t, cmd.children[0].children[0].Parent().Name, "sub")
+}
+
+func TestCommandNotFound(t *testing.T) {
+	root := &Command{Name: "root"}
+	sub := &Command{Name: "sub", Fn: donothing}
+	root.Register(sub)
+	err := root.RunWith([]string{"not-found"}, nil, nil)
+	if e, ok := err.(wrapError); ok {
+		err = e.err
+	}
+	assert.IsType(t, commandNotFoundError{}, err)
+}
+
+//TODO: TestCommandHooks
+
+func TestCommandMisc(t *testing.T) {
+	root := &Command{Name: "root"}
+	sub := &Command{Name: "sub", Fn: donothing}
+	sub2 := &Command{Name: "sub2", Fn: donothing}
+	root.Register(sub)
+	sub.Register(sub2)
+	assert.Equal(t, sub.Parent().Name, "root")
+	assert.Equal(t, sub.Path(), "sub")
+	assert.Equal(t, sub2.Path(), "sub sub2")
+	assert.Equal(t, root.findChild("sub"), sub)
+	assert.Equal(t, root.Root(), root)
+	assert.Equal(t, sub.Root(), root)
+	assert.Equal(t, sub2.Root(), root)
+
+	cmd, deep := root.SubRoute([]string{"not", "found"})
+	assert.Equal(t, cmd, root)
+	assert.Equal(t, deep, 0)
+	cmd, deep = root.SubRoute([]string{"sub", "no"})
+	assert.Equal(t, cmd, sub)
+	assert.Equal(t, deep, 1)
+	cmd, deep = root.SubRoute([]string{"sub", "sub2"})
+	assert.Equal(t, cmd, sub2)
+	assert.Equal(t, deep, 2)
+
+	assert.Nil(t, root.Route([]string{"not", "found"}))
+	assert.Equal(t, root.Route([]string{}), root)
+	assert.Equal(t, root.Route([]string{"sub"}), sub)
+	assert.Nil(t, root.Route([]string{"sub", "not", "found"}))
+	assert.Equal(t, root.Route([]string{"sub", "sub2"}), sub2)
+
+	assert.Equal(t, root.Suggestions("su"), []string{"sub"})
 }

@@ -29,7 +29,7 @@ func RunWithArgs(argv interface{}, args []string, fn CommandFunc, descs ...strin
 		Fn:          fn,
 	}).Run(args[1:])
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 	}
 }
 
