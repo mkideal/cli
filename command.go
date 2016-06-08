@@ -304,9 +304,7 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 	ctx.writer = writer
 	if !child.checkNumOption(ctx.NOpt()) {
 		ctx.WriteUsage()
-		if err == nil {
-			err = ExitError
-		}
+		err = ExitError
 		return
 	}
 	if err != nil {
