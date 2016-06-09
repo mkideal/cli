@@ -3,6 +3,7 @@ package ext
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -141,6 +142,99 @@ func (f File) Encode() string {
 	return f.filename
 }
 
+// Reader
+type Reader struct {
+	reader   io.Reader
+	filename string
+}
+
+func (r *Reader) Decode(s string) error {
+	if r.reader == nil {
+		if s == "" {
+			r.reader = os.Stdin
+		} else {
+			r.filename = s
+			file, err := os.Open(s)
+			if err != nil {
+				return err
+			}
+			r.reader = file
+		}
+	}
+	return nil
+}
+
+// SetReader replaces the native reader
+func (r *Reader) SetReader(reader io.Reader) {
+	r.Close()
+	r.reader = reader
+}
+
+// Read implementes io.Reader
+func (r Reader) Read(data []byte) (n int, err error) {
+	if r.reader == nil {
+		return os.Stdin.Read(data)
+	}
+	return r.reader.Read(data)
+}
+
+func (r Reader) Close() error {
+	if r.reader != nil {
+		if c, ok := r.reader.(io.Closer); ok && r.filename != "" {
+			return c.Close()
+		}
+	}
+	return nil
+}
+
+// Writer
+type Writer struct {
+	writer   io.Writer
+	filename string
+}
+
+func (w *Writer) Decode(s string) error {
+	if w.writer != nil {
+		return nil
+	}
+	if s == "" {
+		w.writer = os.Stdout
+		return nil
+	}
+	w.filename = s
+	return nil
+}
+
+// SetWriter replaces the native writer
+func (w *Writer) SetWriter(writer io.Writer) {
+	w.writer = writer
+}
+
+// Write implementes io.Writer interface
+func (w *Writer) Write(data []byte) (n int, err error) {
+	if w.writer == nil {
+		if w.filename == "" {
+			w.writer = os.Stdout
+		} else {
+			file, err := os.Create(w.filename)
+			if err != nil {
+				return 0, err
+			}
+			w.writer = file
+		}
+	}
+	return w.writer.Write(data)
+}
+
+func (w Writer) Close() error {
+	if w.writer != nil {
+		if c, ok := w.writer.(io.Closer); ok && w.filename != "" {
+			return c.Close()
+		}
+	}
+	return nil
+}
+
 // CSV reads one csv record
 type CSVRecord struct {
 	raw []string
@@ -171,7 +265,7 @@ func (d CSVRecord) Bools() ([]bool, error) {
 		} else {
 			v, err := strconv.Atoi(s)
 			if err != nil {
-				return nil, fmt.Errorf("parse %s to bollean fail", s)
+				return nil, fmt.Errorf("parse %s to boolean fail", s)
 			}
 			ret = append(ret, v != 0)
 		}
