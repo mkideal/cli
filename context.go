@@ -52,7 +52,7 @@ func newContext(path string, router, args []string, argvList []interface{}, clr 
 	if !isEmptyArgvList(argvList) {
 		ctx.flagSet = parseArgvList(args, argvList, ctx.color)
 		if ctx.flagSet.err != nil {
-			return nil, ctx.flagSet.err
+			return ctx, ctx.flagSet.err
 		}
 	}
 	return ctx, nil
@@ -89,6 +89,9 @@ func (ctx *Context) NArg() int {
 
 // NOpt returns num of options
 func (ctx *Context) NOpt() int {
+	if ctx.flagSet == nil || ctx.flagSet.flagSlice == nil {
+		return 0
+	}
 	n := 0
 	for _, fl := range ctx.flagSet.flagSlice {
 		if fl.isSet {
