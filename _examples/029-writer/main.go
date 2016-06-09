@@ -8,7 +8,7 @@ import (
 )
 
 type argT struct {
-	Writer clix.Writer `cli:"w,writer" usage:"write to file, stdout or any io.Writer"`
+	Writer *clix.Writer `cli:"w,writer" usage:"write to file, stdout or any io.Writer"`
 }
 
 func main() {
@@ -21,6 +21,7 @@ func main() {
 			return err
 		}
 		ctx.String("writes %d byte(s) to file or stdout\n", n)
+		ctx.String("filename: %s, isStdout: %v\n", argv.Writer.Name(), argv.Writer.IsStdout())
 
 		// Replace the writer
 		w := bytes.NewBufferString("")
@@ -30,6 +31,7 @@ func main() {
 			return err
 		}
 		ctx.String("writes %d bytes to bytes.Writer: %s\n", n, w.String())
+		ctx.String("filename: %s, isStdout: %v\n", argv.Writer.Name(), argv.Writer.IsStdout())
 		return nil
 	})
 }

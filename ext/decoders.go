@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 // Time wrap time.Time
@@ -149,17 +150,16 @@ type Reader struct {
 }
 
 func (r *Reader) Decode(s string) error {
-	if r.reader == nil {
-		if s == "" {
-			r.reader = os.Stdin
-		} else {
-			r.filename = s
-			file, err := os.Open(s)
-			if err != nil {
-				return err
-			}
-			r.reader = file
+	if s == "" {
+		r.reader = os.Stdin
+		r.filename = os.Stdin.Name()
+	} else {
+		r.filename = s
+		file, err := os.Open(s)
+		if err != nil {
+			return err
 		}
+		r.reader = file
 	}
 	return nil
 }
@@ -168,6 +168,11 @@ func (r *Reader) Decode(s string) error {
 func (r *Reader) SetReader(reader io.Reader) {
 	r.Close()
 	r.reader = reader
+	if file, ok := reader.(*os.File); ok {
+		r.filename = file.Name()
+	} else {
+		r.filename = ""
+	}
 }
 
 // Read implementes io.Reader
@@ -179,12 +184,29 @@ func (r Reader) Read(data []byte) (n int, err error) {
 }
 
 func (r Reader) Close() error {
-	if r.reader != nil {
-		if c, ok := r.reader.(io.Closer); ok && r.filename != "" {
+	if r.reader != nil && !r.IsStdin() {
+		if c, ok := r.reader.(io.Closer); ok {
 			return c.Close()
 		}
 	}
 	return nil
+}
+
+func (r Reader) Name() string {
+	if r.reader == nil {
+		return os.Stdin.Name()
+	}
+	return r.filename
+}
+
+func (r Reader) IsStdin() bool {
+	if r.reader == nil {
+		return true
+	}
+	if stdin, ok := r.reader.(*os.File); ok {
+		return uintptr(unsafe.Pointer(stdin)) == uintptr(unsafe.Pointer(os.Stdin))
+	}
+	return false
 }
 
 // Writer
@@ -199,6 +221,7 @@ func (w *Writer) Decode(s string) error {
 	}
 	if s == "" {
 		w.writer = os.Stdout
+		w.filename = os.Stdout.Name()
 		return nil
 	}
 	w.filename = s
@@ -207,7 +230,13 @@ func (w *Writer) Decode(s string) error {
 
 // SetWriter replaces the native writer
 func (w *Writer) SetWriter(writer io.Writer) {
+	w.Close()
 	w.writer = writer
+	if file, ok := w.writer.(*os.File); ok {
+		w.filename = file.Name()
+	} else {
+		w.filename = ""
+	}
 }
 
 // Write implementes io.Writer interface
@@ -215,6 +244,7 @@ func (w *Writer) Write(data []byte) (n int, err error) {
 	if w.writer == nil {
 		if w.filename == "" {
 			w.writer = os.Stdout
+			w.filename = os.Stdout.Name()
 		} else {
 			file, err := os.Create(w.filename)
 			if err != nil {
@@ -226,13 +256,30 @@ func (w *Writer) Write(data []byte) (n int, err error) {
 	return w.writer.Write(data)
 }
 
-func (w Writer) Close() error {
-	if w.writer != nil {
-		if c, ok := w.writer.(io.Closer); ok && w.filename != "" {
+func (w *Writer) Close() error {
+	if w.writer != nil && !w.IsStdout() {
+		if c, ok := w.writer.(io.Closer); ok {
 			return c.Close()
 		}
 	}
 	return nil
+}
+
+func (w *Writer) Name() string {
+	if w.writer == nil {
+		return os.Stdout.Name()
+	}
+	return w.filename
+}
+
+func (w Writer) IsStdout() bool {
+	if w.writer == nil {
+		return true
+	}
+	if stdout, ok := w.writer.(*os.File); ok {
+		return uintptr(unsafe.Pointer(stdout)) == uintptr(unsafe.Pointer(os.Stdout))
+	}
+	return false
 }
 
 // CSV reads one csv record

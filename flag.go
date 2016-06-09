@@ -45,6 +45,9 @@ func newFlag(field reflect.StructField, value reflect.Value, tag *tagProperty, c
 		return nil, fmt.Errorf("field %s can not set", clr.Bold(fl.field.Name))
 	}
 	fl.tag = *tag
+	if fl.isPtr() {
+		fl.value.Set(reflect.New(fl.field.Type.Elem()))
+	}
 	fl.isNeedDelaySet = fl.tag.parserCreator != nil ||
 		(fl.field.Type.Kind() != reflect.Slice && fl.field.Type.Kind() != reflect.Map)
 	err = fl.init(clr, dontSetValue)

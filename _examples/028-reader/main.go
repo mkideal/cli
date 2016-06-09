@@ -9,7 +9,7 @@ import (
 )
 
 type argT struct {
-	Reader clix.Reader `cli:"r,reader" usage:"read from file, stdin or any io.Reader"`
+	Reader *clix.Reader `cli:"r,reader" usage:"read from file, stdin or any io.Reader"`
 }
 
 func main() {
@@ -21,6 +21,7 @@ func main() {
 			return err
 		}
 		ctx.String("read from file(or stdin): %s\n", string(data))
+		ctx.String("filename: %s, isStdin=%v\n", argv.Reader.Name(), argv.Reader.IsStdin())
 
 		// Replace the reader
 		argv.Reader.SetReader(strings.NewReader("string reader"))
@@ -29,6 +30,7 @@ func main() {
 			return err
 		}
 		ctx.String("reade from reader: %s\n", string(data))
+		ctx.String("filename: %s, isStdin=%v\n", argv.Reader.Name(), argv.Reader.IsStdin())
 		return nil
 	})
 }
