@@ -302,10 +302,12 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 	ctx, err = newContext(path, router[:end], args[end:], argvList, clr)
 	ctx.command = child
 	ctx.writer = writer
-	if !child.checkNumOption(ctx.NOpt()) {
-		ctx.WriteUsage()
-		err = ExitError
-		return
+	if !ctx.flagSet.hasForce {
+		if !child.checkNumOption(ctx.NOpt()) || !ctx.command.checkNumArg(ctx.NArg()) {
+			ctx.WriteUsage()
+			err = ExitError
+			return
+		}
 	}
 	if err != nil {
 		return
@@ -339,12 +341,6 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 					}
 				}
 			}
-		}
-		// validate num of Args
-		if !ctx.command.checkNumArg(ctx.NArg()) {
-			ctx.WriteUsage()
-			err = ExitError
-			return
 		}
 	}
 
