@@ -45,7 +45,7 @@ func newFlag(field reflect.StructField, value reflect.Value, tag *tagProperty, c
 		return nil, fmt.Errorf("field %s can not set", clr.Bold(fl.field.Name))
 	}
 	fl.tag = *tag
-	if fl.isPtr() {
+	if fl.isPtr() && fl.value.IsNil() {
 		fl.value.Set(reflect.New(fl.field.Type.Elem()))
 	}
 	fl.isNeedDelaySet = fl.tag.parserCreator != nil ||
@@ -72,12 +72,29 @@ func (fl *flag) init(clr color.Color, dontSetValue bool) error {
 		}
 	}
 	if !dontSetValue && fl.tag.dft != "" && dft != "" {
-		zero := reflect.Zero(fl.field.Type)
-		if fl.isPtr() || reflect.DeepEqual(zero.Interface(), fl.value.Interface()) {
+		if fl.isPtr() || isEmpty(fl.value) {
 			return fl.setDefault(dft, clr)
 		}
 	}
 	return nil
+}
+
+func isEmpty(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
+		return v.Len() == 0
+	case reflect.Bool:
+		return !v.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return v.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0
+	case reflect.Interface, reflect.Ptr:
+		return v.IsNil()
+	}
+	return false
 }
 
 func isWordByte(b byte) bool {
