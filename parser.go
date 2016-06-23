@@ -2,7 +2,6 @@ package cli
 
 import (
 	"encoding/json"
-	"io/ioutil"
 )
 
 // FlagParser represents a parser for parsing flag
@@ -51,9 +50,5 @@ func newJSONFileParser(ptr interface{}) FlagParser {
 }
 
 func (p JSONFileParser) Parse(s string) error {
-	data, err := ioutil.ReadFile(s)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(data, p.ptr)
+	return ReadJSONFromFile(s, p.ptr)
 }

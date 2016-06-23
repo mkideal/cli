@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -84,4 +85,18 @@ func Daemon(ctx *Context, successPrefix string) error {
 
 func DaemonResponse(resp string) {
 	fmt.Fprintln(os.Stderr, resp)
+}
+
+// ReadJSON reads data as a json structure into argv
+func ReadJSON(r io.Reader, argv interface{}) error {
+	return json.NewDecoder(r).Decode(argv)
+}
+
+// ReadJSONFromFile is similar to ReadJSONFromFile, but read from file
+func ReadJSONFromFile(filename string, argv interface{}) error {
+	file, err := os.Open(filename)
+	if err == nil {
+		err = ReadJSON(file, argv)
+	}
+	return err
 }
