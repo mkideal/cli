@@ -312,18 +312,19 @@ func parseToFoundFlag(flagSet *flagSet, fl *flag, strs []string, arg, next strin
 	if l == 1 {
 		if fl.isBoolean() {
 			flagSet.err = fl.set(arg, "true", clr)
-		} else {
+		} else if offset > 0 {
 			flagSet.err = fl.set(arg, next, clr)
 			retOffset = offset
+		} else {
+			flagSet.err = fmt.Errorf("missing argument")
 		}
 	} else if l == 2 {
 		flagSet.err = fl.set(arg, strs[1], clr)
 	} else {
-		flagSet.err = fmt.Errorf("too many(%d) value", l)
+		flagSet.err = fmt.Errorf("too many(%d) arguments", l)
 	}
 	if flagSet.err != nil {
-		name := clr.Bold(fl.name())
-		flagSet.err = fmt.Errorf("argument %s invalid: %v", name, flagSet.err)
+		flagSet.err = fmt.Errorf("option %s invalid: %v", clr.Bold(arg), flagSet.err)
 		return retOffset
 	}
 	flagSet.values[arg] = []string{fmt.Sprintf("%v", fl.value.Interface())}
