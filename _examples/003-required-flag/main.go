@@ -6,7 +6,7 @@ import (
 
 type argT struct {
 	cli.Helper
-	Id uint8 `cli:"*id" usage:"this is a required flag, note the *"`
+	Id uint8 `cli:"*id" usage:"this is a required parameter, note the *"`
 }
 
 func main() {

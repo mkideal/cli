@@ -173,7 +173,7 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 		names := append(fl.tag.shortNames, fl.tag.longNames...)
 		for i, name := range names {
 			if _, ok := flagSet.flagMap[name]; ok {
-				flagSet.err = fmt.Errorf("flag %s repeated", clr.Bold(name))
+				flagSet.err = fmt.Errorf("option %s repeated", clr.Bold(name))
 				return
 			}
 			flagSet.flagMap[name] = fl
@@ -242,7 +242,7 @@ func parseArgsToFlagSet(args []string, flagSet *flagSet, clr color.Color) {
 		// not found in flagMap
 		// it's an invalid flag if arg has prefix `--`
 		if strings.HasPrefix(arg, dashTwo) {
-			flagSet.err = fmt.Errorf("undefined flag %s", clr.Bold(arg))
+			flagSet.err = fmt.Errorf("undefined option %s", clr.Bold(arg))
 			return
 		}
 
@@ -298,7 +298,7 @@ func parseArgsToFlagSet(args []string, flagSet *flagSet, clr color.Color) {
 			if buff.Len() > 0 {
 				buff.WriteByte('\n')
 			}
-			fmt.Fprintf(buff, "required argument %s missing", clr.Bold(fl.name()))
+			fmt.Fprintf(buff, "required parameter %s missing", clr.Bold(fl.name()))
 		}
 	}
 	if buff.Len() > 0 && !flagSet.hasForce {
@@ -324,7 +324,7 @@ func parseToFoundFlag(flagSet *flagSet, fl *flag, strs []string, arg, next strin
 		flagSet.err = fmt.Errorf("too many(%d) arguments", l)
 	}
 	if flagSet.err != nil {
-		flagSet.err = fmt.Errorf("option %s invalid: %v", clr.Bold(arg), flagSet.err)
+		flagSet.err = fmt.Errorf("parameter %s invalid: %v", clr.Bold(arg), flagSet.err)
 		return retOffset
 	}
 	flagSet.values[arg] = []string{fmt.Sprintf("%v", fl.value.Interface())}
@@ -338,12 +338,12 @@ func parseFlagCharByChar(flagSet *flagSet, arg string, clr color.Color) {
 		tmp := dashOne + string([]byte{c})
 		fl, ok := flagSet.flagMap[tmp]
 		if !ok {
-			flagSet.err = fmt.Errorf("undefined flag %s", clr.Bold(tmp))
+			flagSet.err = fmt.Errorf("undefined option %s", clr.Bold(tmp))
 			return
 		}
 
 		if !fl.isBoolean() {
-			flagSet.err = fmt.Errorf("each fold flag should be boolean, but %s not", clr.Bold(tmp))
+			flagSet.err = fmt.Errorf("each fold option should be boolean, but %s not", clr.Bold(tmp))
 			return
 		}
 
