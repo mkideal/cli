@@ -23,50 +23,34 @@
 * Supports default value for flag, even expression about env variable(e.g. `dft:"$HOME/dev"`).
 * Supports editor like `git commit` command.(See example [21](http://www.mkideal.com/golang/cli-examples.html#example-21-editor) and [22](http://www.mkideal.com/golang/cli-examples.html#example-22-custom-editor))
 
-## Getting started
-
-```go
-package main
-
-import (
-	"github.com/mkideal/cli"
-)
-
-type argT struct {
-	cli.Helper
-	Name string `cli:"name" usage:"your name" dft:"world"`
-	Age  uint8  `cli:"a,age" usage:"your age" dft:"100"`
-}
-
-func main() {
-	cli.Run(&argT{}, func(ctx *cli.Context) error {
-		argv := ctx.Argv().(*argT)
-		ctx.String("Hello, %s! Your age is %d?\n", argv.Name, argv.Age)
-		return nil
-	})
-}
-```
-
-Type these in terminal
-```sh
-$> go build -o hello
-$> ./hello
-Hello, world! Your age is 100?
-$> ./hello --name=clipher -a 9
-Hello, clipher! Your age is 9?
-$> ./hello -h
-```
-
-Try
-```sh
-$> ./hello -a 256
-```
-
 ## API documentation
 
 See [**godoc**](https://godoc.org/github.com/mkideal/cli)
 
 ## Examples
+
+* [Example 1: Hello world](#example-1-hello)
+* [Example 2: How to use **flag**](#example-2-flag)
+* [Example 3: How to use **required** flag](#example-3-required-flag)
+* [Example 4: How to use **default** flag](#example-4-default-flag)
+* [Example 5: How to use **slice**](#example-5-slice)
+* [Example 6: How to use **map**](#example-6-map)
+* [Example 7: Usage of **force** flag](#example-7-force-flag)
+* [Example 8: Usage of **child command**](#example-8-child-command)
+* [Example 9: **Auto help**](#example-9-auto-help)
+* [Example 10: Usage of **Validator**](#example-10-usage-of-validator)
+* [Example 11: **Prompt** and **Password**](#example-11-prompt-and-password)
+* [Example 12: How to use **Decoder**](#example-12-decoder)
+* [Example 13: Builtin Decoder: **PidFile**](#example-13-pid-file)
+* [Example 14: Builtin Decoder: **Time** and **Duration**](#example-14-time-and-duration)
+* [Example 15: Builtin Decoder: **File**](#example-15-file)
+* [Example 16: **Parser**](#example-16-parser)
+* [Example 17: Builtin Parser: **JSONFileParser**](#example-17-json-file)
+* [Example 18: How to use **custom parser**](#example-18-custom-parser)
+* [Example 19: How to use **Hooks**](#example-19-hooks)
+* [Example 20: How to use **Daemon**](#example-20-daemon)
+* [Example 21: How to use **Editor**](#example-21-editor)
+* [Example 22: Custom **Editor**](#example-22-custom-editor)
 
 ### Example 1: Hello
 ```go
