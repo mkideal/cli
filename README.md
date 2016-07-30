@@ -53,6 +53,7 @@ See [**godoc**](https://godoc.org/github.com/mkideal/cli)
 * [Example 22: Custom **Editor**](#example-22-custom-editor)
 
 ### Example 1: Hello
+[back to **examples**](#examples)
 ```go
 // main.go
 // This is a HelloWorld-like example
@@ -83,6 +84,7 @@ Hello, Clipher!
 ```
 
 ### Example 2: Flag
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example show basic usage of flag
@@ -131,6 +133,8 @@ port=8080, x=true, y=true
 ```
 
 ### Example 3: Required flag
+[back to **examples**](#examples)
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example show how to use required flag
@@ -164,6 +168,7 @@ $ ./app --id=2
 ```
 
 ### Example 4: Default flag
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example show how to use default flag
@@ -208,6 +213,7 @@ $ BASE_PORT=8000 ./app --basic=3
 ```
 
 ### Example 5: Slice
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example show how to use slice as a flag
@@ -240,6 +246,7 @@ $ ./app -FAlice -FBob -F Charlie
 ```
 
 ### Example 6: Map
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example show how to use map as a flag
@@ -273,6 +280,7 @@ $ ./app -Dx=1 -D y=2
 ```
 
 ### Example 7: Force flag
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example show usage of force flag
@@ -312,6 +320,7 @@ v0.0.1
 ```
 
 ### Example 8: Child command
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example demonstrates usage of child command
@@ -415,6 +424,7 @@ Did you mean child?
 ```
 
 ### Example 9: Auto help
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example demonstrates cli.AutoHelper
@@ -453,6 +463,7 @@ Options:
 Try comment `AutoHelp` method and rerun it.
 
 ### Example 10: Usage of Validator
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example demonstrates how to utilize Validator
@@ -503,6 +514,7 @@ $ ./app --age 88 --gender female
 ```
 
 ### Example 11: Prompt and Password
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example introduce prompt and pw tag
@@ -537,6 +549,7 @@ username=hahaha, password=123456
 ```
 
 ### Example 12: Decoder
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example show how to use decoder
@@ -579,6 +592,7 @@ $ ./app -d a,b,c
 ```
 
 ### Example 13: Pid file
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example show how to use builtin Decoder: PidFile
@@ -610,6 +624,7 @@ func main() {
 ```
 
 ### Example 14: Time and Duration
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example show how to use builtin Decoder: Time and Duration
@@ -642,6 +657,7 @@ time=2016-01-02 03:05:00 +0800 CST, duration=10ms
 ```
 
 ### Example 15: File
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example show how to use builtin Decoder: File
@@ -678,6 +694,7 @@ $ rm test.txt
 ```
 
 ### Example 16: Parser
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example introduce Parser
@@ -731,6 +748,7 @@ $ ./app -c '{"A": "hello", "b": 22, "C": true}'
 ```
 
 ### Example 17: JSON file
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example show how to use builtin parser: jsonfile
@@ -774,6 +792,7 @@ $ rm test.json
 ```
 
 ### Example 18: Custom parser
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example demonstrates how to use custom parser
@@ -849,6 +868,7 @@ $ ./app --cfg xxx
 ```
 
 ### Example 19: Hooks
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example demonstrates how to use hooks
@@ -959,6 +979,7 @@ child1 command returns error
 ```
 
 ### Example 20: Daemon
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example demonstrates how to use `Daemon`
@@ -1032,6 +1053,7 @@ $ ps | grep daemon-app
 ```
 
 ### Example 21: Editor
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example demonstrates how to use `editor`. This similar to git commit
@@ -1065,6 +1087,7 @@ msg: hello, editor
 ```
 
 ### Example 22: Custom Editor
+[back to **examples**](#examples)
 ```go
 // main.go
 // This example demonstrates specific editor.
