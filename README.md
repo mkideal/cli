@@ -134,7 +134,6 @@ port=8080, x=true, y=true
 
 ### Example 3: Required flag
 [back to **examples**](#examples)
-[back to **examples**](#examples)
 ```go
 // main.go
 // This example show how to use required flag
