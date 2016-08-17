@@ -55,20 +55,29 @@ func newFlag(field reflect.StructField, value reflect.Value, tag *tagProperty, c
 }
 
 func (fl *flag) init(clr color.Color, dontSetValue bool) error {
-	isNumber := fl.isInteger() || fl.isFloat()
-	dft, err := parseExpression(fl.tag.dft, isNumber)
-	if err != nil {
-		return err
+	var (
+		isNumber  = fl.isInteger() || fl.isFloat()
+		isDecoder = fl.value.Type().Implements(reflect.TypeOf((*Decoder)(nil)).Elem())
+		dft       string
+		err       error
+	)
+	if !isDecoder && fl.value.CanAddr() {
+		isDecoder = fl.value.Addr().Type().Implements(reflect.TypeOf((*Decoder)(nil)).Elem())
 	}
-	if isNumber {
-		v, err := expr.Eval(dft, nil, nil)
+	if !isDecoder {
+		dft, err = parseExpression(fl.tag.dft, isNumber)
 		if err != nil {
 			return err
 		}
-		if fl.isInteger() {
-			dft = fmt.Sprintf("%d", int64(v))
-		} else if fl.isFloat() {
-			dft = fmt.Sprintf("%f", float64(v))
+		if isNumber {
+			v, err := expr.Eval(dft, nil, nil)
+			if err == nil {
+				if fl.isInteger() {
+					dft = fmt.Sprintf("%d", int64(v))
+				} else if fl.isFloat() {
+					dft = fmt.Sprintf("%f", float64(v))
+				}
+			}
 		}
 	}
 	if !dontSetValue && fl.tag.dft != "" && dft != "" {
@@ -252,6 +261,19 @@ func setWithProperType(fl *flag, typ reflect.Type, val reflect.Value, s string, 
 		return fl.tag.parserCreator(val.Interface()).Parse(s)
 	}
 
+	if val.CanInterface() {
+		var addrVal reflect.Value
+		if kind != reflect.Ptr && val.CanAddr() {
+			addrVal = val.Addr()
+		}
+		// try Decoder
+		if i := addrVal.Interface(); i != nil {
+			if decoder, ok := i.(Decoder); ok {
+				return decoder.Decode(s)
+			}
+		}
+	}
+
 	switch kind {
 	case reflect.Bool:
 		if v, err := getBool(s, clr); err == nil {
@@ -341,17 +363,6 @@ func setWithProperType(fl *flag, typ reflect.Type, val reflect.Value, s string, 
 		val.SetMapIndex(k.Elem(), v.Elem())
 
 	default:
-		if val.CanInterface() {
-			if kind != reflect.Ptr && val.CanAddr() {
-				val = val.Addr()
-			}
-			// try Decoder
-			if i := val.Interface(); i != nil {
-				if decoder, ok := i.(Decoder); ok {
-					return decoder.Decode(s)
-				}
-			}
-		}
 		return fmt.Errorf("unsupported type: %s", kind.String())
 	}
 	return nil
