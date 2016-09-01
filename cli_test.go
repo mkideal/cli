@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -13,19 +15,6 @@ import (
 )
 
 var donothing = func(*Context) error { return nil }
-
-func ExampleRun() {
-	type argT struct {
-		Flag string `cli:"f"`
-	}
-	RunWithArgs(new(argT), []string{"app", "-f=xxx"}, func(ctx *Context) error {
-		argv := ctx.Argv().(*argT)
-		ctx.String("flag: %s\n", argv.Flag)
-		return nil
-	})
-	// Output:
-	// flag: xxx
-}
 
 func TestTree(t *testing.T) {
 	cmd := &Command{Name: "cmd", Fn: donothing}
@@ -693,4 +682,48 @@ func TestIsSet(t *testing.T) {
 			return nil
 		})
 	}
+}
+
+func TestHelpCommand(t *testing.T) {
+	w := bytes.NewBufferString("")
+	root := &Command{Name: "root"}
+	help := HelpCommand("help command")
+	root.Register(help)
+	assert.Nil(t, root.RunWith([]string{"help"}, w, nil))
+	assert.Equal(t, w.String(), "Commands:\n\n  help   help command\n")
+	assert.Error(t, root.RunWith([]string{"help", "not-found"}, nil, nil))
+}
+
+func TestError(t *testing.T) {
+	assert.Equal(t, ExitError.Error(), "exit")
+	assert.Equal(t, throwCommandNotFound("cmd").Error(), "command cmd not found")
+	assert.Equal(t, throwMethodNotAllowed("POST").Error(), "method POST not allowed")
+	assert.Equal(t, throwRouterRepeat("R").Error(), "router R repeat")
+	clr := color.Color{}
+	clr.Disable()
+	assert.Equal(t, wrapErr(throwCommandNotFound("cmd"), "_end", clr).Error(), `ERR! command cmd not found_end`)
+
+	assert.Equal(t, argvError{isEmpty: true}.Error(), "argv list is empty")
+	assert.Equal(t, argvError{isOutOfRange: true}.Error(), "argv list out of range")
+	assert.Equal(t, argvError{ith: 1, msg: "ERROR MSG"}.Error(), "1th argv: ERROR MSG")
+}
+
+type customT struct {
+	K1 string
+	K2 int
+}
+
+func (t *customT) Decode(s string) error {
+	return json.Unmarshal([]byte(s), t)
+}
+
+func TestDecoder(t *testing.T) {
+	type argT struct {
+		D customT `cli:"d"`
+	}
+	v := new(argT)
+	clr := color.Color{}
+	flagSet := parseArgv([]string{`-d`, `{"k1": "string", "k2": 2}`}, v, clr)
+	assert.Nil(t, flagSet.err)
+	assert.Equal(t, v.D, customT{K1: "string", K2: 2})
 }
