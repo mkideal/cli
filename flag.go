@@ -21,7 +21,7 @@ type flag struct {
 	// isAssigned indicates whether the flag is set(contains default value)
 	isAssigned bool
 
-	// isAssigned indicates whether the flag is set
+	// isSet indicates whether the flag is set
 	isSet bool
 
 	// tag properties
@@ -203,6 +203,14 @@ func (fl *flag) isInteger() bool {
 	return false
 }
 
+func (fl *flag) isSlice() bool {
+	return fl.field.Type.Kind() == reflect.Slice
+}
+
+func (fl *flag) isMap() bool {
+	return fl.field.Type.Kind() == reflect.Map
+}
+
 func (fl *flag) isFloat() bool {
 	kind := fl.field.Type.Kind()
 	return kind == reflect.Float32 || kind == reflect.Float64
@@ -243,11 +251,42 @@ func (fl *flag) set(actualFlagName, s string, clr color.Color) error {
 	return setWithProperType(fl, fl.field.Type, fl.value, s, clr, false)
 }
 
+func (fl *flag) counterIncr(s string, clr color.Color) error {
+	return setWithProperType(fl, fl.field.Type, fl.value, s, clr, false)
+}
+
+func (fl *flag) isCounter() bool {
+	if decoder := tryGetDecoder(fl.value.Type().Kind(), fl.value); decoder != nil {
+		if _, ok := decoder.(CounterDecoder); ok {
+			return true
+		}
+	}
+	return false
+}
+
 func (fl *flag) setWithNoDelay(actualFlagName, s string, clr color.Color) error {
 	fl.isSet = true
 	fl.isAssigned = true
 	fl.actualFlagName = actualFlagName
 	return setWithProperType(fl, fl.field.Type, fl.value, s, clr, false)
+}
+
+func tryGetDecoder(kind reflect.Kind, val reflect.Value) Decoder {
+	if val.CanInterface() {
+		var addrVal = val
+		if kind != reflect.Ptr && val.CanAddr() {
+			addrVal = val.Addr()
+		}
+		// try Decoder
+		if addrVal.CanInterface() {
+			if i := addrVal.Interface(); i != nil {
+				if decoder, ok := i.(Decoder); ok {
+					return decoder
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func setWithProperType(fl *flag, typ reflect.Type, val reflect.Value, s string, clr color.Color, isSubField bool) error {
@@ -261,17 +300,8 @@ func setWithProperType(fl *flag, typ reflect.Type, val reflect.Value, s string, 
 		return fl.tag.parserCreator(val.Interface()).Parse(s)
 	}
 
-	if val.CanInterface() {
-		var addrVal reflect.Value
-		if kind != reflect.Ptr && val.CanAddr() {
-			addrVal = val.Addr()
-		}
-		// try Decoder
-		if i := addrVal.Interface(); i != nil {
-			if decoder, ok := i.(Decoder); ok {
-				return decoder.Decode(s)
-			}
-		}
+	if decoder := tryGetDecoder(kind, val); decoder != nil {
+		return decoder.Decode(s)
 	}
 
 	switch kind {

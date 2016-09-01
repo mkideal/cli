@@ -189,13 +189,20 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 
 func parseArgsToFlagSet(args []string, flagSet *flagSet, clr color.Color) {
 	size := len(args)
+	var sliceOrMapFlag *flag
 	for i := 0; i < size; i++ {
 		arg := args[i]
 		if !strings.HasPrefix(arg, dashOne) {
-			// append a free argument
-			flagSet.args = append(flagSet.args, arg)
+			if sliceOrMapFlag != nil {
+				sliceOrMapFlag.set("", arg, clr)
+			} else {
+				// append a free argument
+				flagSet.args = append(flagSet.args, arg)
+			}
 			continue
 		}
+		// reset sliceOrMapFlag
+		sliceOrMapFlag = nil
 
 		var (
 			next   = ""
@@ -236,6 +243,9 @@ func parseArgsToFlagSet(args []string, flagSet *flagSet, clr color.Color) {
 				return
 			}
 			i += retOffset
+			if fl.isSlice() || fl.isMap() {
+				sliceOrMapFlag = fl
+			}
 			continue
 		}
 
@@ -247,7 +257,10 @@ func parseArgsToFlagSet(args []string, flagSet *flagSet, clr color.Color) {
 		}
 
 		// try parse `-F<value>`
-		if parseSiameseFlag(flagSet, arg[0:2], args[i][2:], clr) {
+		if fl, ok := parseSiameseFlag(flagSet, arg[0:2], args[i][2:], clr); ok {
+			if fl.isSlice() || fl.isMap() {
+				sliceOrMapFlag = fl
+			}
 			continue
 		} else if flagSet.err != nil {
 			return
@@ -312,6 +325,8 @@ func parseToFoundFlag(flagSet *flagSet, fl *flag, strs []string, arg, next strin
 	if l == 1 {
 		if fl.isBoolean() {
 			flagSet.err = fl.set(arg, "true", clr)
+		} else if fl.isCounter() {
+			fl.counterIncr("", clr)
 		} else if offset > 0 {
 			flagSet.err = fl.set(arg, next, clr)
 			retOffset = offset
@@ -342,24 +357,29 @@ func parseFlagCharByChar(flagSet *flagSet, arg string, clr color.Color) {
 			return
 		}
 
-		if !fl.isBoolean() {
+		if fl.isBoolean() {
+			fl.set(tmp, "true", clr)
+			flagSet.values[tmp] = []string{"true"}
+		} else if fl.isCounter() {
+			fl.counterIncr("", clr)
+		} else {
 			flagSet.err = fmt.Errorf("each fold option should be boolean, but %s not", clr.Bold(tmp))
 			return
 		}
-
-		fl.set(tmp, "true", clr)
-		flagSet.values[tmp] = []string{"true"}
 	}
 }
 
-func parseSiameseFlag(flagSet *flagSet, firstHalf, latterHalf string, clr color.Color) bool {
+func parseSiameseFlag(flagSet *flagSet, firstHalf, latterHalf string, clr color.Color) (*flag, bool) {
 	// NOTE: fl must be not a boolean
 	key, val := firstHalf, latterHalf
 	if fl, ok := flagSet.flagMap[key]; ok && !fl.isBoolean() {
-		if flagSet.err = fl.set(key, val, clr); flagSet.err != nil {
-			return false
+		if fl.isCounter() {
+			return nil, false
 		}
-		return true
+		if flagSet.err = fl.set(key, val, clr); flagSet.err != nil {
+			return fl, false
+		}
+		return fl, true
 	}
-	return false
+	return nil, false
 }
