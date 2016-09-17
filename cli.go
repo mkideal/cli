@@ -331,7 +331,8 @@ func parseToFoundFlag(flagSet *flagSet, fl *flag, strs []string, arg, next strin
 			flagSet.err = fl.set(arg, next, clr)
 			retOffset = offset
 		} else {
-			flagSet.err = fmt.Errorf("missing argument")
+			//flagSet.err = fmt.Errorf("missing argument")
+			flagSet.err = fl.set(arg, "", clr)
 		}
 	} else if l == 2 {
 		flagSet.err = fl.set(arg, strs[1], clr)
