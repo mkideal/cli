@@ -72,9 +72,9 @@ func (fl *flag) init(clr color.Color, dontSetValue bool) error {
 		v, err := expr.Eval(dft, nil, nil)
 		if err == nil {
 			if fl.isInteger() {
-				dft = fmt.Sprintf("%d", int64(v))
+				dft = fmt.Sprintf("%d", v.Int())
 			} else if fl.isFloat() {
-				dft = fmt.Sprintf("%f", float64(v))
+				dft = fmt.Sprintf("%f", v.Float())
 			}
 		}
 	}
