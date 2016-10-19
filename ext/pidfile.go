@@ -1,7 +1,7 @@
 package ext
 
 import (
-	pidpkg "github.com/mkideal/pkg/pid"
+	pidpkg "github.com/mkideal/pkg/osutil/pid"
 )
 
 // PidFile
