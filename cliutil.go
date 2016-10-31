@@ -96,6 +96,7 @@ func ReadJSON(r io.Reader, argv interface{}) error {
 func ReadJSONFromFile(filename string, argv interface{}) error {
 	file, err := os.Open(filename)
 	if err == nil {
+		defer file.Close()
 		err = ReadJSON(file, argv)
 	}
 	return err

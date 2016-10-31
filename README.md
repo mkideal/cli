@@ -1,59 +1,63 @@
-# Command line interface 
-[![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE)
-[![Travis branch](https://img.shields.io/travis/mkideal/cli/master.svg)](https://travis-ci.org/mkideal/cli)
-[![Coverage Status](https://coveralls.io/repos/github/mkideal/cli/badge.svg?branch=master)](https://coveralls.io/github/mkideal/cli?branch=master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/mkideal/cli)](https://goreportcard.com/report/github.com/mkideal/cli)
-[![GoDoc](https://godoc.org/github.com/mkideal/cli?status.svg)](https://godoc.org/github.com/mkideal/cli)
+Command line interface
+======================
 
-## Screenshot
+[![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE) [![Travis branch](https://img.shields.io/travis/mkideal/cli/master.svg)](https://travis-ci.org/mkideal/cli) [![Coverage Status](https://coveralls.io/repos/github/mkideal/cli/badge.svg?branch=master)](https://coveralls.io/github/mkideal/cli?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/mkideal/cli)](https://goreportcard.com/report/github.com/mkideal/cli) [![GoDoc](https://godoc.org/github.com/mkideal/cli?status.svg)](https://godoc.org/github.com/mkideal/cli)
+
+Screenshot
+----------
 
 ![screenshot2](http://www.mkideal.com/images/screenshot2.png)
 
-## Key features
+Key features
+------------
 
-* Lightweight and easy to use.
-* Defines flag by tag, e.g. flag name(short or/and long), description, default value, password, prompt and so on.
-* Type safety.
-* Output looks very nice.
-* Supports custom Validator.
-* Supports slice and map as a flag.
-* Supports any type as a flag field which implements cli.Decoder interface.
-* Supports any type as a flag field which uses FlagParser.
-* Suggestions for command.(e.g. `hl` => `help`, "veron" => "version").
-* Supports default value for flag, even expression about env variable(e.g. `dft:"$HOME/dev"`).
-* Supports editor like `git commit` command.(See example [21](http://www.mkideal.com/golang/cli-examples.html#example-21-editor) and [22](http://www.mkideal.com/golang/cli-examples.html#example-22-custom-editor))
+-	Lightweight and easy to use.
+-	Defines flag by tag, e.g. flag name(short or/and long), description, default value, password, prompt and so on.
+-	Type safety.
+-	Output looks very nice.
+-	Supports custom Validator.
+-	Supports slice and map as a flag.
+-	Supports any type as a flag field which implements cli.Decoder interface.
+-	Supports any type as a flag field which uses FlagParser.
+-	Suggestions for command.(e.g. `hl` => `help`, "veron" => "version").
+-	Supports default value for flag, even expression about env variable(e.g. `dft:"$HOME/dev"`).
+-	Supports editor like `git commit` command.(See example [21](http://www.mkideal.com/golang/cli-examples.html#example-21-editor) and [22](http://www.mkideal.com/golang/cli-examples.html#example-22-custom-editor)\)
 
-## API documentation
+API documentation
+-----------------
 
 See [**godoc**](https://godoc.org/github.com/mkideal/cli)
 
-## Examples
+Examples
+--------
 
-* [Example 1: Hello world](#example-1-hello)
-* [Example 2: How to use **flag**](#example-2-flag)
-* [Example 3: How to use **required** flag](#example-3-required-flag)
-* [Example 4: How to use **default** flag](#example-4-default-flag)
-* [Example 5: How to use **slice**](#example-5-slice)
-* [Example 6: How to use **map**](#example-6-map)
-* [Example 7: Usage of **force** flag](#example-7-force-flag)
-* [Example 8: Usage of **child command**](#example-8-child-command)
-* [Example 9: **Auto help**](#example-9-auto-help)
-* [Example 10: Usage of **Validator**](#example-10-usage-of-validator)
-* [Example 11: **Prompt** and **Password**](#example-11-prompt-and-password)
-* [Example 12: How to use **Decoder**](#example-12-decoder)
-* [Example 13: Builtin Decoder: **PidFile**](#example-13-pid-file)
-* [Example 14: Builtin Decoder: **Time** and **Duration**](#example-14-time-and-duration)
-* [Example 15: Builtin Decoder: **File**](#example-15-file)
-* [Example 16: **Parser**](#example-16-parser)
-* [Example 17: Builtin Parser: **JSONFileParser**](#example-17-json-file)
-* [Example 18: How to use **custom parser**](#example-18-custom-parser)
-* [Example 19: How to use **Hooks**](#example-19-hooks)
-* [Example 20: How to use **Daemon**](#example-20-daemon)
-* [Example 21: How to use **Editor**](#example-21-editor)
-* [Example 22: Custom **Editor**](#example-22-custom-editor)
+-	[Example 1: Hello world](#example-1-hello)
+-	[Example 2: How to use **flag**](#example-2-flag)
+-	[Example 3: How to use **required** flag](#example-3-required-flag)
+-	[Example 4: How to use **default** flag](#example-4-default-flag)
+-	[Example 5: How to use **slice**](#example-5-slice)
+-	[Example 6: How to use **map**](#example-6-map)
+-	[Example 7: Usage of **force** flag](#example-7-force-flag)
+-	[Example 8: Usage of **child command**](#example-8-child-command)
+-	[Example 9: **Auto help**](#example-9-auto-help)
+-	[Example 10: Usage of **Validator**](#example-10-usage-of-validator)
+-	[Example 11: **Prompt** and **Password**](#example-11-prompt-and-password)
+-	[Example 12: How to use **Decoder**](#example-12-decoder)
+-	[Example 13: Builtin Decoder: **PidFile**](#example-13-pid-file)
+-	[Example 14: Builtin Decoder: **Time** and **Duration**](#example-14-time-and-duration)
+-	[Example 15: Builtin Decoder: **File**](#example-15-file)
+-	[Example 16: **Parser**](#example-16-parser)
+-	[Example 17: Builtin Parser: **JSONFileParser**](#example-17-json-file)
+-	[Example 18: How to use **custom parser**](#example-18-custom-parser)
+-	[Example 19: How to use **Hooks**](#example-19-hooks)
+-	[Example 20: How to use **Daemon**](#example-20-daemon)
+-	[Example 21: How to use **Editor**](#example-21-editor)
+-	[Example 22: Custom **Editor**](#example-22-custom-editor)
 
 ### Example 1: Hello
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This is a HelloWorld-like example
@@ -84,7 +88,9 @@ Hello, Clipher!
 ```
 
 ### Example 2: Flag
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example show basic usage of flag
@@ -133,7 +139,9 @@ port=8080, x=true, y=true
 ```
 
 ### Example 3: Required flag
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example show how to use required flag
@@ -146,7 +154,7 @@ import (
 
 type argT struct {
 	cli.Helper
-	Id  uint8  `cli:"*id" usage:"this is a required flag, note the *"`
+	Id uint8 `cli:"*id" usage:"this is a required flag, note the *"`
 }
 
 func main() {
@@ -167,7 +175,9 @@ $ ./app --id=2
 ```
 
 ### Example 4: Default flag
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example show how to use default flag
@@ -212,7 +222,9 @@ $ BASE_PORT=8000 ./app --basic=3
 ```
 
 ### Example 5: Slice
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example show how to use slice as a flag
@@ -245,7 +257,9 @@ $ ./app -FAlice -FBob -F Charlie
 ```
 
 ### Example 6: Map
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example show how to use map as a flag
@@ -279,7 +293,9 @@ $ ./app -Dx=1 -D y=2
 ```
 
 ### Example 7: Force flag
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example show usage of force flag
@@ -319,7 +335,9 @@ v0.0.1
 ```
 
 ### Example 8: Child command
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example demonstrates usage of child command
@@ -423,7 +441,9 @@ Did you mean child?
 ```
 
 ### Example 9: Auto help
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example demonstrates cli.AutoHelper
@@ -462,7 +482,9 @@ Options:
 Try comment `AutoHelp` method and rerun it.
 
 ### Example 10: Usage of Validator
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example demonstrates how to utilize Validator
@@ -513,7 +535,9 @@ $ ./app --age 88 --gender female
 ```
 
 ### Example 11: Prompt and Password
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example introduce prompt and pw tag
@@ -548,7 +572,9 @@ username=hahaha, password=123456
 ```
 
 ### Example 12: Decoder
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example show how to use decoder
@@ -591,7 +617,9 @@ $ ./app -d a,b,c
 ```
 
 ### Example 13: Pid file
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example show how to use builtin Decoder: PidFile
@@ -623,7 +651,9 @@ func main() {
 ```
 
 ### Example 14: Time and Duration
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example show how to use builtin Decoder: Time and Duration
@@ -656,7 +686,9 @@ time=2016-01-02 03:05:00 +0800 CST, duration=10ms
 ```
 
 ### Example 15: File
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example show how to use builtin Decoder: File
@@ -693,7 +725,9 @@ $ rm test.txt
 ```
 
 ### Example 16: Parser
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example introduce Parser
@@ -747,7 +781,9 @@ $ ./app -c '{"A": "hello", "b": 22, "C": true}'
 ```
 
 ### Example 17: JSON file
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example show how to use builtin parser: jsonfile
@@ -791,7 +827,9 @@ $ rm test.json
 ```
 
 ### Example 18: Custom parser
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example demonstrates how to use custom parser
@@ -867,7 +905,9 @@ $ ./app --cfg xxx
 ```
 
 ### Example 19: Hooks
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example demonstrates how to use hooks
@@ -978,7 +1018,9 @@ child1 command returns error
 ```
 
 ### Example 20: Daemon
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example demonstrates how to use `Daemon`
@@ -1052,7 +1094,9 @@ $ ps | grep daemon-app
 ```
 
 ### Example 21: Editor
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example demonstrates how to use `editor`. This similar to git commit
@@ -1086,7 +1130,9 @@ msg: hello, editor
 ```
 
 ### Example 22: Custom Editor
+
 [back to **examples**](#examples)
+
 ```go
 // main.go
 // This example demonstrates specific editor.
