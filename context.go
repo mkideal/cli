@@ -208,7 +208,7 @@ func (ctx *Context) String(format string, args ...interface{}) *Context {
 func (ctx *Context) JSON(obj interface{}) *Context {
 	data, err := json.Marshal(obj)
 	if err == nil {
-		fmt.Fprintf(ctx.Writer(), string(data))
+		fmt.Fprint(ctx.Writer(), string(data))
 	}
 	return ctx
 }
@@ -222,7 +222,7 @@ func (ctx *Context) JSONln(obj interface{}) *Context {
 func (ctx *Context) JSONIndent(obj interface{}, prefix, indent string) *Context {
 	data, err := json.MarshalIndent(obj, prefix, indent)
 	if err == nil {
-		fmt.Fprintf(ctx.Writer(), string(data))
+		fmt.Fprint(ctx.Writer(), string(data))
 	}
 	return ctx
 }
