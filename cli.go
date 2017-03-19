@@ -189,20 +189,13 @@ func initFlagSet(typ reflect.Type, val reflect.Value, flagSet *flagSet, clr colo
 
 func parseArgsToFlagSet(args []string, flagSet *flagSet, clr color.Color) {
 	size := len(args)
-	var sliceOrMapFlag *flag
 	for i := 0; i < size; i++ {
 		arg := args[i]
 		if !strings.HasPrefix(arg, dashOne) {
-			if sliceOrMapFlag != nil {
-				sliceOrMapFlag.set("", arg, clr)
-			} else {
-				// append a free argument
-				flagSet.args = append(flagSet.args, arg)
-			}
+			// append a free argument
+			flagSet.args = append(flagSet.args, arg)
 			continue
 		}
-		// reset sliceOrMapFlag
-		sliceOrMapFlag = nil
 
 		var (
 			next   = ""
@@ -243,9 +236,6 @@ func parseArgsToFlagSet(args []string, flagSet *flagSet, clr color.Color) {
 				return
 			}
 			i += retOffset
-			if fl.isSlice() || fl.isMap() {
-				sliceOrMapFlag = fl
-			}
 			continue
 		}
 
@@ -257,10 +247,7 @@ func parseArgsToFlagSet(args []string, flagSet *flagSet, clr color.Color) {
 		}
 
 		// try parse `-F<value>`
-		if fl, ok := parseSiameseFlag(flagSet, arg[0:2], args[i][2:], clr); ok {
-			if fl.isSlice() || fl.isMap() {
-				sliceOrMapFlag = fl
-			}
+		if _, ok := parseSiameseFlag(flagSet, arg[0:2], args[i][2:], clr); ok {
 			continue
 		} else if flagSet.err != nil {
 			return
