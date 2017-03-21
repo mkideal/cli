@@ -48,8 +48,12 @@ func newFlag(field reflect.StructField, value reflect.Value, tag *tagProperty, c
 	if fl.isPtr() && fl.value.IsNil() {
 		fl.value.Set(reflect.New(fl.field.Type.Elem()))
 	}
+	isSliceDecoder := fl.value.Type().Implements(reflect.TypeOf((*SliceDecoder)(nil)).Elem())
+	if !isSliceDecoder && fl.value.CanAddr() {
+		isSliceDecoder = fl.value.Addr().Type().Implements(reflect.TypeOf((*SliceDecoder)(nil)).Elem())
+	}
 	fl.isNeedDelaySet = fl.tag.parserCreator != nil ||
-		(fl.field.Type.Kind() != reflect.Slice && fl.field.Type.Kind() != reflect.Map)
+		(fl.field.Type.Kind() != reflect.Slice && fl.field.Type.Kind() != reflect.Map && !isSliceDecoder)
 	err = fl.init(clr, dontSetValue)
 	return
 }

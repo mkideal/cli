@@ -4,6 +4,11 @@ type Decoder interface {
 	Decode(s string) error
 }
 
+type SliceDecoder interface {
+	Decoder
+	DecodeSlice()
+}
+
 type Encoder interface {
 	Encode() string
 }
