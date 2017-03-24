@@ -6,7 +6,7 @@ import (
 
 // Helper is builtin Help flag
 type Helper struct {
-	Help bool `cli:"!h,help" usage:"display help information"`
+	Help bool `cli:"!h,help" usage:"display help information" json:"-"`
 }
 
 // AutoHelp implements AutoHelper interface

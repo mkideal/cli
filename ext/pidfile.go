@@ -5,23 +5,21 @@ import (
 )
 
 // PidFile
-type PidFile struct {
-	filename string
-}
+type PidFile string
 
 func (pid PidFile) String() string {
-	return pid.filename
+	return string(pid)
 }
 
 func (pid *PidFile) Decode(s string) error {
-	pid.filename = s
+	*pid = PidFile(s)
 	return nil
 }
 
-func (pid *PidFile) New() error {
-	return pidpkg.New(pid.filename)
+func (pid PidFile) New() error {
+	return pidpkg.New(string(pid))
 }
 
 func (pid PidFile) Remove() error {
-	return pidpkg.Remove(pid.filename)
+	return pidpkg.Remove(string(pid))
 }
