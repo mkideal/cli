@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -153,6 +155,12 @@ func (r *Reader) Decode(s string) error {
 	if s == "" {
 		r.reader = os.Stdin
 		r.filename = os.Stdin.Name()
+	} else if regexp.MustCompile(`(?i)^http`).MatchString(s) {
+		response, err := http.Get(s)
+		if err != nil {
+			return err
+		}
+		r.reader = response.Body
 	} else {
 		r.filename = s
 		file, err := os.Open(s)
