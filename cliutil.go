@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/labstack/gommon/color"
@@ -98,6 +99,13 @@ func ReadJSONFromFile(filename string, argv interface{}) error {
 	if err == nil {
 		defer file.Close()
 		err = ReadJSON(file, argv)
+	} else {
+		// allow self-config .json files to go with the executable file, #40
+		file, err = os.Open(filepath.Dir(os.Args[0]) + "/" + filename)
+		if err == nil {
+			defer file.Close()
+			err = ReadJSON(file, argv)
+		}
 	}
 	return err
 }
