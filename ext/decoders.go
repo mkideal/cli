@@ -156,6 +156,7 @@ func (r *Reader) Decode(s string) error {
 		r.reader = os.Stdin
 		r.filename = os.Stdin.Name()
 	} else if regexp.MustCompile(`(?i)^http`).MatchString(s) {
+		r.filename = s
 		response, err := http.Get(s)
 		if err != nil {
 			return err
