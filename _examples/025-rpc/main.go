@@ -22,6 +22,7 @@ func main() {
 		),
 	).Run(os.Args[1:]); err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	}
 }
 

@@ -11,12 +11,12 @@ import (
 )
 
 // Run runs a single command app
-func Run(argv interface{}, fn CommandFunc, descs ...string) {
-	RunWithArgs(argv, os.Args, fn, descs...)
+func Run(argv interface{}, fn CommandFunc, descs ...string) int {
+	return RunWithArgs(argv, os.Args, fn, descs...)
 }
 
 // RunWithArgs is similar to Run, but with args instead of os.Args
-func RunWithArgs(argv interface{}, args []string, fn CommandFunc, descs ...string) {
+func RunWithArgs(argv interface{}, args []string, fn CommandFunc, descs ...string) int {
 	desc := ""
 	if len(descs) > 0 {
 		desc = strings.Join(descs, "\n")
@@ -30,7 +30,9 @@ func RunWithArgs(argv interface{}, args []string, fn CommandFunc, descs ...strin
 	}).Run(args[1:])
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
+		return 1
 	}
+	return 0
 }
 
 // Root registers forest for root and returns root

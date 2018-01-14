@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 	clix "github.com/mkideal/cli/ext"
 )
@@ -11,9 +13,9 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("time=%v, duration=%v\n", argv.Time, argv.Duration)
 		return nil
-	})
+	}))
 }

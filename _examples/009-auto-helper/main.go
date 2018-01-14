@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -15,7 +17,7 @@ func (argv *argT) AutoHelp() bool {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		return nil
-	})
+	}))
 }

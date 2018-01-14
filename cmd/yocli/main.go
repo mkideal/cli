@@ -118,7 +118,7 @@ var {{.Name}} = &cli.Command{
 `
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		cli.SetUsageStyle(cli.ManualStyle)
 		argv := ctx.Argv().(*argT)
 		if argv.Help {
@@ -133,5 +133,5 @@ func main() {
 %s:
 	clier hello
 	clier -f -s "balabalabala" hello
-	clier -p balabala hello`, color.Bold("clier"), color.Bold("Usage"), color.Bold("Examples")))
+	clier -p balabala hello`, color.Bold("clier"), color.Bold("Usage"), color.Bold("Examples"))))
 }
