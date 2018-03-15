@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"os"
 
 	"github.com/mkideal/cli"
 	clix "github.com/mkideal/cli/ext"
@@ -12,7 +13,7 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		argv.Writer.Close()
 		n, err := argv.Writer.Write([]byte("hello,writer\n"))
@@ -33,5 +34,5 @@ func main() {
 		ctx.String("writes %d bytes to bytes.Writer: %s\n", n, w.String())
 		ctx.String("filename: %s, isStdout: %v\n", argv.Writer.Name(), argv.Writer.IsStdout())
 		return nil
-	})
+	}))
 }

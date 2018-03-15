@@ -65,6 +65,8 @@ Examples
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -73,11 +75,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("Hello, %s!\n", argv.Name)
 		return nil
-	})
+	}))
 }
 ```
 
@@ -98,6 +100,8 @@ Hello, Clipher!
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -109,11 +113,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("port=%d, x=%v, y=%v\n", argv.Port, argv.X, argv.Y)
 		return nil
-	})
+	}))
 }
 ```
 
@@ -149,6 +153,8 @@ port=8080, x=true, y=true
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -158,11 +164,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("%d\n", argv.Id)
 		return nil
-	})
+	}))
 }
 ```
 
@@ -185,6 +191,8 @@ $ ./app --id=2
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -197,11 +205,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("%d, %s, %d, %s\n", argv.Basic, argv.Env, argv.Expr, argv.DevDir)
 		return nil
-	})
+	}))
 }
 ```
 
@@ -232,6 +240,8 @@ $ BASE_PORT=8000 ./app --basic=3
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -241,10 +251,10 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		ctx.JSONln(ctx.Argv())
 		return nil
-	})
+	}))
 }
 ```
 
@@ -267,6 +277,8 @@ $ ./app -FAlice -FBob -F Charlie
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -275,10 +287,10 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		ctx.JSONln(ctx.Argv())
 		return nil
-	})
+	}))
 }
 ```
 
@@ -305,6 +317,8 @@ $ ./app -Dx=1 -D y=2
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -314,13 +328,13 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		if argv.Version {
 			ctx.String("v0.0.1\n")
 		}
 		return nil
-	})
+	}))
 }
 ```
 
@@ -451,6 +465,8 @@ Did you mean child?
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -465,9 +481,9 @@ func (argv *argT) AutoHelp() bool {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		return nil
-	})
+	}))
 }
 ```
 
@@ -493,6 +509,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/mkideal/cli"
 )
@@ -515,10 +532,10 @@ func (argv *argT) Validate(ctx *cli.Context) error {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		ctx.JSONln(ctx.Argv())
 		return nil
-	})
+	}))
 }
 ```
 
@@ -545,6 +562,8 @@ $ ./app --age 88 --gender female
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -555,11 +574,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("username=%s, password=%s\n", argv.Username, argv.Password)
 		return nil
-	})
+	}))
 }
 ```
 
@@ -582,6 +601,7 @@ username=hahaha, password=123456
 package main
 
 import (
+	"os"
 	"strings"
 
 	"github.com/mkideal/cli"
@@ -602,11 +622,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.JSONln(argv.Example.list)
 		return nil
-	})
+	}))
 }
 ```
 
@@ -627,6 +647,8 @@ $ ./app -d a,b,c
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 	clix "github.com/mkideal/cli/ext"
 )
@@ -637,7 +659,7 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 
 		if err := argv.PidFile.New(); err != nil {
@@ -646,7 +668,7 @@ func main() {
 		defer argv.PidFile.Remove()
 
 		return nil
-	})
+	}))
 }
 ```
 
@@ -661,6 +683,8 @@ func main() {
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 	clix "github.com/mkideal/cli/ext"
 )
@@ -671,11 +695,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("time=%v, duration=%v\n", argv.Time, argv.Duration)
 		return nil
-	})
+	}))
 }
 ```
 
@@ -696,6 +720,8 @@ time=2016-01-02 03:05:00 +0800 CST, duration=10ms
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 	clix "github.com/mkideal/cli/ext"
 )
@@ -705,11 +731,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String(argv.Content.String())
 		return nil
-	})
+	}))
 }
 ```
 
@@ -742,6 +768,8 @@ $ rm test.txt
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -756,11 +784,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.JSONIndentln(argv.JSON, "", "    ")
 		return nil
-	})
+	}))
 }
 ```
 
@@ -792,6 +820,8 @@ $ ./app -c '{"A": "hello", "b": 22, "C": true}'
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -806,11 +836,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.JSONIndentln(argv.JSON, "", "    ")
 		return nil
-	})
+	}))
 }
 ```
 
@@ -837,6 +867,7 @@ $ rm test.json
 package main
 
 import (
+	"os"
 	"reflect"
 
 	"github.com/mkideal/cli"
@@ -888,11 +919,11 @@ func main() {
 	// register parser factory function
 	cli.RegisterFlagParser("myparser", newMyParser)
 
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("%v\n", argv.Cfg)
 		return nil
-	})
+	}))
 }
 ```
 
@@ -1048,6 +1079,7 @@ func main() {
 		cli.Tree(daemon),
 	).Run(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
 
@@ -1104,6 +1136,8 @@ $ ps | grep daemon-app
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -1113,11 +1147,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("msg: %s", argv.Msg)
 		return nil
-	})
+	}))
 }
 ```
 
@@ -1157,11 +1191,11 @@ func main() {
 		}
 		return cli.DefaultEditor, nil
 	}
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("msg: %s", argv.Msg)
 		return nil
-	})
+	}))
 }
 ```
 

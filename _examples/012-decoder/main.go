@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"strings"
 
 	"github.com/mkideal/cli"
@@ -21,9 +22,9 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.JSONln(argv.Example.list)
 		return nil
-	})
+	}))
 }

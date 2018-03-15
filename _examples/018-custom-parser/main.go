@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"reflect"
 
 	"github.com/mkideal/cli"
@@ -52,9 +53,9 @@ func main() {
 	// register parser factory function
 	cli.RegisterFlagParser("myparser", newMyParser)
 
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("%v\n", argv.Cfg)
 		return nil
-	})
+	}))
 }

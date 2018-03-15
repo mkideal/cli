@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/mkideal/cli"
@@ -13,7 +14,7 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		data, err := ioutil.ReadAll(argv.Reader)
 		argv.Reader.Close()
@@ -32,5 +33,5 @@ func main() {
 		ctx.String("reade from reader: %s\n", string(data))
 		ctx.String("filename: %s, isStdin=%v\n", argv.Reader.Name(), argv.Reader.IsStdin())
 		return nil
-	})
+	}))
 }
