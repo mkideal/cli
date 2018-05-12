@@ -99,6 +99,8 @@ type UsageStyle int32
 const (
 	// NormalStyle : left-right
 	NormalStyle UsageStyle = iota
+	// DenseNormalStyle : left-right, too
+	DenseNormalStyle
 	// ManualStyle : up-down
 	ManualStyle
 	// DenseManualStyle : up-down, too
@@ -144,10 +146,10 @@ func (fs flagSlice) String(clr color.Color) string {
 			lenLong = l
 		}
 		lenDft := 0
-		if tag.dft != "" {
+		if defaultStyle == NormalStyle && tag.dft != "" {
 			lenDft = len(tag.dft) + 3 // 3=len("[=]")
+			l += lenDft
 		}
-		l += lenDft
 		if tag.name != "" {
 			l += len(tag.name) + 1 // 1=len("=")
 		}
@@ -167,8 +169,12 @@ func (fs flagSlice) String(clr color.Color) string {
 			nameStr     = ""
 			usagePrefix = " "
 		)
+		spaceSize, lenDft := lenNameAndDefaultAndLong, 0
+
 		if tag.dft != "" {
 			defaultStr = fmt.Sprintf("[=%s]", tag.dft)
+			lenDft = len(defaultStr)
+			defaultStr = clr.Grey(defaultStr)
 		}
 		if tag.name != "" {
 			nameStr = "=" + tag.name
@@ -178,12 +184,15 @@ func (fs flagSlice) String(clr color.Color) string {
 		}
 		usage := usagePrefix + tag.usage
 
-		spaceSize := lenNameAndDefaultAndLong
-		spaceSize -= len(nameStr) + len(defaultStr) + len(longStr)
-
-		if defaultStr != "" {
-			defaultStr = clr.Grey(defaultStr)
+		// move defaultStr to the end when in DenseNormalStyle
+		if defaultStyle == DenseNormalStyle {
+			usage += " " + defaultStr
+			defaultStr = ""
+			lenDft = 0
 		}
+
+		spaceSize -= len(nameStr) + lenDft + len(longStr)
+
 		if nameStr != "" {
 			nameStr = "=" + clr.Bold(tag.name)
 		}
