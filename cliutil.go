@@ -100,8 +100,12 @@ func ReadJSONFromFile(filename string, argv interface{}) error {
 		defer file.Close()
 		err = ReadJSON(file, argv)
 	} else {
+		ex, e := os.Executable()
+		if e != nil {
+			return e
+		}
 		// allow self-config .json files to go with the executable file, #40
-		file, err = os.Open(filepath.Dir(os.Args[0]) + "/" + filename)
+		file, err = os.Open(filepath.Dir(ex) + string(filepath.Separator) + filename)
 		if err == nil {
 			defer file.Close()
 			err = ReadJSON(file, argv)
