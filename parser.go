@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/json"
+	"net/url"
 )
 
 // FlagParser represents a parser for parsing flag
@@ -25,6 +26,7 @@ func RegisterFlagParser(name string, creator FlagParserCreator) {
 func init() {
 	RegisterFlagParser("json", newJSONParser)
 	RegisterFlagParser("jsonfile", newJSONFileParser)
+	RegisterFlagParser("url", newURLParser)
 }
 
 // JSON parser
@@ -51,4 +53,22 @@ func newJSONFileParser(ptr interface{}) FlagParser {
 
 func (p JSONFileParser) Parse(s string) error {
 	return ReadJSONFromFile(s, p.ptr)
+}
+
+// URL parser
+type URLParser struct {
+	ptr *url.URL
+}
+
+func newURLParser(ptr interface{}) FlagParser {
+	return &URLParser{ptr: ptr.(*url.URL)}
+}
+
+func (p *URLParser) Parse(s string) error {
+	u, err := url.Parse(s)
+	if err != nil {
+		return err
+	}
+	*p.ptr = *u
+	return nil
 }
