@@ -3,6 +3,9 @@ CHANGELOG
 
 # unreleased
 
+# v0.0.2 (2018-08-11)
+
+* Fix: Fix some bugs.
 * Del: Remove extra package `now`.
 * Add: Adds `UsageFn` for customizing usage.
 * Mod: Replaces `NeedArgs` with `NumArg`.
