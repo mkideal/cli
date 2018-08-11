@@ -6,7 +6,7 @@ Command line interface
 Screenshot
 ----------
 
-![screenshot2](http://www.mkideal.com/images/screenshot2.png)
+![screenshot2](http://www.mkideal.com/assets/images/cli/screenshot.png)
 
 Key features
 ------------
