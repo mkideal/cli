@@ -47,17 +47,29 @@ var sub = &cli.Command{
 	Desc: "subcommand",
 	Argv: func() interface{} { return new(subT) },
 	Fn: func(ctx *cli.Context) error {
-		ctx.JSON(ctx.RootArgv())
-		ctx.JSON(ctx.Argv())
-		ctx.String("\n")
+		ctx.JSONln(ctx.RootArgv())
+		ctx.JSONln(ctx.Argv())
 
 		var argv = &subT{}
 		var parentArgv = &rootT{}
 		if err := ctx.GetArgvList(argv, parentArgv); err != nil {
 			return err
 		}
-		ctx.JSON(parentArgv)
-		ctx.JSON(argv)
+		ctx.JSONln(parentArgv)
+		ctx.JSONln(argv)
+
+		argv = &subT{}
+		if err := ctx.GetArgvAt(argv, 0); err != nil {
+			return err
+		}
+		ctx.JSONln(argv)
+
+		parentArgv = &rootT{}
+		if err := ctx.GetArgvAt(parentArgv, 1); err != nil {
+			return err
+		}
+		ctx.JSONln(parentArgv)
+
 		return nil
 	},
 }

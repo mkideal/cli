@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -141,6 +142,27 @@ func (ctx *Context) GetArgvList(curr interface{}, parents ...interface{}) error 
 		}
 	}
 	return nil
+}
+
+func (ctx *Context) GetArgvAt(argv interface{}, i int) error {
+	if isEmptyArgvList(ctx.argvList) {
+		return argvError{isEmpty: true}
+	}
+	if argv == nil {
+		return errors.New("argv is nil")
+	}
+	if i >= len(ctx.argvList) {
+		return argvError{isOutOfRange: true}
+	}
+	if ctx.argvList[i] == nil {
+		return argvError{ith: i, msg: "source is nil"}
+	}
+
+	buf := bytes.NewBufferString("")
+	if err := json.NewEncoder(buf).Encode(ctx.argvList[i]); err != nil {
+		return err
+	}
+	return json.NewDecoder(buf).Decode(argv)
 }
 
 // IsSet determins whether `flag` is set

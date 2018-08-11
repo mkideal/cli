@@ -33,15 +33,15 @@ echo ===run sub command
 echo
 
 echo =case 1: read from file
-./app sub
+./app sub -w xxx
 echo
 
 echo =case 2: read from ENV variables
-HOST=10.0.0.1 ./app sub
+HOST=10.0.0.1 ./app sub -w xxx
 echo
 
 echo =case 3: read from command line
-HOST=10.0.0.1 ./app sub -H 168.0.0.1
+HOST=10.0.0.1 ./app sub -H 168.0.0.1 -w xxx
 echo
 
 echo
