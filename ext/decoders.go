@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -153,6 +154,13 @@ func (r *Reader) Decode(s string) error {
 	if s == "" {
 		r.reader = os.Stdin
 		r.filename = os.Stdin.Name()
+	} else if strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://") {
+		response, err := http.Get(s)
+		if err != nil {
+			return err
+		}
+		r.reader = response.Body
+		r.filename = s
 	} else {
 		r.filename = s
 		file, err := os.Open(s)
