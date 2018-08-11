@@ -4,7 +4,7 @@ set -e
 
 go build -o app
 
-cat >1.json<<EOF
+cat >app.json<<EOF
 {
 	"host": "127.0.0.1",
 	"port": 8080
@@ -45,5 +45,5 @@ HOST=10.0.0.1 ./app sub -H 168.0.0.1 -w xxx
 echo
 
 echo
-rm 1.json
+rm app.json
 rm app

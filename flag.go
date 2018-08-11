@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -115,6 +117,10 @@ func isWordByte(b byte) bool {
 		b == '_'
 }
 
+const (
+	builtinVar_EXEC_FILENAME = "__EXEC_FILENAME"
+)
+
 func parseExpression(s string, isNumber bool) (string, error) {
 	const escapeByte = '$'
 	var (
@@ -127,11 +133,25 @@ func parseExpression(s string, isNumber bool) (string, error) {
 		if envName == "" {
 			return fmt.Errorf("unexpected end after %v", escapeByte)
 		}
-		env := os.Getenv(envName)
-		if env == "" && isNumber {
-			env = "0"
+		var value string
+		switch envName {
+		case builtinVar_EXEC_FILENAME:
+			filename, err := filepath.Abs(os.Args[0])
+			if err != nil {
+				return err
+			}
+			if runtime.GOOS == "windows" {
+				value = strings.TrimSuffix(filename, ".exe")
+			} else {
+				value = filename
+			}
+		default:
+			value = os.Getenv(envName)
+			if value == "" && isNumber {
+				value = "0"
+			}
 		}
-		exprBuf.WriteString(env)
+		exprBuf.WriteString(value)
 		return nil
 	}
 	for i, b := range src {
