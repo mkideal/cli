@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"path/filepath"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -136,7 +135,7 @@ func parseExpression(s string, isNumber bool) (string, error) {
 		var value string
 		switch envName {
 		case builtinVar_EXEC_FILENAME:
-			filename, err := filepath.Abs(os.Args[0])
+			filename, err := os.Executable()
 			if err != nil {
 				return err
 			}
