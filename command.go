@@ -37,9 +37,14 @@ type (
 	UsageFunc func() string
 )
 
-func ExactN(num int) NumCheckFunc  { return func(n int) bool { return n == num } }
+// ExactN returns a NumCheckFunc which checks if a number is equal to num
+func ExactN(num int) NumCheckFunc { return func(n int) bool { return n == num } }
+
+// AtLeast returns a NumCheckFunc which checks if a number is greater than or equal to num
 func AtLeast(num int) NumCheckFunc { return func(n int) bool { return n >= num } }
-func AtMost(num int) NumCheckFunc  { return func(n int) bool { return n <= num } }
+
+// AtLeast returns a NumCheckFunc which checks if a number is less than or equal to num
+func AtMost(num int) NumCheckFunc { return func(n int) bool { return n <= num } }
 
 type (
 	// Command is the top-level instance in command-line app
@@ -49,17 +54,27 @@ type (
 		Desc    string   // Command abstract
 		Text    string   // Command detail description
 
+		// CanSubRoute indicates whether to allow incomplete subcommand routing
+		// e.g.
+		//
+		//	./app cmd1 cmd2
+		//
+		// Suppose cmd2 not found in sub-commands of cmd1. Command cmd1 would be
+		// executed if cmd1.CanSubRoute is true, an error returned otherwise.
 		CanSubRoute bool
-		NoHook      bool
-		NoHTTP      bool
-		Global      bool
+
+		// NoHook indicates whether skip hooked functions
+		NoHook bool
+
+		// Global indicates whether it's argv object should be used to sub-command
+		Global bool
 
 		// functions
-		Fn        CommandFunc // Command handler
-		UsageFn   UsageFunc   // Custom usage function
-		Argv      ArgvFunc    // Command argument factory function
-		NumArg    NumCheckFunc
-		NumOption NumCheckFunc
+		Fn        CommandFunc  // Command handler
+		UsageFn   UsageFunc    // Custom usage function
+		Argv      ArgvFunc     // Command argument factory function
+		NumArg    NumCheckFunc // NumArg check number of args
+		NumOption NumCheckFunc // NumOption check num of options
 
 		HTTPRouters []string
 		HTTPMethods []string

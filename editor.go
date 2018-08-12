@@ -28,6 +28,7 @@ func randomFilename() string {
 	return fmt.Sprintf(".%x", buf)
 }
 
+// LaunchEditor launchs the specified editor with a random filename
 func LaunchEditor(editor string) (content []byte, err error) {
 	return launchEditorWithFilename(editor, randomFilename())
 }

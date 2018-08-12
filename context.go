@@ -110,6 +110,7 @@ func (ctx *Context) Argv() interface{} {
 	return ctx.argvList[0]
 }
 
+// RootArgv returns parsed root args object
 func (ctx *Context) RootArgv() interface{} {
 	if isEmptyArgvList(ctx.argvList) {
 		return nil
@@ -118,6 +119,7 @@ func (ctx *Context) RootArgv() interface{} {
 	return ctx.argvList[index]
 }
 
+// GetArgvList gets argv objects
 func (ctx *Context) GetArgvList(curr interface{}, parents ...interface{}) error {
 	if isEmptyArgvList(ctx.argvList) {
 		return argvError{isEmpty: true}
@@ -144,6 +146,7 @@ func (ctx *Context) GetArgvList(curr interface{}, parents ...interface{}) error 
 	return nil
 }
 
+// GetArgvAt gets the i-th argv object
 func (ctx *Context) GetArgvAt(argv interface{}, i int) error {
 	if isEmptyArgvList(ctx.argvList) {
 		return argvError{isEmpty: true}

@@ -165,7 +165,6 @@ func ExampleCommand() {
 		Argv:        func() interface{} { return new(childT) },
 		CanSubRoute: true,
 		NoHook:      true,
-		NoHTTP:      true,
 		NumArg:      cli.ExactN(1),
 		HTTPRouters: []string{"/v1/child", "/v2/child"},
 		HTTPMethods: []string{"GET", "POST"},
