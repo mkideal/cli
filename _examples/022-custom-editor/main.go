@@ -18,9 +18,9 @@ func main() {
 		}
 		return cli.DefaultEditor, nil
 	}
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		ctx.String("msg: %s", argv.Msg)
 		return nil
-	})
+	}))
 }

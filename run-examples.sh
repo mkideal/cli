@@ -11,7 +11,7 @@ do
 	cd $EXAMPLE_DIR/$APP
 	SCRIPT="./run.sh"
 	if [ -f "$SCRIPT" ]; then
-		echo ">>>> exmaple: $APP"
+		echo ">>>> example: $APP"
 		chmod +x $SCRIPT
 		$SCRIPT
 	fi

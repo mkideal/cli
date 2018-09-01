@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/mkideal/cli"
 )
 
@@ -10,11 +12,11 @@ type argT struct {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		if argv.Version {
 			ctx.String("v0.0.1\n")
 		}
 		return nil
-	})
+	}))
 }

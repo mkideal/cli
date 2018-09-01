@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/mkideal/cli"
+	"os"
 )
 
 type helloT struct {
@@ -11,9 +12,9 @@ type helloT struct {
 }
 
 func main() {
-	cli.Run(new(helloT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(helloT), func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*helloT)
 		ctx.String("Hello, %s! Your age is %d?\n", argv.Name, argv.Age)
 		return nil
-	})
+	}))
 }

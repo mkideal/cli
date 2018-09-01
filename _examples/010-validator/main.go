@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/mkideal/cli"
 )
@@ -24,8 +25,8 @@ func (argv *argT) Validate(ctx *cli.Context) error {
 }
 
 func main() {
-	cli.Run(new(argT), func(ctx *cli.Context) error {
+	os.Exit(cli.Run(new(argT), func(ctx *cli.Context) error {
 		ctx.JSONln(ctx.Argv())
 		return nil
-	})
+	}))
 }
