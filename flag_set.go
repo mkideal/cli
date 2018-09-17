@@ -183,10 +183,17 @@ func (fs flagSlice) String(clr color.Color) string {
 			usagePrefix = clr.Red("*")
 		}
 		usage := usagePrefix + tag.usage
+		lastNotNewLineIndex := len(usage) - 1
+		for i := len(usage) - 1; i >= 0; i-- {
+			if usage[i] != '\n' {
+				lastNotNewLineIndex = i
+				break
+			}
+		}
 
 		// move defaultStr to the end when in DenseNormalStyle
 		if defaultStyle == DenseNormalStyle {
-			usage += " " + defaultStr
+			usage = usage[:lastNotNewLineIndex+1] + " " + defaultStr + usage[lastNotNewLineIndex+1:]
 			defaultStr = ""
 			lenDft = 0
 		}
