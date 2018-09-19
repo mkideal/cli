@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -117,6 +118,7 @@ func isWordByte(b byte) bool {
 }
 
 const (
+	builtinVar_EXEC_PATH     = "__EXEC_PATH"
 	builtinVar_EXEC_FILENAME = "__EXEC_FILENAME"
 )
 
@@ -134,6 +136,12 @@ func parseExpression(s string, isNumber bool) (string, error) {
 		}
 		var value string
 		switch envName {
+		case builtinVar_EXEC_PATH:
+			filename, err := os.Executable()
+			if err != nil {
+				return err
+			}
+			value = filepath.Dir(filename)
 		case builtinVar_EXEC_FILENAME:
 			filename, err := os.Executable()
 			if err != nil {
