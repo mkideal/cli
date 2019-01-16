@@ -18,6 +18,9 @@ func TestTag(t *testing.T) {
 		Prompt string `cli:"prompt" prompt:"hello,prompt"`
 		Parser string `cli:"parser" parser:"json"`
 		Sep    string `cli:"sep" sep:":"`
+		Multi  string `cli:"multi" 
+			usage:"multi usage"
+			dft:"dft-value"`
 
 		Required     string `cli:"*r"`
 		Force        string `cli:"!f"`
@@ -129,6 +132,13 @@ func TestTag(t *testing.T) {
 			assert.False(t, tag.isEdit)
 			assert.Equal(t, tag.shortNames, []string{"-x", "-y", "-z"})
 			assert.Equal(t, tag.longNames, []string{"--xy", "--yz", "--xyz"})
+		case "Multi":
+			assert.Equal(t, tag.usage, "multi usage")
+			assert.Equal(t, tag.dft, "dft-value")
+		case "Empty":
+			assert.Equal(t, tag, (*tagProperty)(nil))
+		default:
+			panic("uncovered case " + typField.Name)
 		}
 	}
 }

@@ -51,12 +51,14 @@ type tagProperty struct {
 	longNames  []string
 }
 
-func parseTag(fieldName string, tag reflect.StructTag) (p *tagProperty, isEmpty bool, err error) {
+func parseTag(fieldName string, structTag reflect.StructTag) (p *tagProperty, isEmpty bool, err error) {
 	p = &tagProperty{
 		shortNames: []string{},
 		longNames:  []string{},
 	}
 	cliLikeTagCount := 0
+
+	tag := newMultiTag(string(structTag))
 
 	// `cli` TAG
 	cli := tag.Get(tagCli)
