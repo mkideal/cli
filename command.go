@@ -43,7 +43,7 @@ func ExactN(num int) NumCheckFunc { return func(n int) bool { return n == num } 
 // AtLeast returns a NumCheckFunc which checks if a number is greater than or equal to num
 func AtLeast(num int) NumCheckFunc { return func(n int) bool { return n >= num } }
 
-// AtLeast returns a NumCheckFunc which checks if a number is less than or equal to num
+// AtMost returns a NumCheckFunc which checks if a number is less than or equal to num
 func AtMost(num int) NumCheckFunc { return func(n int) bool { return n <= num } }
 
 type (
