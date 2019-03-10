@@ -47,12 +47,27 @@ type JSONFileParser struct {
 	ptr interface{}
 }
 
+// JSON config file parser specifically for parser:"jsonfile"
+type JSONCfgFileParser struct {
+	JSONFileParser
+}
+
 func newJSONFileParser(ptr interface{}) FlagParser {
 	return &JSONFileParser{ptr}
 }
 
+func newJSONCfgFileParser(ptr interface{}) FlagParser {
+	return &JSONCfgFileParser{ptr.(JSONFileParser)}
+}
+
+// Parse for JSONFileParser
 func (p JSONFileParser) Parse(s string) error {
 	return ReadJSONFromFile(s, p.ptr)
+}
+
+// Parse for JSONCfgFileParser
+func (p JSONCfgFileParser) Parse(s string) error {
+	return ReadCfgJSONFromFile(s, p.ptr)
 }
 
 // URL parser
