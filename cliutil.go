@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/labstack/gommon/color"
@@ -93,12 +94,33 @@ func ReadJSON(r io.Reader, argv interface{}) error {
 	return json.NewDecoder(r).Decode(argv)
 }
 
-// ReadJSONFromFile is similar to ReadJSONFromFile, but read from file
+// ReadJSONFromFile is similar to ReadJSON, but read from file
 func ReadJSONFromFile(filename string, argv interface{}) error {
 	file, err := os.Open(filename)
 	if err == nil {
 		defer file.Close()
 		err = ReadJSON(file, argv)
+	}
+	return err
+}
+
+// ReadJSONConfigFromFile is similar to ReadJSONFromFile, but allows reading file from where the executable file resides as well
+func ReadJSONConfigFromFile(filename string, argv interface{}) error {
+	file, err := os.Open(filename)
+	if err == nil {
+		defer file.Close()
+		err = ReadJSON(file, argv)
+	} else {
+		exe, e := os.Executable()
+		if e != nil {
+			return e
+		}
+		// allow self-config .json files to go with the executable file, #40
+		file, err = os.Open(filepath.Dir(exe) + string(filepath.Separator) + filename)
+		if err == nil {
+			defer file.Close()
+			err = ReadJSON(file, argv)
+		}
 	}
 	return err
 }

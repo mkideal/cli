@@ -26,6 +26,7 @@ func RegisterFlagParser(name string, creator FlagParserCreator) {
 func init() {
 	RegisterFlagParser("json", newJSONParser)
 	RegisterFlagParser("jsonfile", newJSONFileParser)
+	RegisterFlagParser("jsoncfg", newJSONConfigFileParser)
 	RegisterFlagParser("url", newURLParser)
 }
 
@@ -53,6 +54,19 @@ func newJSONFileParser(ptr interface{}) FlagParser {
 
 func (p JSONFileParser) Parse(s string) error {
 	return ReadJSONFromFile(s, p.ptr)
+}
+
+// JSON config file parser
+type JSONConfigFileParser struct {
+	ptr interface{}
+}
+
+func newJSONConfigFileParser(ptr interface{}) FlagParser {
+	return &JSONConfigFileParser{ptr}
+}
+
+func (p JSONConfigFileParser) Parse(s string) error {
+	return ReadJSONConfigFromFile(s, p.ptr)
 }
 
 // URL parser

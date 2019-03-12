@@ -14,6 +14,16 @@ func (h Helper) AutoHelp() bool {
 	return h.Help
 }
 
+// Helper2 is builtin Help flag
+type Helper2 struct {
+	Help bool `cli:"!h,help" usage:"Display help information" json:"-"`
+}
+
+// AutoHelp implements AutoHelper interface
+func (h Helper2) AutoHelp() bool {
+	return h.Help
+}
+
 // Deprecated: Addr is builtin host,port flag
 type Addr struct {
 	Host string `cli:"host" usage:"specify host" dft:"0.0.0.0"`
