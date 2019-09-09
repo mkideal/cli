@@ -66,11 +66,13 @@ func Warning(m string) {
 	fmt.Fprintf(os.Stderr, "[%s] %s: %s\n", progname, color.Yellow("Warning"), m)
 }
 
-func WarnOn(errCase string, e error) {
+func WarnOn(errCase string, e error) bool {
 	if e != nil {
 		fmt.Fprintf(os.Stderr, "[%s] %s, %s: %v\n",
 			color.White(progname), color.Yellow("Error"), errCase, e)
+		return true
 	}
+	return false
 }
 
 // abortOn will quit on anticipated errors gracefully without stack trace
