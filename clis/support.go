@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 // Program: support.go
 // Purpose: cli boilerplate runtime support functions
-// Authors: Tong Sun (c) 2015-2018, All rights reserved
+// Authors: Tong Sun (c) 2015-2019, All rights reserved
 ////////////////////////////////////////////////////////////////////////////
 
 package clis
@@ -62,29 +62,35 @@ func IsExist(fileName string) bool {
 	return err == nil || os.IsExist(err)
 }
 
+// Warning will print the given string as a Warning
 func Warning(m string) {
 	fmt.Fprintf(os.Stderr, "[%s] %s: %s\n", progname, color.Yellow("Warning"), m)
 }
 
+// WarnOn will print the error message as a Warning, if applicable,
+// and retur true if so.
+// For a suggested format of "ActionName, step name", the output would be
+//
+//   [progname] Warning: ActionName, step name, sql: Rows are closed
 func WarnOn(errCase string, e error) bool {
 	if e != nil {
-		fmt.Fprintf(os.Stderr, "[%s] %s, %s: %v\n",
-			color.White(progname), color.Yellow("Error"), errCase, e)
+		fmt.Fprintf(os.Stderr, "[%s] %s: %s, %v\n",
+			color.White(progname), color.Yellow("Warning"), errCase, e)
 		return true
 	}
 	return false
 }
 
-// abortOn will quit on anticipated errors gracefully without stack trace
+// AbortOn will quit on the anticipated error gracefully without stack trace
 func AbortOn(errCase string, e error) {
 	if e != nil {
-		fmt.Fprintf(os.Stderr, "[%s] %s, %s: %v\n",
+		fmt.Fprintf(os.Stderr, "[%s] %s: %s, %v\n",
 			color.White(progname), color.Red("Error"), errCase, e)
 		os.Exit(1)
 	}
 }
 
-// verbose will print info to stderr according to the verbose level setting
+// Verbose will print info to stderr according to the verbose level setting
 func Verbose(levelSet int, format string, args ...interface{}) {
 	if Opts.Verbose >= levelSet {
 		fmt.Fprintf(os.Stderr, "[%s] ", color.White(progname))
