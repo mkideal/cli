@@ -51,6 +51,7 @@ func (t *Time) Decode(s string) error {
 	now := time.Now()
 	if s == "" {
 		t.Time = now
+		t.isSet = true
 		return nil
 	}
 	for _, format := range timeFormats {
