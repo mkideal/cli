@@ -13,7 +13,6 @@ import (
 
 	"github.com/labstack/gommon/color"
 	"github.com/mattn/go-colorable"
-	"github.com/mkideal/pkg/debug"
 )
 
 var commandNameRegexp = regexp.MustCompile("^[a-zA-Z_0-9][a-zA-Z_\\-0-9]*$")
@@ -110,24 +109,24 @@ type (
 // Register registers a child command
 func (cmd *Command) Register(child *Command) *Command {
 	if child == nil {
-		debug.Panicf("command `%s` try register a nil command", cmd.Name)
+		panic("command `" + cmd.Name + "` try register a nil command")
 	}
 	if !IsValidCommandName(child.Name) {
-		debug.Panicf("illegal command name `%s`", cmd.Name)
+		panic("illegal command name `" + cmd.Name + "`")
 	}
 	if cmd.children == nil {
 		cmd.children = []*Command{}
 	}
 	if child.parent != nil {
-		debug.Panicf("command `%s` has been child of `%s`", child.Name, child.parent.Name)
+		panic("command `" + child.Name + "` has been child of `" + child.parent.Name + "`")
 	}
 	if cmd.findChild(child.Name) != nil {
-		debug.Panicf("repeat register child `%s` for command `%s`", child.Name, cmd.Name)
+		panic("repeat register child `" + child.Name + "` for command `" + cmd.Name + "`")
 	}
 	if child.Aliases != nil {
 		for _, alias := range child.Aliases {
 			if cmd.findChild(alias) != nil {
-				debug.Panicf("repeat register child `%s` for command `%s`", alias, cmd.Name)
+				panic("repeat register child `" + alias + "` for command `" + cmd.Name + "`")
 			}
 		}
 	}
@@ -390,7 +389,6 @@ func (cmd *Command) defaultUsageFn(ctx *Context) string {
 	usageStyle := cmd.usageStyle
 	cmd.locker.Unlock()
 	if tmpUsage != "" && usageStyle == style {
-		debug.Debugf("get usage of command %s from cache", clr.Bold(cmd.Name))
 		return tmpUsage
 	}
 

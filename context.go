@@ -11,7 +11,6 @@ import (
 
 	"github.com/labstack/gommon/color"
 	"github.com/mattn/go-colorable"
-	"github.com/mkideal/pkg/debug"
 )
 
 type (
@@ -185,7 +184,7 @@ func (ctx *Context) IsSet(flag string, aliasFlags ...string) bool {
 // FormValues returns parsed args as url.Values
 func (ctx *Context) FormValues() url.Values {
 	if ctx.flagSet == nil {
-		debug.Panicf("ctx.flagSet == nil")
+		panic("ctx.flagSet == nil")
 	}
 	return ctx.flagSet.values
 }

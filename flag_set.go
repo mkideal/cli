@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/Bowery/prompt"
 	"github.com/labstack/gommon/color"
+	"github.com/mkideal/pkg/prompt"
 )
 
 type flagSet struct {
@@ -37,7 +37,7 @@ func (fs *flagSet) readPrompt(w io.Writer, clr color.Color) {
 			continue
 		}
 		// read ...
-		prefix := fl.tag.prompt + ": "
+		prefix := fl.tag.prompt + ":"
 		var (
 			data string
 			yes  bool
@@ -48,17 +48,17 @@ func (fs *flagSet) readPrompt(w io.Writer, clr color.Color) {
 				fl.setWithNoDelay("", data, clr)
 			}
 		} else if fl.isBoolean() {
-			yes, fs.err = prompt.Ask(prefix)
+			yes, fs.err = prompt.Ask(prefix, false)
 			if fs.err == nil {
 				fl.setWithNoDelay("", fmt.Sprintf("%v", yes), clr)
 			}
 		} else if fl.tag.dft != "" {
-			data, fs.err = prompt.BasicDefault(prefix, fl.tag.dft)
+			data, fs.err = prompt.PromptDefault(prefix, fl.tag.dft)
 			if fs.err == nil {
 				fl.setWithNoDelay("", data, clr)
 			}
 		} else {
-			data, fs.err = prompt.Basic(prefix, fl.tag.isRequired)
+			data, fs.err = prompt.Prompt(prefix, fl.tag.isRequired)
 			if fs.err == nil {
 				fl.setWithNoDelay("", data, clr)
 			}

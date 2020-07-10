@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/labstack/gommon/color"
-	"github.com/mkideal/pkg/debug"
 )
 
 // RegisterHTTP init HTTPRouters for command
@@ -78,9 +77,6 @@ func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		args = append(args, key, values[len(values)-1])
 	}
-	debug.Debugf("agent: %s", r.UserAgent())
-	debug.Debugf("path: %s", path)
-	debug.Debugf("args: %q", args)
 
 	buf := new(bytes.Buffer)
 	statusCode := http.StatusOK
@@ -101,7 +97,6 @@ func (cmd *Command) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			statusCode = http.StatusInternalServerError
 		}
 	}
-	debug.Debugf("resp: %s", buf.String())
 	w.WriteHeader(statusCode)
 	w.Write(buf.Bytes())
 }
