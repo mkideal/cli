@@ -37,7 +37,7 @@ func (fs *flagSet) readPrompt(w io.Writer, clr color.Color) {
 			continue
 		}
 		// read ...
-		prefix := fl.tag.prompt + ":"
+		prefix := fl.tag.prompt + ": "
 		var (
 			data string
 			yes  bool
