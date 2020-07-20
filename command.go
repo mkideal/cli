@@ -194,6 +194,9 @@ func (cmd *Command) RunWith(args []string, writer io.Writer, resp http.ResponseW
 	}
 
 	if err != nil {
+		fmt.Printf("Color:%v\n", clr)
+		clr.Enable()
+		fmt.Println("suggestion", suggestion)
 		if cmd.OnRootPrepareError != nil {
 			err = cmd.OnRootPrepareError(err)
 		}

@@ -67,6 +67,8 @@ github.com/mattn/go-isatty v0.0.12 h1:wuysRhFDzyxgEmMf5xjvJ2M9dZoWAXNNr5LSBS7uHX
 github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Kysco4FUpU=
 github.com/mattn/go-sqlite3 v1.10.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
+github.com/mkideal/cli v0.2.2 h1:ppqXv4Ced8Hf1KLEfzwcfeAHXuGRwEnFB7xE/iWWPQo=
+github.com/mkideal/cli v0.2.2/go.mod h1:1duqF+rGhMKIF8ezbX/lpkY+Zhn1ECQzzTtcsEh6ZA8=
 github.com/mkideal/log v1.0.0/go.mod h1:UHY5EOk5+/f2z2bQ6BGspFw5gl4F1SKjZI7Bqetm724=
 github.com/mkideal/pkg v0.1.2 h1:w4CGlOIp9exb1Ypo+XrbIR75ZRruzScNNcX840DSCQ8=
 github.com/mkideal/pkg v0.1.2/go.mod h1:4iVkIRF6ThYaNZtD6J/p9gHdy5nXv7EJ+cKuzmmFPAY=
