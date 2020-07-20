@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"runtime"
 	"strings"
 
 	"github.com/labstack/gommon/color"
@@ -81,11 +82,14 @@ func wrapErr(err error, appendString string, clr color.Color) error {
 	if err == nil {
 		return err
 	}
-	fmt.Println("Error:", err.Error())
+
+	if runtime.GOOS == "windows" {
+		clr.Disable()
+	}
+
 	errs := strings.Split(err.Error(), "\n")
 	buff := bytes.NewBufferString("")
 	errPrefix := clr.Red("ERR!") + " "
-	fmt.Println("errPrefix:", errPrefix)
 	for i, e := range errs {
 		if i != 0 {
 			buff.WriteByte('\n')
@@ -94,7 +98,6 @@ func wrapErr(err error, appendString string, clr color.Color) error {
 		buff.WriteString(e)
 	}
 	buff.WriteString(appendString)
-	fmt.Println("buff.String():", buff.String())
 	return wrapError{err: err, msg: buff.String()}
 }
 
