@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"runtime"
 	"strings"
 
 	"github.com/labstack/gommon/color"
@@ -81,10 +80,6 @@ func (e wrapError) Error() string {
 func wrapErr(err error, appendString string, clr color.Color) error {
 	if err == nil {
 		return err
-	}
-
-	if runtime.GOOS == "windows" {
-		clr.Disable()
 	}
 
 	errs := strings.Split(err.Error(), "\n")

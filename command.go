@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -185,6 +186,10 @@ func (cmd *Command) RunWith(args []string, writer io.Writer, resp http.ResponseW
 	}
 	clr := color.Color{}
 	colorSwitch(&clr, writer, fds...)
+
+	if runtime.GOOS == "windows" {
+		clr.Disable()
+	}
 
 	var ctx *Context
 	var suggestion string
