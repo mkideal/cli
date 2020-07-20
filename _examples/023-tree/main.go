@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 	"os"
 )
 

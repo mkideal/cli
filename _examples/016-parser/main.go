@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type config struct {

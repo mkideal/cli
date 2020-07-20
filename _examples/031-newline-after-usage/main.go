@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 	"os"
 )
 

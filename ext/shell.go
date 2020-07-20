@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 // InstallBashCompletion install bash_completion

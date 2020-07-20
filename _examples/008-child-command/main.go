@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 func main() {

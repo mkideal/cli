@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {

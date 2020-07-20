@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 var sockFile = filepath.Join(os.Getenv("HOME"), ".rpc.sock")

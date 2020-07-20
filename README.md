@@ -1,7 +1,7 @@
 Command line interface
 ======================
 
-[![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE) [![Travis branch](https://img.shields.io/travis/mkideal/cli/master.svg)](https://travis-ci.org/mkideal/cli) [![Coverage Status](https://coveralls.io/repos/github/mkideal/cli/badge.svg?branch=master)](https://coveralls.io/github/mkideal/cli?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/mkideal/cli)](https://goreportcard.com/report/github.com/mkideal/cli) [![GoDoc](https://godoc.org/github.com/mkideal/cli?status.svg)](https://godoc.org/github.com/mkideal/cli)
+[![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/mkideal/cli/master/LICENSE) [![Travis branch](https://img.shields.io/travis/mkideal/cli/master.svg)](https://travis-ci.org/mkideal/cli) [![Coverage Status](https://coveralls.io/repos/github/mkideal/cli/badge.svg?branch=master)](https://coveralls.io/github/mkideal/cli?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/akeylesslabs/cli)](https://goreportcard.com/report/github.com/akeylesslabs/cli) [![GoDoc](https://godoc.org/github.com/akeylesslabs/cli?status.svg)](https://godoc.org/github.com/akeylesslabs/cli)
 
 Screenshot
 ----------
@@ -26,7 +26,7 @@ Key features
 API documentation
 -----------------
 
-See [**godoc**](https://godoc.org/github.com/mkideal/cli)
+See [**godoc**](https://godoc.org/github.com/akeylesslabs/cli)
 
 Examples
 --------
@@ -67,7 +67,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -102,7 +102,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -155,7 +155,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -193,7 +193,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -242,7 +242,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -279,7 +279,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -319,7 +319,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -362,7 +362,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 func main() {
@@ -467,7 +467,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -511,7 +511,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -564,7 +564,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -604,7 +604,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type exampleDecoder struct {
@@ -649,8 +649,8 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
-	clix "github.com/mkideal/cli/ext"
+	"github.com/akeylesslabs/cli"
+	clix "github.com/akeylesslabs/cli/ext"
 )
 
 type argT struct {
@@ -685,8 +685,8 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
-	clix "github.com/mkideal/cli/ext"
+	"github.com/akeylesslabs/cli"
+	clix "github.com/akeylesslabs/cli/ext"
 )
 
 type argT struct {
@@ -722,8 +722,8 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
-	clix "github.com/mkideal/cli/ext"
+	"github.com/akeylesslabs/cli"
+	clix "github.com/akeylesslabs/cli/ext"
 )
 
 type argT struct {
@@ -770,7 +770,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type config struct {
@@ -822,7 +822,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type config struct {
@@ -870,7 +870,7 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type myParser struct {
@@ -949,7 +949,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 func main() {
@@ -1063,7 +1063,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -1138,7 +1138,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {
@@ -1176,7 +1176,7 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type argT struct {

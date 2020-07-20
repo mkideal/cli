@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/mkideal/cli"
-	clix "github.com/mkideal/cli/ext"
+	"github.com/akeylesslabs/cli"
+	clix "github.com/akeylesslabs/cli/ext"
 )
 
 type argT struct {

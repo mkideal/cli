@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 type exampleDecoder struct {

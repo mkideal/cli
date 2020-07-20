@@ -285,7 +285,7 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 			}
 		}
 		suggestion = buff.String()
-		err = throwCommandNotFound(clr.Yellow(path))
+		err = throwCommandNotFound(clr.Red(path))
 		return
 	}
 

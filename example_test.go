@@ -6,7 +6,7 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/mkideal/cli"
+	"github.com/akeylesslabs/cli"
 )
 
 func ExampleRun() {
