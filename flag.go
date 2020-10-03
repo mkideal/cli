@@ -493,7 +493,7 @@ func getBool(s string, clr color.Color) (bool, error) {
 }
 
 func getInt(s string, clr color.Color) (int64, error) {
-	i, err := strconv.ParseInt(s, 10, 64)
+	i, err := strconv.ParseInt(s, 0, 64)
 	if err != nil {
 		return 0, fmt.Errorf("`%s' couldn't converted to an %s", s, clr.Bold("int"))
 	}
@@ -501,7 +501,7 @@ func getInt(s string, clr color.Color) (int64, error) {
 }
 
 func getUint(s string, clr color.Color) (uint64, error) {
-	i, err := strconv.ParseUint(s, 10, 64)
+	i, err := strconv.ParseUint(s, 0, 64)
 	if err != nil {
 		return 0, fmt.Errorf("`%s' couldn't converted to an %s", s, clr.Bold("uint"))
 	}
