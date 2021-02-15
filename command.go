@@ -521,7 +521,7 @@ func (cmd *Command) ChildrenDescriptions(prefix, indent string) string {
 	for _, child := range cmd.children {
 		aliases := ""
 		if child.Aliases != nil && len(child.Aliases) > 0 {
-			aliasesBuff := bytes.NewBufferString("(aliases ")
+			aliasesBuff := bytes.NewBufferString(" (aliases ")
 			aliasesBuff.WriteString(strings.Join(child.Aliases, ","))
 			aliasesBuff.WriteString(")")
 			aliases = aliasesBuff.String()
