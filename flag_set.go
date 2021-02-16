@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/labstack/gommon/color"
-	"github.com/mkideal/pkg/prompt"
 )
 
 type flagSet struct {
@@ -43,22 +42,22 @@ func (fs *flagSet) readPrompt(w io.Writer, clr color.Color) {
 			yes  bool
 		)
 		if fl.tag.isPassword {
-			data, fs.err = prompt.Password(prefix)
+			data, fs.err = password(prefix)
 			if fs.err == nil && data != "" {
 				fl.setWithNoDelay("", data, clr)
 			}
 		} else if fl.isBoolean() {
-			yes, fs.err = prompt.Ask(prefix, false)
+			yes, fs.err = ask(prefix, false)
 			if fs.err == nil {
 				fl.setWithNoDelay("", fmt.Sprintf("%v", yes), clr)
 			}
 		} else if fl.tag.dft != "" {
-			data, fs.err = prompt.PromptDefault(prefix, fl.tag.dft)
+			data, fs.err = promptDefault(prefix, fl.tag.dft)
 			if fs.err == nil {
 				fl.setWithNoDelay("", data, clr)
 			}
 		} else {
-			data, fs.err = prompt.Prompt(prefix, fl.tag.isRequired)
+			data, fs.err = prompt(prefix, fl.tag.isRequired)
 			if fs.err == nil {
 				fl.setWithNoDelay("", data, clr)
 			}

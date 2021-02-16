@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/labstack/gommon/color"
-	"github.com/mkideal/pkg/expr"
+	"github.com/mkideal/expr"
 )
 
 type flag struct {
