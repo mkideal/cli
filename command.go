@@ -271,7 +271,7 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 	child, end := cmd.SubRoute(router)
 
 	// if route fail
-	if !child.CanSubRoute && end != len(router) {
+	if len(child.children) > 0 && !child.CanSubRoute && end != len(router) {
 		suggestions := cmd.Suggestions(path)
 		buff := bytes.NewBufferString("")
 		if suggestions != nil && len(suggestions) > 0 {
