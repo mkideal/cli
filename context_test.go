@@ -104,6 +104,25 @@ func TestContextMisc(t *testing.T) {
 	assert.Nil(t, root.RunWith([]string{"parent", "cmd", "--hello=world", "a", "b", "c"}, nil, nil))
 }
 
+func TestPositionalArguments(t *testing.T) {
+	type argT struct{}
+	root := &Command{Name: "root"}
+	parent := &Command{Name: "parent", Fn: donothing}
+	cmd := &Command{
+		Name: "cmd",
+		Argv: func() interface{} { return new(argT) },
+		Fn: func(ctx *Context) error {
+			assert.Equal(t, ctx.Args(), []string{"a", "b", "c"})
+			assert.Equal(t, ctx.NativeArgs(), []string{"a", "b", "c"})
+			assert.Equal(t, ctx.Command().Name, "cmd")
+			return nil
+		},
+	}
+	root.Register(parent)
+	parent.Register(cmd)
+	assert.Nil(t, root.RunWith([]string{"parent", "cmd", "a", "b", "c"}, nil, nil))
+}
+
 func TestContextWriter(t *testing.T) {
 	w := bytes.NewBufferString("")
 	assert.Nil(t, (&Command{
