@@ -227,7 +227,11 @@ func (ctx *Context) Color() *color.Color {
 
 // String writes formatted string to writer
 func (ctx *Context) String(format string, args ...interface{}) *Context {
-	fmt.Fprintf(ctx.Writer(), format, args...)
+	if len(args) == 0 {
+		fmt.Fprint(ctx.Writer(), format)
+	} else {
+		fmt.Fprintf(ctx.Writer(), format, args...)
+	}
 	return ctx
 }
 
