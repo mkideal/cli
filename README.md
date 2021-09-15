@@ -53,6 +53,7 @@ Examples
 -	[Example 20: How to use **Daemon**](#example-20-daemon)
 -	[Example 21: How to use **Editor**](#example-21-editor)
 -	[Example 22: Custom **Editor**](#example-22-custom-editor)
+-	[Example 23: How to hide/disable/deprecate **flag**](#example-23-hide-flag)
 
 ### Example 1: Hello
 
@@ -1205,4 +1206,46 @@ $ ./app -m "hello, editor"
 msg: hello, editor
 $ EDITOR=nano ./app # Then, launch nano and type `hello, editor`, quit the editor
 msg: hello, editor
+```
+
+### Example 23: Hide flag
+
+[back to **examples**](#examples)
+
+```go
+// main.go
+// This example hides Gender and InternalUsage flags.
+package main
+
+import (
+	"os"
+
+	"github.com/mkideal/cli"
+)
+
+type helloT struct {
+	cli.Helper
+	Name          string `cli:"name" usage:"tell me your name" dft:"world"`
+	Gender        string `cli:"-"` // deprecated
+	InternalUsage string `cli:"-"` // hide
+	Age           uint8  `cli:"a,age" usage:"tell me your age" dft:"100"`
+}
+
+func main() {
+	os.Exit(cli.Run(new(helloT), func(ctx *cli.Context) error {
+		argv := ctx.Argv().(*helloT)
+		ctx.String("Hello, %s! Your age is %d?\n", argv.Name, argv.Age)
+		return nil
+	}))
+}
+```
+
+```sh
+$ go build -o app
+$ ./app -h
+Options:
+
+  -h, --help           display help information
+      --name[=world]   tell me your name
+  -a, --age[=100]      tell me your age
 ```
