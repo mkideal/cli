@@ -35,7 +35,7 @@ func (argv *argT) Validate(ctx *cli.Context) error {
 		return fmt.Errorf("too many(%d) commands, can only create one command", len(args))
 	}
 	argv.Name = ctx.Args()[0]
-	if cli.IsValidCommandName(argv.Name) {
+	if !cli.IsValidCommandName(argv.Name) {
 		return fmt.Errorf("invalid command name: %s", yellow(argv.Name))
 	}
 	if argv.File == "" {
@@ -128,10 +128,10 @@ func main() {
 		return run(ctx, argv)
 	}, fmt.Sprintf(`%s used to create a new command for github.com/mkideal/cli
 
-%s: clier [OPTIONS] COMMAND-NAME
+%s: yocli [OPTIONS] COMMAND-NAME
 
 %s:
-	clier hello
-	clier -f -s "balabalabala" hello
-	clier -p balabala hello`, color.Bold("clier"), color.Bold("Usage"), color.Bold("Examples"))))
+	yocli hello
+	yocli -f -s "balabalabala" hello
+	yocli -p balabala hello`, color.Bold("clier"), color.Bold("Usage"), color.Bold("Examples"))))
 }
