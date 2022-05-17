@@ -35,7 +35,7 @@ func (argv *argT) Validate(ctx *cli.Context) error {
 		return fmt.Errorf("too many(%d) commands, can only create one command", len(args))
 	}
 	argv.Name = ctx.Args()[0]
-	if cli.IsValidCommandName(argv.Name) {
+	if !cli.IsValidCommandName(argv.Name) {
 		return fmt.Errorf("invalid command name: %s", yellow(argv.Name))
 	}
 	if argv.File == "" {
