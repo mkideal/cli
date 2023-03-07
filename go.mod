@@ -9,5 +9,5 @@ require (
 	github.com/mkideal/expr v0.1.0
 	github.com/mkideal/pkg v0.1.3
 	github.com/stretchr/testify v1.4.0
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/crypto v0.1.0
 )
