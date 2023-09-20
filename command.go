@@ -53,6 +53,7 @@ type (
 		Aliases []string // Command aliases name
 		Desc    string   // Command abstract
 		Text    string   // Command detail description
+		Hidden  bool     // should hide command in help menus
 
 		// CanSubRoute indicates whether to allow incomplete subcommand routing
 		// e.g.
@@ -337,7 +338,9 @@ func (cmd *Command) prepare(clr color.Color, args []string, writer io.Writer, re
 	for _, argv := range argvList {
 		if argv != nil {
 			if helper, ok := argv.(AutoHelper); ok && helper.AutoHelp() {
-				ctx.WriteUsage()
+				if !ctx.command.Hidden {
+					ctx.WriteUsage()
+				}
 				err = ExitError
 				return
 			}
@@ -524,6 +527,10 @@ func (cmd *Command) ChildrenDescriptions(prefix, indent string) string {
 	}
 	format := fmt.Sprintf("%s%%-%ds%s%%s%%s\n", prefix, length, indent)
 	for _, child := range cmd.children {
+		if child.Hidden {
+			continue
+		}
+
 		aliases := ""
 		if child.Aliases != nil && len(child.Aliases) > 0 {
 			aliasesBuff := bytes.NewBufferString("(aliases ")
