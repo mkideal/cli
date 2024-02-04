@@ -526,6 +526,8 @@ func (cmd *Command) ChildrenDescriptions(prefix, indent string) string {
 		}
 	}
 	format := fmt.Sprintf("%s%%-%ds%s%%s%%s\n", prefix, length, indent)
+
+	var childrenList []string
 	for _, child := range cmd.children {
 		if child.Hidden {
 			continue
@@ -538,7 +540,15 @@ func (cmd *Command) ChildrenDescriptions(prefix, indent string) string {
 			aliasesBuff.WriteString(")")
 			aliases = aliasesBuff.String()
 		}
-		fmt.Fprintf(buff, format, child.Name, child.Desc, aliases)
+
+		childStr := fmt.Sprintf(format, child.Name, child.Desc, aliases)
+		childrenList = append(childrenList, childStr)
+	}
+
+	sort.Strings(childrenList)
+
+	for _, line := range childrenList {
+		fmt.Fprint(buff, line)
 	}
 	return buff.String()
 }
