@@ -436,7 +436,7 @@ func splitKeyVal(s, sep string) (key, val string, err error) {
 	if index == -1 {
 		return s, "", nil
 	}
-	return s[:index], s[index+1:], nil
+	return s[:index], s[index+len(sep):], nil
 }
 
 func minmaxIntCheck(kind reflect.Kind, v int64) bool {

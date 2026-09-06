@@ -727,3 +727,24 @@ func TestDecoder(t *testing.T) {
 	assert.Nil(t, flagSet.err)
 	assert.Equal(t, v.D, customT{K1: "string", K2: 2})
 }
+
+func TestMapMultiCharSep(t *testing.T) {
+	// A multi-character separator must not leak its tail into the value.
+	if k, v, _ := splitKeyVal("key=>val", "=>"); k != "key" || v != "val" {
+		t.Errorf(`splitKeyVal("key=>val", "=>") = (%q, %q), want ("key", "val")`, k, v)
+	}
+
+	// Public API: a map flag configured with a multi-char sep.
+	type T struct {
+		Map map[string]string `cli:"m" sep:"=>"`
+	}
+	clr := color.Color{}
+	v := new(T)
+	flagSet := parseArgv([]string{"-mkey=>val"}, v, clr)
+	if flagSet.err != nil {
+		t.Fatalf("unexpected error: %v", flagSet.err)
+	}
+	if got := v.Map["key"]; got != "val" {
+		t.Errorf(`map value = %q, want "val"`, got)
+	}
+}
